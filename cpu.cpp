@@ -2402,7 +2402,7 @@ const void cpu::pushStack(memory* memory, unsigned char &data, ppu* ppu)
 const unsigned char cpu::popStack(memory* memory,ppu* ppu)
 {
 	SP++;
-	if(SP == 0x2000) SP = 0x0100;
+	if(SP == 0x0200) SP = 0x0100;
 	return( memory->readRAM(SP, ppu) );
 }
 
