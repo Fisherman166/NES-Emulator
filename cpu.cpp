@@ -1,15 +1,15 @@
 #include "cpu.h"
 
-cpu::cpu(): A(0), X(0), Y(0), SP(0x01FD), cycles(0), initialCycles(0),C(false),Z(false), I(false), D(false),
-		B(false), V(false), N(false)
+cpu::cpu(): A(0), X(0), Y(0), SP(0x01FD), cycles(0), C(false), Z(false), I(false), D(false),
+		V(false), N(false)
 {
-	debugFile.open("debug.txt");
-	debugFile.setf(ios::hex, ios::basefield);
+	//debugFile.open("//debug.txt");
+	//debugFile.setf(ios::hex, ios::basefield);
 }
 
 cpu::~cpu()
 {
-	debugFile.close();
+	//debugFile.close();
 }
 
 unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
@@ -24,20 +24,20 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 		unsigned char statusByte;		//Used for putting status flags into a byte
 		bool statusFlags[8];			//Used for putting status flags into a byte
 		bool outputFlags[8] = {false, false, false, false, false, false, false, false}; //For getting flags off stack
-		char debugOffset;			//Used for debugging branches
+		//char //debugOffset;			//Used for //debugging branches
 		bool oldBit7, oldBit0;			//Used for rotation instructions
 		unsigned char opcode;
 
 	
-		//InitialA and initialCycles are used in the switch.  Rest are for debugging
+		//InitialA and initialCycles are used in the switch.  Rest are for //debugging
 		initialA = A;
-		initialX = X;
+		/*initialX = X;
 		initialY = Y;
 		initialSP = SP;
 		initialCycles = (initialCycles + (cycles * 3)) % 341;
 		statusFlags[0] = C, statusFlags[1] = Z, statusFlags[2] = I, statusFlags[3] = D,
 		statusFlags[4] = B, statusFlags[5] = 1, statusFlags[6] = V, statusFlags[7] = N;
-		initialP = encodeBits(statusFlags);
+		initialP = encodeBits(statusFlags);*/
 
 		opcode = memory->readRAM(PC, ppu); 		//Fetching opcode
 		PC++;						//Increments after fetch
@@ -52,7 +52,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			N = A & 0x80;
 			V = (initialA ^ temp1) & (data ^ temp1) & 0x80;		//Checks the sign of the inputs and result
-			debugImm(opcode, data, "ADC");
+			//debugImm(opcode, data, "ADC");
 			cycles =  2;
 			PC++;
 			break; 
@@ -65,7 +65,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "ADC");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "ADC");
 			cycles =  3;
 			PC++;
 			break; 
@@ -78,7 +78,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "ADC");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "ADC");
 			cycles =  4;
 			PC++;
 			break;
@@ -91,7 +91,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "ADC");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "ADC");
 			cycles =  4;
 			PC += 2;
 			break;
@@ -104,7 +104,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "ADC");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "ADC");
 			pageBoundry((temp1 - X), temp1, 4);
 			PC += 2;
 			break;
@@ -117,7 +117,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "ADC");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "ADC");
 			pageBoundry((temp1 - Y), temp1, 4);
 			PC += 2;
 			break;
@@ -130,7 +130,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			C = ((initialA + data + C) >> 8) & 1;	//Needs to use the initial value for the right bit.
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "ADC");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "ADC");
 			cycles =  6;
 			PC++;
 			break;
@@ -143,7 +143,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			C = ((initialA + data + C) >> 8) & 1;
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "ADC");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "ADC");
 			pageBoundry((temp2 - Y), temp2, 5);
 			PC++;
 			break;
@@ -151,7 +151,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A & memory->readRAM(PC, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugImm(opcode, memory->readRAM(PC, ppu), "AND");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "AND");
 			cycles =  2;
 			PC++;
 			break;
@@ -161,7 +161,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A & data;
 			Z = !(A);
 			N = A & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "AND");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "AND");
 			cycles =  3;
 			PC++;
 			break;
@@ -171,7 +171,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A & data;
 			Z = !(A);
 			N = A & 0x80;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data,"AND");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data,"AND");
 			cycles =  4;
 			PC++;
 			break;
@@ -181,7 +181,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A & data;
 			Z = !(A);
 			N = A & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "AND");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "AND");
 			cycles =  4;
 			PC += 2;
 			break;
@@ -191,7 +191,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A & data;
 			Z = !(A);
 			N = A & 0x80;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "AND");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "AND");
 			pageBoundry((temp1 - X), temp1, 4);
 			PC += 2;
 			break;
@@ -201,7 +201,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A & data;
 			Z = !(A);
 			N = A & 0x80;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "AND");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "AND");
 			pageBoundry((temp1 - Y), temp1, 4);
 			PC += 2;
 			break;
@@ -212,7 +212,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A & data;
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "AND");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "AND");
 			cycles =  6;
 			PC++;
 			break;
@@ -223,7 +223,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A & data;
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "AND");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "AND");
 			pageBoundry((temp2 - Y), temp2, 5);
 			PC++;
 			break;
@@ -233,13 +233,13 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			N = A & 0x80;
 			cycles =  2;
-			debugAcc(opcode, "ASL");
+			//debugAcc(opcode, "ASL");
 			break;
 		case 0x06:	//Zeropage shift left
 			temp1 = memory->readRAM(PC, ppu);	//Gets the ZP address
 			data = memory->readRAM(temp1, ppu);	//Gets data at the address
 			C = data & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "ASL");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "ASL");
 			data <<= 1;				//Shift left
 			memory->writeRAM(temp1, data, ppu);
 			Z = !(data);
@@ -251,7 +251,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF; //Wraps around if >255
 			data = memory->readRAM(temp1, ppu);
 			C = data & 0x80;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "ASL");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "ASL");
 			data <<= 1;				//Shift left
 			memory->writeRAM(temp1, data, ppu);
 			Z = !(data);
@@ -263,7 +263,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);
 			C = data & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "ASL");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "ASL");
 			data <<= 1;				//Shift left
 			memory->writeRAM(temp1, data, ppu);
 			Z = !(data);
@@ -275,7 +275,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
 			data = memory->readRAM(temp1, ppu);
 			C = data & 0x80;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "ASL");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "ASL");
 			data <<= 1;				//Shift left
 			memory->writeRAM(temp1, data, ppu);
 			Z = !(data);
@@ -285,8 +285,8 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			break;
 		case 0x90:	//Branch if carry clear
 			data = memory->readRAM(PC, ppu);			//Needs unsigned information
-			debugOffset = memory->readRAM(PC, ppu);
-			debugRelative(opcode, debugOffset, data, "BCC");
+			//debugOffset = memory->readRAM(PC, ppu);
+			//debugRelative(opcode, //debugOffset, data, "BCC");
 			if(!C) {
 				offset = memory->RAM[PC++];
 				pageBranch(offset);			//Will only add the extra 2 cycles if page crossed
@@ -300,8 +300,8 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			break;
 		 case 0xB0:	//Branch if carry set
 			data = memory->readRAM(PC, ppu);			//Needs unsigned information
-			debugOffset = memory->readRAM(PC, ppu);
-			debugRelative(opcode, debugOffset, data, "BCS");
+			//debugOffset = memory->readRAM(PC, ppu);
+			//debugRelative(opcode, //debugOffset, data, "BCS");
 			if(C) {
 				offset = memory->RAM[PC++];
 				pageBranch(offset);			//Will only add the extra 2 cycles if page crossed
@@ -315,8 +315,8 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			break;
 		case 0xF0:	//Branch if equal (zero flag set)
 			data = memory->readRAM(PC, ppu);			//Needs unsigned information
-			debugOffset = memory->readRAM(PC, ppu);
-			debugRelative(opcode, debugOffset, data, "BEQ");
+			//debugOffset = memory->readRAM(PC, ppu);
+			//debugRelative(opcode, //debugOffset, data, "BEQ");
 			if(Z) {
 				offset = memory->RAM[PC++];
 				pageBranch(offset);			//Will only add the extra 2 cycles if page crossed
@@ -334,7 +334,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A & data);
 			V = data & 0x40;	//Gets the 6th bit only
 			N = data & 0x80;	//Gets the 7th bit only
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "BIT");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "BIT");
 			cycles =  3;
 			PC++;
 			break;
@@ -344,14 +344,14 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A & data);
 			V = data & 0x40;	//Gets the 6th bit only
 			N = data & 0x80;	//Gets the 7th bit only
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "BIT"); 
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "BIT"); 
 			cycles =  4;
 			PC += 2;
 			break;
 		case 0x30:	//Branch if minus (N set)
 			data = memory->readRAM(PC, ppu);			//Needs unsigned information
-			debugOffset = memory->readRAM(PC, ppu);
-			debugRelative(opcode, debugOffset, data, "BMI");
+			//debugOffset = memory->readRAM(PC, ppu);
+			//debugRelative(opcode, //debugOffset, data, "BMI");
 			if(N) {
 				offset = memory->RAM[PC++];
 				pageBranch(offset);			//Will only add the extra 2 cycles if page crossed
@@ -365,8 +365,8 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			break;
 		case 0xD0:	//Branch if not equal (Z not set)
 			data = memory->readRAM(PC, ppu);			//Needs unsigned information
-			debugOffset = memory->readRAM(PC, ppu);
-			debugRelative(opcode, debugOffset, data, "BNE");
+			//debugOffset = memory->readRAM(PC, ppu);
+			//debugRelative(opcode, //debugOffset, data, "BNE");
 			if(!Z) {
 				offset = memory->RAM[PC++];
 				pageBranch(offset);			//Will only add the extra 2 cycles if page crossed
@@ -380,8 +380,8 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			break;
 		case 0x10:	//Branch if positive (N not set)
 			data = memory->readRAM(PC, ppu);			//Needs unsigned information
-			debugOffset = memory->readRAM(PC, ppu);
-			debugRelative(opcode, debugOffset, data, "BPL");
+			//debugOffset = memory->readRAM(PC, ppu);
+			//debugRelative(opcode, //debugOffset, data, "BPL");
 			if(!N) {
 				offset = memory->RAM[PC++];
 				pageBranch(offset);			//Will only add the extra 2 cycles if page crossed
@@ -393,7 +393,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			}
 			PC += offset;	//Moves the PC around if branch suceeds
 			break;
-		case 0x00:	//Force interrupt
+		case 0x00:	//BRK
 			data = (PC & 0xFF00) >> 8;		//Push high byte first
 			pushStack(memory, data, ppu);
 			data = PC & 0x00FF;
@@ -405,14 +405,14 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			statusByte = encodeBits(statusFlags);	//Puts the status flags into a
 			pushStack(memory, statusByte, ppu);				//byte	
 			PC = (memory->RAM[0xFFFF] << 8) | memory->RAM[0xFFFE];
-			B = true;
-			debugImplied(opcode, "BRK");
+			I = true;
+			//debugImplied(opcode, "BRK");
 			cycles =  7;
 			break;
 		case 0x50:	//Branch if overflow clear (V not set)
 			data = memory->readRAM(PC, ppu);			//Needs unsigned information
-			debugOffset = memory->readRAM(PC, ppu);
-			debugRelative(opcode, debugOffset, data, "BVC");
+			//debugOffset = memory->readRAM(PC, ppu);
+			//debugRelative(opcode, //debugOffset, data, "BVC");
 			if(!V) {
 				offset = memory->RAM[PC++];
 				pageBranch(offset);			//Will only add the extra 2 cycles if page crossed
@@ -426,8 +426,8 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			break;
 		case 0x70:	//Branch if overflow set (V set)
 			data = memory->readRAM(PC, ppu);			//Needs unsigned information
-			debugOffset = memory->readRAM(PC, ppu);
-			debugRelative(opcode, debugOffset, data, "BVS");
+			//debugOffset = memory->readRAM(PC, ppu);
+			//debugRelative(opcode, //debugOffset, data, "BVS");
 			if(V) {
 				offset = memory->RAM[PC++];
 				pageBranch(offset);			//Will only add the extra 2 cycles if page crossed
@@ -441,27 +441,27 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			break;
 		case 0x18:	//Clear carry flag
 			C = false;
-			debugImplied(opcode, "CLC");
+			//debugImplied(opcode, "CLC");
 			cycles =  2;
 			break;
 		case 0xD8:	//Clear decimal flag
 			D = false;
-			debugImplied(opcode, "CLD");
+			//debugImplied(opcode, "CLD");
 			cycles =  2;
 			break;
 		case 0x58:	//Clear interrupt flag
 			I = false;
-			debugImplied(opcode, "CLI");
+			//debugImplied(opcode, "CLI");
 			cycles =  2;
 			break;
 		case 0xB8:	//Clear overflow flag
 			V = false;
-			debugImplied(opcode, "CLV");
+			//debugImplied(opcode, "CLV");
 			cycles =  2;
 			break;
 		case 0xC9:	//Immediate A compare
 			compareFlags(A, memory->readRAM(PC, ppu));
-			debugImm(opcode, memory->readRAM(PC, ppu), "CMP");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "CMP");
 			cycles =  2;
 			PC++;
 			break;
@@ -469,7 +469,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);
 			compareFlags(A, data);
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "CMP");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "CMP");
 			cycles =  3;
 			PC++;
 			break;
@@ -477,7 +477,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF;
 			data = memory->readRAM(temp1, ppu);
 			compareFlags(A, data);
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "CMP");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "CMP");
 			cycles =  4;
 			PC++;
 			break;
@@ -485,7 +485,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);
 			compareFlags(A, data);
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "CMP");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "CMP");
 			cycles =  4;
 			PC += 2;
 			break;
@@ -493,7 +493,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
 			data = memory->readRAM(temp1, ppu);
 			compareFlags(A, data);
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "CMP");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "CMP");
 			pageBoundry((temp1 - X), temp1, 4);
 			PC += 2;
 			break;
@@ -501,7 +501,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + Y;
 			data = memory->readRAM(temp1, ppu);
 			compareFlags(A, data);
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "CMP");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "CMP");
 			pageBoundry((temp1 - Y), temp1, 4);
 			PC += 2;
 			break;
@@ -510,7 +510,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp2 = (memory->readRAM((temp1 + 1) & 0xFF, ppu) << 8) | memory->readRAM(temp1, ppu); //Gets address
 			data = memory->readRAM(temp2, ppu);
 			compareFlags(A, data);
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "CMP");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "CMP");
 			cycles =  6;
 			PC++;
 			break;
@@ -519,14 +519,14 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp2 = ((memory->readRAM((temp1 + 1) & 0xFF, ppu) << 8) | memory->readRAM(temp1, ppu)) + Y; //Gets real address
 			data = memory->readRAM(temp2, ppu);
 			compareFlags(A, data);
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "CMP");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "CMP");
 			pageBoundry((temp2 - Y), temp2, 5);
 			PC++;
 			break;
 		case 0xE0:	//Immediate X compare
 			data = memory->readRAM(PC, ppu);
 			compareFlags(X, data);
-			debugImm(opcode, memory->readRAM(PC, ppu), "CPX");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "CPX");
 			cycles =  2;
 			PC++;
 			break;
@@ -534,7 +534,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);
 			compareFlags(X, data);
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "CPX");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "CPX");
 			cycles =  3;
 			PC++;
 			break;
@@ -542,14 +542,14 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);
 			compareFlags(X, data);
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "CPX");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "CPX");
 			cycles =  4;
 			PC += 2;
 			break;
 		case 0xC0:	//Immediate Y compare
 			data = memory->readRAM(PC, ppu);
 			compareFlags(Y, data);
-			debugImm(opcode, memory->readRAM(PC, ppu), "CPY");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "CPY");
 			cycles =  2;
 			PC++;
 			break;
@@ -557,7 +557,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);
 			compareFlags(Y, data);
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "CPY");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "CPY");
 			cycles =  3;
 			PC++;
 			break;
@@ -565,14 +565,14 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);
 			compareFlags(Y, data);
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "CPY");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "CPY");
 			cycles =  4;
 			PC += 2;
 			break;
 		case 0xC6:	//Zeropage decrement memory
 			temp1 = memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);		//Gets the data
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "DEC");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "DEC");
 			memory->writeRAM(temp1, --data, ppu);	//Decrements before assigning
 			Z = !(data);
 			N = data & 0x80;
@@ -582,7 +582,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 		case 0xD6:	//Zeropage,X decrement memory
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF;
 			data = memory->readRAM(temp1, ppu);		//Gets the data
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "DEC");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "DEC");
 			memory->writeRAM(temp1, --data, ppu);	//Decrements before assigning
 			Z = !(data);
 			N = data & 0x80;
@@ -592,7 +592,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 		case 0xCE:	//Absolute decrement memory
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);		//Gets the data
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "DEC");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "DEC");
 			memory->writeRAM(temp1, --data, ppu);	//Decrements before assigning
 			Z = !(data);
 			N = data & 0x80;
@@ -602,7 +602,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 		case 0xDE:	//Absolute,X decrement memory
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
 			data = memory->readRAM(temp1, ppu);		//Gets the data
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "DEC");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "DEC");
 			memory->writeRAM(temp1, --data, ppu);	//Decrements before assigning
 			Z = !(data);
 			N = data & 0x80;
@@ -613,21 +613,21 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X--;
 			Z = !(X);
 			N = X & 0x80;
-			debugImplied(opcode, "DEX");
+			//debugImplied(opcode, "DEX");
 			cycles =  2;
 			break;
 		case 0x88:	//Implied decrement Y register
 			Y--;
 			Z = !(Y);
 			N = Y & 0x80;
-			debugImplied(opcode, "DEY");
+			//debugImplied(opcode, "DEY");
 			cycles =  2;
 			break;
 		case 0x49:	//Immediate XOR
 			A = A ^ memory->readRAM(PC, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugImm(opcode, memory->readRAM(PC, ppu), "EOR");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "EOR");
 			cycles =  2;
 			PC++;
 			break;
@@ -637,7 +637,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A ^ data;
 			Z = !(A);
 			N = A & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "EOR");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "EOR");
 			cycles =  3;
 			PC++;
 			break;
@@ -647,7 +647,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A ^ data;
 			Z = !(A);
 			N = A & 0x80;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "EOR");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "EOR");
 			cycles =  4;
 			PC++;
 			break;
@@ -657,7 +657,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A ^ data;
 			Z = !(A);
 			N = A & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "EOR");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "EOR");
 			cycles =  4;
 			PC += 2;
 			break;
@@ -667,7 +667,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A ^ data;
 			Z = !(A);
 			N = A & 0x80;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "EOR");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "EOR");
 			pageBoundry((temp1 - X), temp1, 4);
 			PC += 2;
 			break;
@@ -677,7 +677,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A ^ data;
 			Z = !(A);
 			N = A & 0x80;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "EOR");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "EOR");
 			pageBoundry((temp1 - Y), temp1, 4);
 			PC += 2;
 			break;
@@ -688,7 +688,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A ^ data;
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "EOR");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "EOR");
 			cycles =  6;
 			PC++;
 			break;
@@ -699,14 +699,14 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A ^ data;
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "EOR");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "EOR");
 			pageBoundry((temp2 - Y), temp2, 5);
 			PC++;
 			break;
 		case 0xE6:	//Zeropage increment memory
 			temp1 = memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);		//Gets the data
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "INC");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "INC");
 			memory->writeRAM(temp1, ++data, ppu);	//Increments before assigning
 			Z = !(data);
 			N = data & 0x80;
@@ -716,7 +716,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 		case 0xF6:	//Zeropage,X increment memory
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF;
 			data = memory->readRAM(temp1, ppu);		//Gets the data
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "INC");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "INC");
 			memory->writeRAM(temp1, ++data, ppu);	//Increments before assigning
 			Z = !(data);
 			N = data & 0x80;
@@ -726,7 +726,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 		case 0xEE:	//Absolute increment memory
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);		//Gets the data
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "INC");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "INC");
 			memory->writeRAM(temp1, ++data, ppu);	//Increments before assigning
 			Z = !(data);
 			N = data & 0x80;
@@ -736,7 +736,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 		case 0xFE:	//Absolute,X increment memory
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
 			data = memory->readRAM(temp1, ppu);		//Gets the data
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "INC");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "INC");
 			memory->writeRAM(temp1, ++data, ppu);	//Increments before assigning
 			Z = !(data);
 			N = data & 0x80;
@@ -747,20 +747,20 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X++;
 			Z = !(X);
 			N = X & 0x80;
-			debugImplied(opcode, "INX");
+			//debugImplied(opcode, "INX");
 			cycles =  2;
 			break;
 		case 0xC8:	//Increment Y register
 			Y++;
 			Z = !(Y);
 			N = Y & 0x80;
-			debugImplied(opcode, "INY");
+			//debugImplied(opcode, "INY");
 			cycles =  2;
 			break;
 		case 0x4C:	//Absolute, Sets PC to specified address
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
-			data = 0;		//Used for debugging
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "JMP");
+			data = 0;		//Used for //debugging
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "JMP");
 			cycles =  3;
 			PC = temp1;
 			break;
@@ -770,14 +770,14 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			read temp2 = (memory->RAM[0x0200] << 8) | memory->RAM[0x02FF].  Address 0x0300 will not be read.*/
 			if((temp1 & 0x00FF) == 0xFF)	temp2 = (memory->RAM[temp1 & 0xFF00] << 8) | memory->readRAM(temp1, ppu);
 			else	temp2 = (memory->RAM[temp1 + 1] << 8) | memory->readRAM(temp1, ppu);
-			debugIndirect(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp2, "JMP");
+			//debugIndirect(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp2, "JMP");
 			cycles =  5;
 			PC = temp2;
 			break;
 		case 0x20:	//Jump to subroutine
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
-			data = 0;				//This is for debugging.
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "JSR");
+			data = 0;				//This is for //debugging.
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "JSR");
 			PC++;					//Add 1 so it's at the address - 1 spot
 			data = (PC & 0xFF00) >> 8;		//High byte first
 			pushStack(memory,data, ppu);
@@ -790,7 +790,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = memory->readRAM(PC, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugImm(opcode, memory->readRAM(PC, ppu), "LDA");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "LDA");
 			cycles =  2;
 			PC++;
 			break;
@@ -799,7 +799,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = memory->readRAM(temp1, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LDA");
+			//debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LDA");
 			cycles =  3;
 			PC++;
 			break;
@@ -808,7 +808,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = memory->readRAM(temp1, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LDA");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LDA");
 			cycles =  4;
 			PC++;
 			break;
@@ -817,7 +817,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = memory->readRAM(temp1, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LDA");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LDA");
 			cycles =  4;
 			PC += 2;
 			break;
@@ -826,7 +826,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = memory->readRAM(temp1, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LDA");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LDA");
 			pageBoundry((temp1 - X), temp1, 4);
 			PC += 2;
 			break;
@@ -835,7 +835,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = memory->readRAM(temp1, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LDA");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LDA");
 			pageBoundry((temp1 - Y), temp1, 4);
 			PC += 2;
 			break;
@@ -845,7 +845,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = memory->readRAM(temp2, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "LDA");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "LDA");
 			cycles =  6;
 			PC++;
 			break;
@@ -855,7 +855,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = memory->readRAM(temp2, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "LDA");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "LDA");
 			pageBoundry((temp2 - Y), temp2, 5);
 			PC++;
 			break;
@@ -863,7 +863,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X = memory->readRAM(PC, ppu);
 			Z = !(X);
 			N = X & 0x80;
-			debugImm(opcode, memory->readRAM(PC, ppu), "LDX");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "LDX");
 			cycles =  2;
 			PC++;
 			break;
@@ -872,7 +872,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X = memory->readRAM(temp1, ppu);
 			Z = !(X);
 			N = X & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LDX");
+			//debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LDX");
 			cycles =  3;
 			PC++;
 			break;
@@ -881,7 +881,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X = memory->readRAM(temp1, ppu);
 			Z = !(X);
 			N = X & 0x80;
-			debugZeroY(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LDX");
+			//debugZeroY(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LDX");
 			cycles =  4;
 			PC++;
 			break;
@@ -890,7 +890,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X = memory->readRAM(temp1, ppu);
 			Z = !(X);
 			N = X & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LDX");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LDX");
 			cycles =  4;
 			PC += 2;
 			break;
@@ -899,7 +899,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X = memory->readRAM(temp1, ppu);
 			Z = !(X);
 			N = X & 0x80;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LDX");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LDX");
 			pageBoundry((temp1 - Y), temp1, 4);
 			PC += 2;
 			break;
@@ -907,7 +907,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Y = memory->readRAM(PC, ppu);
 			Z = !(Y);
 			N = Y & 0x80;
-			debugImm(opcode, memory->readRAM(PC, ppu), "LDY");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "LDY");
 			cycles =  2;
 			PC++;
 			break;
@@ -916,7 +916,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Y = memory->readRAM(temp1, ppu);
 			Z = !(Y);
 			N = Y & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LDY");
+			//debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LDY");
 			cycles =  3;
 			PC++;
 			break;
@@ -925,7 +925,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Y = memory->readRAM(temp1, ppu);
 			Z = !(Y);
 			N = Y & 0x80;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LDY");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LDY");
 			cycles =  4;
 			PC++;
 			break;
@@ -934,7 +934,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Y = memory->readRAM(temp1, ppu);
 			Z = !(Y);
 			N = Y & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LDY");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LDY");
 			cycles =  4;
 			PC += 2;
 			break;
@@ -943,7 +943,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Y = memory->readRAM(temp1, ppu);
 			Z = !(Y);
 			N = Y & 0x80;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LDY");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LDY");
 			pageBoundry((temp1 -X), temp1, 4);
 			PC += 2;
 			break;
@@ -952,14 +952,14 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A >> 1;
 			Z = !(A);
 			N = A & 0x80;
-			debugAcc(opcode, "LSR");
+			//debugAcc(opcode, "LSR");
 			cycles =  2;
 			break;
 		case 0x46:	//Zeropage shift right
 			temp1 = memory->readRAM(PC, ppu);	//Gets the ZP address
 			data = memory->readRAM(temp1, ppu);	//Gets data at the address
 			C = data & 0x01;
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "LSR");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "LSR");
 			data >>= 1;
 			memory->writeRAM(temp1, data, ppu);
 			Z = !(data);
@@ -971,7 +971,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF; //Wraps around if >255
 			data = memory->readRAM(temp1, ppu);	//Gets data at the address
 			C = data & 0x01;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "LSR");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "LSR");
 			data >>= 1;
 			memory->writeRAM(temp1, data, ppu);
 			Z = !(data);
@@ -983,7 +983,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);	//Gets data at the address
 			C = data & 0x01;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "LSR");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "LSR");
 			data >>= 1;
 			memory->writeRAM(temp1, data, ppu);
 			Z = !(data);
@@ -995,7 +995,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
 			data = memory->readRAM(temp1, ppu);	//Gets data at the address
 			C = data & 0x01;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "LSR");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "LSR");
 			data >>= 1;
 			memory->writeRAM(temp1, data, ppu);
 			Z = !(data);
@@ -1004,14 +1004,14 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			PC += 2;
 			break;
 		case 0xEA:	//No instruction, only moves PC
-			debugImplied(opcode, "NOP");
+			//debugImplied(opcode, "NOP");
 			cycles =  2;
 			break;
 		case 0x09:	//Immediate OR
 			A = A | memory->readRAM(PC, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugImm(opcode, memory->readRAM(PC, ppu), "ORA");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "ORA");
 			cycles =  2;
 			PC++;
 			break;
@@ -1021,7 +1021,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A | data;
 			Z = !(A);
 			N = A & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "ORA");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "ORA");
 			cycles =  3;
 			PC++;
 			break;
@@ -1031,7 +1031,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A | data;
 			Z = !(A);
 			N = A & 0x80;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "ORA");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "ORA");
 			cycles =  4;
 			PC++;
 			break;
@@ -1041,7 +1041,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A | data;
 			Z = !(A);
 			N = A & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "ORA");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "ORA");
 			cycles =  4;
 			PC += 2;
 			break;
@@ -1051,7 +1051,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A | data;
 			Z = !(A);
 			N = A & 0x80;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "ORA");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "ORA");
 			pageBoundry((temp1 - X), temp1, 4);
 			PC += 2;
 			break;
@@ -1061,7 +1061,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A | data;
 			Z = !(A);
 			N = A & 0x80;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "ORA");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "ORA");
 			pageBoundry((temp1 - Y), temp1, 4);
 			PC += 2;
 			break;
@@ -1072,7 +1072,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A | data;
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "ORA");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "ORA");
 			cycles =  6;
 			PC++;
 			break;
@@ -1083,30 +1083,30 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = A | data;
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "ORA");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "ORA");
 			pageBoundry((temp2 - Y), temp2, 5);
 			PC++;
 			break;
 		case 0x48:	//Push A onto stack
 			pushStack(memory, A, ppu);
-			debugImplied(opcode, "PHA");
+			//debugImplied(opcode, "PHA");
 			cycles =  3;
 			break;
 		case 0x08:	//Push copy of status flags onto stack
 			//Bit-----7--6--5--4--3--2--1--0 PHP B and bit 5 true
-			//Order = N, V, 1, B, D, I, Z, C
+			//Order = N, V, 1, 1, D, I, Z, C
 			statusFlags[0] = C, statusFlags[1] = Z, statusFlags[2] = I, statusFlags[3] = D,
 			statusFlags[4] = 1, statusFlags[5] = 1, statusFlags[6] = V, statusFlags[7] = N;
 			statusByte = encodeBits(statusFlags);	//Puts the status flags into a byte
 			pushStack(memory, statusByte, ppu);			
-			debugImplied(opcode, "PHP");
+			//debugImplied(opcode, "PHP");
 			cycles =  3;
 			break;
 		case 0x68:	//Pops value off stack into A
 			A = popStack(memory, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugImplied(opcode, "PLA");
+			//debugImplied(opcode, "PLA");
 			cycles =  4;
 			break;
 		case 0x28:	//Pops process status flags off stack
@@ -1118,15 +1118,14 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = outputFlags[1];
 			I = outputFlags[2];
 			D = outputFlags[3];
-			B = 0;			//B is always zero after a PLP
 			V = outputFlags[6];
 			N = outputFlags[7];
-			debugImplied(opcode, "PLP");
+			//debugImplied(opcode, "PLP");
 			cycles =  4;
 			break;
 		case 0x2A:	//Accumulator rotate left
 			oldBit7 = A & 0x80; //Old bit 7
-			debugAcc(opcode, "ROL");
+			//debugAcc(opcode, "ROL");
 			A = A << 1;
 			A |= C;
 			C = oldBit7;
@@ -1138,11 +1137,12 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);
 			oldBit7 = data & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "ROL");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "ROL");
 			data <<= 1;
 			data |= C;
 			memory->writeRAM(temp1, data, ppu);
 			C = oldBit7;
+			Z = !(data);
 			N = data & 0x80;
 			cycles =  5;
 			PC++;
@@ -1151,12 +1151,13 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF;
 			data = memory->readRAM(temp1, ppu);
 			oldBit7 = data & 0x80;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "ROL");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "ROL");
 			data <<= 1;
 			data |= C;
 			memory->writeRAM(temp1, data, ppu);
 			C = oldBit7;
 			N = data & 0x80;
+			Z = !(data);
 			cycles =  6;
 			PC++;
 			break;
@@ -1164,11 +1165,12 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);	//Gets address
 			data = memory->readRAM(temp1, ppu);					//Gets data
 			oldBit7 = data & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "ROL");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "ROL");
 			data <<= 1;
 			data |= C;				//Sets bit 0 to carry flag
 			memory->writeRAM(temp1, data, ppu);
 			C = oldBit7;
+			Z = !(data);
 			N = data & 0x80;
 			cycles =  6;
 			PC += 2;
@@ -1177,18 +1179,19 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
 			data = memory->readRAM(temp1, ppu);
 			oldBit7 = data & 0x80;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "ROL");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "ROL");
 			data <<= 1;
 			data |= C;
 			memory->writeRAM(temp1, data, ppu);
 			C = oldBit7;
+			Z = !(data);
 			N = data & 0x80;
 			cycles =  7;
 			PC += 2;
 			break;
 		case 0x6A:	//Accumulator rotate right
 			oldBit0 = A & 0x01; //Old bit 0
-			debugAcc(opcode, "ROR");
+			//debugAcc(opcode, "ROR");
 			A = A >> 1;
 			A |= (C << 7);
 			C = oldBit0;
@@ -1200,11 +1203,12 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);
 			oldBit0 = data & 0x01;
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "ROR");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "ROR");
 			data >>= 1;
 			data |= (C << 7);
 			memory->writeRAM(temp1, data, ppu);
 			C = oldBit0;
+			Z = !(data);
 			N = data & 0x80;
 			cycles =  5;
 			PC++;
@@ -1213,12 +1217,12 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF;
 			data = memory->readRAM(temp1, ppu);
 			oldBit0 = data & 0x01;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "ROR");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "ROR");
 			data >>= 1;
-			data &= ~0x80;
-			data |= (C << 7);
+			if(C) data |= 0x80;
 			memory->writeRAM(temp1, data, ppu);
 			C = oldBit0;
+			Z = !(data);
 			N = data & 0x80;
 			cycles = 6;
 			PC++;
@@ -1227,11 +1231,12 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);
 			oldBit0 = data & 0x01;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "ROR");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "ROR");
 			data >>= 1;
 			data |= (C << 7);
 			memory->writeRAM(temp1, data, ppu);
 			C = oldBit0;
+			Z = !(data);
 			N = data & 0x80;
 			cycles =  6;
 			PC += 2;
@@ -1240,11 +1245,12 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
 			data = memory->readRAM(temp1, ppu);
 			oldBit0 = data & 0x01;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "ROR");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "ROR");
 			data >>= 1;
 			data |= (C << 7);
 			memory->writeRAM(temp1, data, ppu);
 			C = oldBit0;
+			Z = !(data);
 			N = data & 0x80;
 			cycles =  7;
 			PC += 2;
@@ -1259,22 +1265,21 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = outputFlags[1];
 			I = outputFlags[2];
 			D = outputFlags[3];
-			B = outputFlags[4];
 			V = outputFlags[6];
 			N = outputFlags[7];
 			data = popStack(memory, ppu);		//Gets the low byte
 			PC = data;
 			data = popStack(memory, ppu);		//Gets the high byte
-			PC += (data << 8);
-			debugImplied(opcode, "RTI");
+			PC |= (data << 8);
+			//debugImplied(opcode, "RTI");
 			cycles =  6;
 			break;
 		case 0x60:	//Return from subroutine
-			debugImplied(opcode, "RTS");
+			//debugImplied(opcode, "RTS");
 			data = popStack(memory, ppu);		//Gets the low byte
 			PC = data;
 			data = popStack(memory, ppu);		//Gets the high byte
-			PC += (data << 8);
+			PC |= (data << 8);
 			cycles =  6;
 			PC++;					//Add one once off stack for right address
 			break;
@@ -1288,7 +1293,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp1) & (data ^ temp1) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugImm(opcode, memory->readRAM(PC, ppu), "SBC");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "SBC");
 			cycles =  2;
 			PC++;
 			break; 
@@ -1303,7 +1308,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "SBC");
+			//debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "SBC");
 			cycles =  3;
 			PC++;
 			break;
@@ -1318,7 +1323,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "SBC");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "SBC");
 			cycles =  4;
 			PC++;
 			break;
@@ -1333,7 +1338,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "SBC");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "SBC");
 			cycles =  4;
 			PC += 2;
 			break;
@@ -1348,7 +1353,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "SBC");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "SBC");
 			pageBoundry((temp1 - X), temp1, 4);
 			PC += 2;
 			break;
@@ -1363,7 +1368,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "SBC");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "SBC");
 			pageBoundry((temp1 - Y), temp1, 4);
 			PC += 2;
 			break;
@@ -1378,7 +1383,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			C = ((initialA + data + C) >> 8) & 1;
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "SBC");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "SBC");
 			cycles =  6;
 			PC++;
 			break;
@@ -1393,56 +1398,56 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			C = ((initialA + data + C) >> 8) & 1;
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "SBC");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "SBC");
 			pageBoundry((temp2 - Y), temp2, 5);
 			PC++;
 			break;
 		case 0x38:	//Set carry flag
 			C = true;
-			debugImplied(opcode, "SEC");
+			//debugImplied(opcode, "SEC");
 			cycles =  2;
 			break;
 		case 0xF8:	//Set decimal flag
 			D = true;
-			debugImplied(opcode, "SED");
+			//debugImplied(opcode, "SED");
 			cycles =  2;
 			break;
 		case 0x78:	//Set interrupt disable
 			I = true;
-			debugImplied(opcode, "SEI");
+			//debugImplied(opcode, "SEI");
 			cycles =  2;
 			break;
 		case 0x85:	//Zeropage store A to memory
 			temp1 = memory->readRAM(PC, ppu);
-			debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "STA");
+			//debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "STA");
 			memory->writeRAM(temp1, A, ppu);
 			cycles =  3;
 			PC++;
 			break;
 		case 0x95:	//Zeropage,X store A to memory
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "STA");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "STA");
 			memory->writeRAM(temp1, A, ppu);
 			cycles =  4;
 			PC++;
 			break;
 		case 0x8D:	//Absolute store A to memory
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "STA");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "STA");
 			memory->writeRAM(temp1, A, ppu);
 			cycles = 4;
 			PC += 2;
 			break;
 		case 0x9D:	//Absolute,X store A to memory
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "STA");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "STA");
 			memory->writeRAM(temp1, A, ppu);
 			cycles =  5;
 			PC += 2;
 			break;
 		case 0x99:	//Absolute,Y store A to memory
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + Y;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "STA");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "STA");
 			memory->writeRAM(temp1, A, ppu);
 			cycles =  5;
 			PC += 2;
@@ -1450,7 +1455,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 		case 0x81:	//Indirect,X store A to memory
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF; //Wraps around if >255
 			temp2 = (memory->readRAM((temp1 + 1) & 0xFF, ppu) << 8) | memory->readRAM(temp1, ppu); //Gets address
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "STA");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "STA");
 			memory->writeRAM(temp2, A, ppu);
 			cycles =  6;
 			PC++;
@@ -1458,49 +1463,49 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 		case 0x91:	//Indirect,Y store A to memory
 			temp1 = memory->readRAM(PC, ppu);			//Gets Zeropage address
 			temp2 = ((memory->readRAM((temp1 + 1) & 0xFF, ppu) << 8) | memory->readRAM(temp1, ppu)) + Y; //Gets real address
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "STA");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "STA");
 			memory->writeRAM(temp2, A, ppu);
 			cycles =  6;
 			PC++;
 			break;
 		case 0x86:	//Zeropage store X to memory
 			temp1 = memory->readRAM(PC, ppu);
-			debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "STX");
+			//debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "STX");
 			memory->writeRAM(temp1, X, ppu);
 			cycles =  3;
 			PC++;
 			break;
 		case 0x96:	//Zeropage,Y store X to memory
 			temp1 = (memory->readRAM(PC, ppu) + Y) & 0xFF;
-			debugZeroY(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "STX");
+			//debugZeroY(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "STX");
 			memory->writeRAM(temp1, X, ppu);
 			cycles =  4;
 			PC++;
 			break;
 		case 0x8E:	//Absolute store X to memory
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "STX");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "STX");
 			memory->writeRAM(temp1, X, ppu);
 			cycles =  4;
 			PC += 2;
 			break;
 		case 0x84:	//Zeropage store Y to memory
 			temp1 = memory->readRAM(PC, ppu);
-			debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "STY");
+			//debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "STY");
 			memory->writeRAM(temp1, Y, ppu);
 			cycles =  3;
 			PC++;
 			break;
 		case 0x94:	//Zeropage,X store Y to memory
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "STY");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "STY");
 			memory->writeRAM(temp1, Y, ppu);
 			cycles =  4;
 			PC++;
 			break;
 		case 0x8C:	//Absolute store Y to memory
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "STY");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "STY");
 			memory->writeRAM(temp1, Y, ppu);
 			cycles =  4;
 			PC += 2;
@@ -1509,40 +1514,40 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X = A;
 			Z = !(X);
 			N = X & 0x80;
-			debugImplied(opcode, "TAX");
+			//debugImplied(opcode, "TAX");
 			cycles =  2;
 			break;
 		case 0xA8:	//Transfer A to Y
 			Y = A;
 			Z = !(Y);
 			N = Y & 0x80;
-			debugImplied(opcode, "TAY");
+			//debugImplied(opcode, "TAY");
 			cycles =  2;
 			break;
 		case 0xBA:	//Transfer SP to X
-			X = SP - 0x0100;	//Puts the value within byte range
+			X = SP & 0xFF;	//Puts the value within byte range
 			Z = !(X);
 			N = X & 0x80;
-			debugImplied(opcode, "TSX");
+			//debugImplied(opcode, "TSX");
 			cycles =  2;
 			break;
 		case 0x8A:	//Transfer X to A
 			A = X;
 			Z = !(A);
 			N = A & 0x80;
-			debugImplied(opcode, "TXA");
+			//debugImplied(opcode, "TXA");
 			cycles =  2;
 			break;
 		case 0x9A:	//Transfers X into SP
 			SP = X + 0x0100;	//Puts the value into the right range for the stack.
-			debugImplied(opcode, "TXS");
+			//debugImplied(opcode, "TXS");
 			cycles =  2;
 			break;
 		case 0x98:	//Transfers Y to A
 			A = Y;
 			Z = !(A);
 			N = A & 0x80;
-			debugImplied(opcode, "TYA");
+			//debugImplied(opcode, "TYA");
 			cycles =  2;
 			break;
 		//Illegal opcodes-------------------------------------------------
@@ -1552,7 +1557,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			N = A & 0x80;
 			C = N;
-			debugImm(opcode, memory->readRAM(PC, ppu), "ANC");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "ANC");
 			cycles = 2;
 			PC++;
 			break;
@@ -1562,7 +1567,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			N = A & 0x80;
 			C = N;
-			debugImm(opcode, memory->readRAM(PC, ppu), "ANC");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "ANC");
 			cycles = 2;
 			PC++;
 			break;
@@ -1570,7 +1575,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			data = A & X;
 			temp1 = memory->readRAM(PC, ppu);
 			memory->writeRAM(temp1, data, ppu);
-			debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "SAX");
+			//debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "SAX");
 			Z = !(data);
 			N = data & 0x80;
 			cycles = 3;
@@ -1579,7 +1584,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 		case 0x97:	//Zeropage,Y AND X with A and store in memory
 			data = A & X;
 			temp1 = (memory->readRAM(PC, ppu) + Y) & 0xFF;
-			debugZeroY(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "SAX");
+			//debugZeroY(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "SAX");
 			memory->writeRAM(temp1, data, ppu);
 			Z = !(data);
 			N = data & 0x80;
@@ -1589,7 +1594,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 		case 0x8F:	//Absolute AND X with A and story in memory
 			data = A & X;
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "SAX");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "SAX");
 			memory->writeRAM(temp1, data, ppu);
 			Z = !(data);
 			N = data & 0x80;
@@ -1600,60 +1605,49 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			data = A & X;
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF; //Wraps around if >255
 			temp2 = (memory->readRAM((temp1 + 1) & 0xFF, ppu) << 8) | memory->readRAM(temp1, ppu); //Gets address
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "SAX");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "SAX");
 			memory->writeRAM(temp2, data, ppu);
 			Z = !(data);
 			N = data & 0x80;
 			cycles = 6;
 			PC++;
 			break;
-		case 0x6B:	//Immediate AND byte with A and rotate
+		case 0x6B:	//Immediate AND byte with A and rotate - Doesn't work
 			A &= memory->readRAM(PC, ppu);
+			oldBit7 = A & 0x40;
 			A >>= 1;
+			A |= (C << 7);
 			Z = !(A);
 			N = A & 0x80;
-			if((A & 0x40) && (A & 0x20)) {
-				C = true;
-				V = false;
-			}
-			else if(A & 0x40) {
-				C = true;
-				V = true;
-			}
-			else if(A & 0x20) {
-				V = true;
-				C = false;
-			}
-			else {
-				V = false;
-				C = false;
-			}
-			debugImm(opcode, memory->readRAM(PC, ppu), "ARR");
+			C = oldBit7;
+			V = (A & 0x40) ^ (A & 0x20);
+			//debugImm(opcode, memory->readRAM(PC, ppu), "ARR");
 			cycles = 2;
 			PC++;
 			break;
 		case 0x4B:	//Immediate and byte with A and shift right
  			A &= memory->readRAM(PC, ppu);
+			C = A & 0x01;
 			A >>= 1;
 			Z = !(A);
 			N = A & 0x80;
-			debugImm(opcode, memory->readRAM(PC, ppu), "ALR");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "ALR");
 			cycles = 2;
 			PC++;
 			break;
-		case 0xAB:	//Immediate and with A and A = X
+		case 0xAB:	//Immediate ATX - Doesn't work
 			A &= memory->readRAM(PC, ppu);
 			X = A;
 			Z = !(A);
 			N = A & 0x80;
-			debugImm(opcode, memory->readRAM(PC, ppu), "OAL");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "ATX");
 			cycles = 2;
 			PC++;
 			break;
 		case 0x9F:	//Absolute,Y 
 			data = (A & X) & 7;
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + Y;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "AXA");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "AXA");
 			memory->writeRAM(temp1, data, ppu);
 			cycles = 5;
 			PC += 2;
@@ -1662,12 +1656,12 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			data = (A & X) & 7;
 			temp1 = memory->readRAM(PC, ppu);			//Gets Zeropage address
 			temp2 = ((memory->readRAM((temp1 + 1) & 0xFF, ppu) << 8) | memory->readRAM(temp1, ppu)) + Y; //Gets real address
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "AXA");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "AXA");
 			memory->writeRAM(temp2, data, ppu);
 			cycles =  6;
 			PC++;
 			break;
-		case 0xCB:	//Immediate DCP
+		case 0xCB:	//Immediate DCP - Doesn't work
 			X &= A;
 			data = memory->readRAM(PC, ppu);
 			//SBC is similar to ADC.  The bits are inverted.
@@ -1677,7 +1671,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X = temp1 & 0xFF;
 			Z = !(X);
 			N = X & 0x80;
-			debugImm(opcode, memory->readRAM(PC, ppu), "SAX");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "SAX");
 			cycles =  2;
 			PC++;
 			break;
@@ -1688,7 +1682,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp2 = data + (0x01 ^ 0xFF);
 			C = (temp2 >> 8) & 1;
 			memory->RAM[temp1] = temp2 & 0xFF;
-			debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "DCP");
+			//debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "DCP");
 			cycles =  5;
 			PC++;
 			break;
@@ -1699,7 +1693,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp2 = data + (0x01 ^ 0xFF);
 			C = (temp2 >> 8) & 1;
 			memory->RAM[temp1] = temp2 & 0xFF;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DCP");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DCP");
 			cycles =  6;
 			PC++;
 			break;
@@ -1710,7 +1704,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp2 = data + (0x01 ^ 0xFF);
 			C = (temp2 >> 8) & 1;
 			memory->RAM[temp1] = temp2 & 0xFF;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "DCP");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "DCP");
 			cycles =  6;
 			PC += 2;
 			break;
@@ -1721,7 +1715,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp2 = data + (0x01 ^ 0xFF);
 			C = (temp2 >> 8) & 1;
 			memory->RAM[temp1] = temp2 & 0xFF;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DCP");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DCP");
 			cycles = 7;
 			PC += 2;
 			break;
@@ -1732,7 +1726,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp2 = data + (0x01 ^ 0xFF);
 			C = (temp2 >> 8) & 1;
 			memory->RAM[temp1] = temp2 & 0xFF;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DCP");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DCP");
 			cycles = 7;
 			PC += 2;
 			break;
@@ -1743,7 +1737,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			//SBC is similar to ADC.  The bits are inverted.
 			memory->RAM[temp2] = data + (0x01 ^ 0xFF);
 			C = ((data + (0x01 ^ 0xFF)) >> 8) & 1;
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "DCP");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "DCP");
 			cycles = 8;
 			PC++;
 			break;
@@ -1754,86 +1748,86 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			//SBC is similar to ADC.  The bits are inverted.
 			memory->RAM[temp2] = data + (0x01 ^ 0xFF);
 			C = ((data + (0x01 ^ 0xFF)) >> 8) & 1;
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "DCP");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "DCP");
 			cycles = 8;
 			PC++;
 			break;
 		case 0x04:	//Zeropage DOP
 			temp1 = memory->readRAM(PC, ppu);
-			debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "DOP");
+			//debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "DOP");
 			cycles = 3;
 			PC++;
 			break;
 		case 0x44:	//Zeropage DOP
 			temp1 = memory->readRAM(PC, ppu);
-			debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "DOP");
+			//debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "DOP");
 			cycles = 3;
 			PC++;
 			break;
 		case 0x64:	//Zeropage DOP
 			temp1 = memory->readRAM(PC, ppu);
-			debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "DOP");
+			//debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "DOP");
 			cycles = 3;
 			PC++;
 			break;
 		case 0x14:	//Zeropage,X DOP
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DOP");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DOP");
 			cycles =  4;
 			PC++;
 			break;
 		case 0x34:	//Zeropage,X DOP
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DOP");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DOP");
 			cycles =  4;
 			PC++;
 			break;
 		case 0x54:	//Zeropage,X DOP
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DOP");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DOP");
 			cycles =  4;
 			PC++;
 			break;
 		case 0x74:	//Zeropage,X DOP
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DOP");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DOP");
 			cycles =  4;
 			PC++;
 			break;
 		case 0xD4:	//Zeropage,X DOP
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DOP");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DOP");
 			cycles =  4;
 			PC++;
 			break;
 		case 0xF4:	//Zeropage,X DOP
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DOP");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "DOP");
 			cycles =  4;
 			PC++;
 			break;
 		case 0x80:	//Immediate DOP
-			debugImm(opcode, memory->readRAM(PC, ppu), "DOP");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "DOP");
 			cycles = 2;
 			PC++;
 			break;
 		case 0x82:	//Immediate DOP
-			debugImm(opcode, memory->readRAM(PC, ppu), "DOP");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "DOP");
 			cycles = 2;
 			PC++;
 			break;
 		case 0x89:	//Immediate DOP
-			debugImm(opcode, memory->readRAM(PC, ppu), "DOP");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "DOP");
 			cycles = 2;
 			PC++;
 			break;
 		case 0xC2:	//Immediate DOP
-			debugImm(opcode, memory->readRAM(PC, ppu), "DOP");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "DOP");
 			cycles = 2;
 			PC++;
 			break;
 		case 0xE2:	//Immediate DOP
-			debugImm(opcode, memory->readRAM(PC, ppu), "DOP");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "DOP");
 			cycles = 2;
 			PC++;
 			break;
@@ -1848,7 +1842,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "ISC");
+			//debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "ISC");
 			cycles = 5;
 			PC++;
 			break;
@@ -1863,7 +1857,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "ISC");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "ISC");
 			cycles =  6;
 			PC++;
 			break;
@@ -1878,7 +1872,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "ISC");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "ISC");
 			cycles =  6;
 			PC += 2;
 			break;
@@ -1893,7 +1887,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "ISC");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "ISC");
 			cycles = 7;
 			PC += 2;
 			break;
@@ -1908,7 +1902,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "ISC");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "ISC");
 			cycles = 7;
 			PC += 2;
 			break;
@@ -1923,7 +1917,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			C = ((initialA + data + C) >> 8) & 1;
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "ISC");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "ISC");
 			cycles =  8;
 			PC++;
 			break;
@@ -1938,7 +1932,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			C = ((initialA + data + C) >> 8) & 1;
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "ISC");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "ISC");
 			cycles = 8;
 			PC++;
 			break;
@@ -1949,7 +1943,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A = X = SP = data;
 			Z = !(data);
 			N = data & 0x80;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LAR");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LAR");
 			pageBoundry((temp1 - Y), temp1, 4);
 			PC += 2;
 			break;
@@ -1958,7 +1952,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X = A = memory->readRAM(temp1, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LAX");
+			//debugZero(opcode, memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LAX");
 			cycles = 3;
 			PC++;
 			break;
@@ -1967,7 +1961,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X = A = memory->readRAM(temp1, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugZeroY(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LAX");
+			//debugZeroY(opcode, memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LAX");
 			cycles = 4;
 			PC++;
 			break;
@@ -1976,7 +1970,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X = A = memory->readRAM(temp1, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LAX");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), memory->readRAM(temp1, ppu), "LAX");
 			cycles = 4;
 			PC += 2;
 			break;
@@ -1985,7 +1979,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X = A = memory->readRAM(temp1, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LAX");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, memory->readRAM(temp1, ppu), "LAX");
 			pageBoundry((temp1 - Y), temp1, 4);
 			PC += 2;
 			break;
@@ -1995,7 +1989,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X = A = memory->readRAM(temp2, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "LAX");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "LAX");
 			cycles = 6;
 			PC++;
 			break;
@@ -2005,32 +1999,32 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			X = A = memory->readRAM(temp2, ppu);
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "LAX");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, memory->RAM[temp2], "LAX");
 			pageBoundry((temp2 - Y), temp2, 5);
 			PC++;
 			break;
 		case 0x1A:	//Implied NOP
-			debugImplied(opcode, "NOP");
+			//debugImplied(opcode, "NOP");
 			cycles =  2;
 			break;
 		case 0x3A:	//Implied NOP
-			debugImplied(opcode, "NOP");
+			//debugImplied(opcode, "NOP");
 			cycles =  2;
 			break;
 		case 0x5A:	//Implied NOP
-			debugImplied(opcode, "NOP");
+			//debugImplied(opcode, "NOP");
 			cycles =  2;
 			break;
 		case 0x7A:	//Implied NOP
-			debugImplied(opcode, "NOP");
+			//debugImplied(opcode, "NOP");
 			cycles =  2;
 			break;
 		case 0xDA:	//Implied NOP
-			debugImplied(opcode, "NOP");
+			//debugImplied(opcode, "NOP");
 			cycles =  2;
 			break;
 		case 0xFA:	//Implied NOP
-			debugImplied(opcode, "NOP");
+			//debugImplied(opcode, "NOP");
 			cycles =  2;
 			break;
 		case 0x67:	//Zeropage RRA
@@ -2042,7 +2036,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "RRA");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "RRA");
 			cycles = 5;
 			PC++;
 			break; 
@@ -2055,7 +2049,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "RRA");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "RRA");
 			cycles =  6;
 			PC++;
 			break;
@@ -2068,7 +2062,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "RRA");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "RRA");
 			cycles = 6;
 			PC += 2;
 			break;
@@ -2081,7 +2075,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "RRA");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "RRA");
 			cycles = 7;
 			PC += 2;
 			break;
@@ -2094,7 +2088,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp2) & (data ^ temp2) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "RRA");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "RRA");
 			cycles = 7;
 			PC += 2;
 			break;
@@ -2108,7 +2102,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			C = ((initialA + data + C) >> 8) & 1;	//Needs to use the initial value for the right bit.
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "RRA");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "RRA");
 			cycles = 8;
 			PC++;
 			break;
@@ -2122,7 +2116,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			C = ((initialA + data + C) >> 8) & 1;
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "RRA");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "RRA");
 			cycles = 8;
 			PC++;
 			break;
@@ -2136,57 +2130,72 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			Z = !(A);
 			V = (initialA ^ temp1) & (data ^ temp1) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			debugImm(opcode, memory->readRAM(PC, ppu), "SBC");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "SBC");
 			cycles =  2;
 			PC++;
 			break; 
 		case 0x07:	//Zeropage SLO
 			temp1 = memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);
-			A |= (data << 1);
+			C = data & 0x80;
+			data <<= 1;
+			memory->writeRAM(temp1, data, ppu);
+			A |= data;
 			Z = !(A);
 			N = A & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "SLO");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "SLO");
 			cycles = 5;
 			PC++;
 			break; 
 		case 0x17:	//Zeropage,X SLO
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF;
 			data = memory->readRAM(temp1, ppu);
-			A |= (data << 1);
+			C = data & 0x80;
+			data <<= 1;
+			memory->writeRAM(temp1, data, ppu);
+			A |= data;
 			Z = !(A);
 			N = A & 0x80;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "SLO");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "SLO");
 			cycles =  6;
 			PC++;
 			break;
 		case 0x0F:	//Absolute SLO
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
 			data = memory->readRAM(temp1, ppu);
-			A |= (data << 1);
+			C = data & 0x80;
+			data <<= 1;
+			memory->writeRAM(temp1, data, ppu);
+			A |= data;
 			Z = !(A);
 			N = A & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "SLO");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "SLO");
 			cycles = 6;
 			PC += 2;
 			break;
 		case 0x1F:	//Absolute,X SLO
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
 			data = memory->readRAM(temp1, ppu);
-			A |= (data << 1);
+			C = data & 0x80;
+			data <<= 1;
+			memory->writeRAM(temp1, data, ppu);
+			A |= data;
 			Z = !(A);
 			N = A & 0x80;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "SLO");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "SLO");
 			cycles = 7;
 			PC += 2;
 			break;
 		case 0x1B:	//Absolute,Y SLO
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + Y;
 			data = memory->readRAM(temp1, ppu);
-			A |= (data << 1);
+			C = data & 0x80;
+			data <<= 1;
+			memory->writeRAM(temp1, data, ppu);
+			A |= data;
 			Z = !(A);
 			N = A & 0x80;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "SLO");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "SLO");
 			cycles = 7;
 			PC += 2;
 			break;
@@ -2194,10 +2203,13 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = (memory->readRAM(PC, ppu) + X) & 0xFF; //Wraps around if >255
 			temp2 = (memory->readRAM((temp1 + 1) & 0xFF, ppu) << 8) | memory->readRAM(temp1, ppu); //Gets address
 			data = memory->readRAM(temp2, ppu);
-			A |= (data << 1);
+			C = data & 0x80;
+			data <<= 1;
+			memory->writeRAM(temp2, data, ppu);
+			A |= data;
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "SLO");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "SLO");
 			cycles = 8;
 			PC++;
 			break;
@@ -2205,10 +2217,13 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			temp1 = memory->readRAM(PC, ppu);			//Gets Zeropage address
 			temp2 = ((memory->readRAM((temp1 + 1) & 0xFF, ppu) << 8) | memory->readRAM(temp1, ppu)) + Y; //Gets real address
 			data = memory->readRAM(temp2, ppu);
-			A |= (data << 1);
+			C = data & 0x80;
+			data <<= 1;
+			memory->writeRAM(temp2, data, ppu);
+			A |= data;
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "SLO");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "SLO");
 			cycles = 8;
 			PC++;
 			break;
@@ -2218,7 +2233,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A ^= (data >> 1);
 			Z = !(A);
 			N = A & 0x80;
-			debugZero(opcode, memory->readRAM(PC, ppu), data, "SRE");
+			//debugZero(opcode, memory->readRAM(PC, ppu), data, "SRE");
 			cycles = 5;
 			PC++;
 			break; 
@@ -2228,7 +2243,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A ^= (data >> 1);
 			Z = !(A);
 			N = A & 0x80;
-			debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "SRE");
+			//debugZeroX(opcode, memory->readRAM(PC, ppu), temp1, data, "SRE");
 			cycles =  6;
 			PC++;
 			break;
@@ -2238,7 +2253,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A ^= (data >> 1);
 			Z = !(A);
 			N = A & 0x80;
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "SRE");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "SRE");
 			cycles = 6;
 			PC += 2;
 			break;
@@ -2248,7 +2263,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A ^= (data >> 1);
 			Z = !(A);
 			N = A & 0x80;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "SRE");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "SRE");
 			cycles = 7;
 			PC += 2;
 			break;
@@ -2258,7 +2273,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A ^= (data >> 1);
 			Z = !(A);
 			N = A & 0x80;
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "SRE");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "SRE");
 			cycles = 7;
 			PC += 2;
 			break;
@@ -2269,7 +2284,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A ^= (data >> 1);
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "SRE");
+			//debugIndirectX(opcode, memory->readRAM(PC, ppu), temp2, data, "SRE");
 			cycles = 8;
 			PC++;
 			break;
@@ -2280,7 +2295,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			A ^= (data >> 1);
 			Z = !(A);
 			N = A & 0x80;
-			debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "SRE");
+			//debugIndirectY(opcode, memory->readRAM(PC, ppu), temp2, data, "SRE");
 			cycles = 8;
 			PC++;
 			break;
@@ -2289,7 +2304,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			data = (temp1 & 0xFF00) >> 8;
 			data = X & (data + 1);
 			memory->writeRAM(temp1, data, ppu);
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "SXA");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "SXA");
 			cycles = 5;
 			PC += 2;
 			break;
@@ -2298,54 +2313,54 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			data = (temp1 & 0xFF00) >> 8;
 			data = Y & (data + 1);
 			memory->writeRAM(temp1, data, ppu);
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "SYA");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "SYA");
 			cycles = 5;
 			PC += 2;
 			break;
 		case 0x0C:	//Absolute TOP
 			temp1 = (memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu);
-			debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "TOP");
+			//debugAbs(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), data, "TOP");
 			cycles = 4;
 			PC += 2;
 			break;
 		case 0x1C:	//Absolute,X TOP
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "TOP");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "TOP");
 			pageBoundry((temp1 - X), temp1, 4);
 			PC += 2;
 			break;
 		case 0x3C:	//Absolute,X TOP
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "TOP");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "TOP");
 			pageBoundry((temp1 - X), temp1, 4);
 			PC += 2;
 			break;
 		case 0x5C:	//Absolute,X TOP
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "TOP");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "TOP");
 			pageBoundry((temp1 - X), temp1, 4);
 			PC += 2;
 			break;
 		case 0x7C:	//Absolute,X TOP
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "TOP");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "TOP");
 			pageBoundry((temp1 - X), temp1, 4);
 			PC += 2;
 			break;
 		case 0xDC:	//Absolute,X TOP
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "TOP");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "TOP");
 			pageBoundry((temp1 - X), temp1, 4);
 			PC += 2;
 			break;
 		case 0xFC:	//Absolute,X TOP
 			temp1 = ((memory->readRAM(PC + 1, ppu) << 8) | memory->readRAM(PC, ppu)) + X;
-			debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "TOP");
+			//debugAbsX(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "TOP");
 			pageBoundry((temp1 - X), temp1, 4);
 			PC += 2;
 			break;
 		case 0x8B:	//Immediate XAA
-			debugImm(opcode, memory->readRAM(PC, ppu), "XAA");
+			//debugImm(opcode, memory->readRAM(PC, ppu), "XAA");
 			cycles = 2;
 			PC++;
 			break;
@@ -2355,7 +2370,7 @@ unsigned short cpu::emulateCycle(memory* memory, ppu* ppu)
 			data = (temp1 & 0xFF00) >> 8;
 			data = SP & (data + 1);
 			memory->writeRAM(temp1, data, ppu);
-			debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "XAS");
+			//debugAbsY(opcode, memory->readRAM(PC + 1, ppu), memory->readRAM(PC, ppu), temp1, data, "XAS");
 			cycles = 5;
 			PC += 2;
 			break;
@@ -2378,19 +2393,17 @@ void cpu::setPCStart(memory* memory)
 //This pushes a piece of data onto the stack and decrements SP
 const void cpu::pushStack(memory* memory, unsigned char &data, ppu* ppu)
 {
-	//stackFile << instruction << " PUSHSTACK = " << hex << uppercase << (int)data << endl;
 	memory->writeRAM(SP, data, ppu);
 	SP--;				//Decrememnt after writing memory.
-	if(SP < 0x0100) SP = 0x01FF;
+	if(SP == 0x00FF) SP = 0x01FF;
 }
 
 //This pops a piece off data off the stack and increments SP
 const unsigned char cpu::popStack(memory* memory,ppu* ppu)
 {
-	unsigned char temp = memory->readRAM(++SP, ppu);
-	if(SP == 0x0200) SP = 0x0100;
-	//stackFile << instruction << " POPSTACK = " << hex << uppercase << (int)temp << endl;
-	return(temp);
+	SP++;
+	if(SP == 0x2000) SP = 0x0100;
+	return( memory->readRAM(SP, ppu) );
 }
 
 //This sets the flags after a compare instruction
@@ -2466,505 +2479,505 @@ const void cpu::NMI(memory* memory, ppu* ppu)
 	data = PC & 0x00FF;
 	pushStack(memory, data, ppu);
 	//Bit-----7--6--5--4--3--2--1--0 PHP always has B and bit 5 true
-	//Order = N, V, 1, B, D, I, Z, C
+	//Order = N, V, 1, 0, D, I, Z, C
 	statusFlags[0] = C, statusFlags[1] = Z, statusFlags[2] = I, statusFlags[3] = D,
-	statusFlags[4] = 1, statusFlags[5] = 1, statusFlags[6] = V, statusFlags[7] = N;
+	statusFlags[4] = 0, statusFlags[5] = 1, statusFlags[6] = V, statusFlags[7] = N;
 	statusByte = encodeBits(statusFlags);	//Puts the status flags into a
 	pushStack(memory, statusByte, ppu);				//byte	
 	PC = (memory->RAM[0xFFFB] << 8) | memory->RAM[0xFFFA];
-
+	I = true;
 	cycles =  7;	//7 cycles to process interrupt handler
 }
 
 
-//debugging stuff
-//This outputs debug information for accumulator instructions
-const void cpu::debugAcc(unsigned char &opcode, std::string OPname)
+/*////debugging stuff
+//This outputs //debug information for accumulator instructions
+const void cpu:://debugAcc(unsigned char &opcode, std::string OPname)
 {
 	using namespace std;
 
-	if(debugFile.is_open())
+	if(//debugFile.is_open())
 	{
 		//cout << "GOOD" << endl;
-		//Left side of debug file
-		debugFile << setw(4) << uppercase  << setfill('0') << (PC - 1);	//Prints in uppercase hex
-		debugFile << setw(2) << "  ";				
-		debugFile << setw(2) << uppercase << (int)opcode;
-		debugFile << setw(11) << setfill(' ') << OPname;		//Name of the opcode
-		debugFile << setw(2) << " A";
-		debugFile << setw(27) << " ";
+		//Left side of //debug file
+		//debugFile << setw(4) << uppercase  << setfill('0') << (PC - 1);	//Prints in uppercase hex
+		//debugFile << setw(2) << "  ";				
+		//debugFile << setw(2) << uppercase << (int)opcode;
+		//debugFile << setw(11) << setfill(' ') << OPname;		//Name of the opcode
+		//debugFile << setw(2) << " A";
+		//debugFile << setw(27) << " ";
 
-		//Right side of debug file
-		debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
-		debugFile << setw(1) << " ";
-		debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
-		debugFile << setw(1) << " ";
-		debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
-		debugFile << endl;
+		//Right side of //debug file
+		//debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
+		//debugFile << endl;
 	}
 	else cout << "Unable to open file";
 }
 
-//This outputs debug information for immidiate instructions
-const void cpu::debugImm(unsigned char &opcode, unsigned char data, std::string OPname)
+//This outputs //debug information for immidiate instructions
+const void cpu:://debugImm(unsigned char &opcode, unsigned char data, std::string OPname)
 {
 	using namespace std;
 
-	if(debugFile.is_open())
+	if(//debugFile.is_open())
 	{
 		//cout << "GOOD" << endl;
-		//Left side of debug file
-		debugFile << setw(4) << uppercase << setfill('0') << (PC - 1); 
-		debugFile << setw(2) << "  ";
-		debugFile << setw(2) << uppercase << setfill('0') << (int)opcode;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase << setfill('0') << (int)data;
-		debugFile << setw(8) << setfill(' ') << OPname;				//Name of the opcode
-		debugFile << setfill(' ') << setw(3) << "#$";
-		debugFile << setw(2) << uppercase << setfill('0') << (int)data;
-		debugFile << setfill(' ') << setw(24) << " ";
+		//Left side of //debug file
+		//debugFile << setw(4) << uppercase << setfill('0') << (PC - 1); 
+		//debugFile << setw(2) << "  ";
+		//debugFile << setw(2) << uppercase << setfill('0') << (int)opcode;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase << setfill('0') << (int)data;
+		//debugFile << setw(8) << setfill(' ') << OPname;				//Name of the opcode
+		//debugFile << setfill(' ') << setw(3) << "#$";
+		//debugFile << setw(2) << uppercase << setfill('0') << (int)data;
+		//debugFile << setfill(' ') << setw(24) << " ";
 
-		//Right side of debug file
-		debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
-		debugFile << setw(1) << " ";
-		debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
-		debugFile << setw(1) << " ";
-		debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
-		debugFile << endl;
+		//Right side of //debug file
+		//debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
+		//debugFile << endl;
 	}
 	else cout << "Unable to open file";
 }
 
-//This outputs debug information for zeropage instructions
-const void cpu::debugZero(unsigned char &opcode, unsigned char dataPC, unsigned char dataAddress, 
+//This outputs //debug information for zeropage instructions
+const void cpu:://debugZero(unsigned char &opcode, unsigned char dataPC, unsigned char dataAddress, 
 			std::string OPname)
 {
 	using namespace std;
 
-	if(debugFile.is_open())
+	if(//debugFile.is_open())
 	{
-		//Left side of debug file
+		//Left side of //debug file
 		//cout << "GOOD" << endl;
-		debugFile << setw(4) << uppercase << setfill('0') << (PC - 1);	//Prints in uppercase hex
-		debugFile << setw(2) << "  ";
-		debugFile << setw(2) << uppercase  << (int)opcode;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase  << (int)dataPC;
-		debugFile << setw(8) << setfill(' ') << OPname;				//Name of the opcode
-		debugFile << setw(2) << "$" << setw(2) << uppercase << setfill('0') << (int)dataPC
+		//debugFile << setw(4) << uppercase << setfill('0') << (PC - 1);	//Prints in uppercase hex
+		//debugFile << setw(2) << "  ";
+		//debugFile << setw(2) << uppercase  << (int)opcode;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase  << (int)dataPC;
+		//debugFile << setw(8) << setfill(' ') << OPname;				//Name of the opcode
+		//debugFile << setw(2) << "$" << setw(2) << uppercase << setfill('0') << (int)dataPC
 			  << setw(3) << " = " << setw(2) << (int)dataAddress;
-		debugFile << setw(20) << setfill(' ') << " ";
+		//debugFile << setw(20) << setfill(' ') << " ";
 		
-		//Right side of debug file
-		debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
-		debugFile << setw(1) << " ";
-		debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
-		debugFile << setw(1) << " ";
-		debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
-		debugFile << endl;
+		//Right side of //debug file
+		//debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
+		//debugFile << endl;
 	}
 	else cout << "Unable to open file";
 }
 
-//This outputs debug information for zeropage + X instructions
-const void cpu::debugZeroX(unsigned char &opcode, unsigned char dataPC,
+//This outputs //debug information for zeropage + X instructions
+const void cpu:://debugZeroX(unsigned char &opcode, unsigned char dataPC,
 				unsigned short totalAddress, unsigned char dataAddress, std::string OPname)
 {
 	using namespace std;
 
-	if(debugFile.is_open())
+	if(//debugFile.is_open())
 	{
-		//Left side of debug file
+		//Left side of //debug file
 		//cout << "GOOD" << endl;
-		debugFile << setw(4) << uppercase << setfill('0') << (PC - 1);	//Prints in uppercase hex
-		debugFile << setw(2) << "  ";
-		debugFile << setw(2) << uppercase << (int)opcode;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase << (int)dataPC;
-		debugFile << setw(8) << setfill(' ') << OPname;			//Name of the opcode
-		debugFile << setw(2) << " $" << uppercase  << setfill('0') <<  setw(2) << (int)dataPC 
+		//debugFile << setw(4) << uppercase << setfill('0') << (PC - 1);	//Prints in uppercase hex
+		//debugFile << setw(2) << "  ";
+		//debugFile << setw(2) << uppercase << (int)opcode;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase << (int)dataPC;
+		//debugFile << setw(8) << setfill(' ') << OPname;			//Name of the opcode
+		//debugFile << setw(2) << " $" << uppercase  << setfill('0') <<  setw(2) << (int)dataPC 
 			  << setw(5) << ",X @ " << setw(2) << (totalAddress & 0xFF) << setw(3) << " = "
 			  << setw(2) << (int)dataAddress;
-		debugFile << setw(13) << setfill(' ') << " ";
+		//debugFile << setw(13) << setfill(' ') << " ";
 		
-		//Right side of debug file
-		debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
-		debugFile << setw(1) << " ";
-		debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
-		debugFile << setw(1) << " ";
-		debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
-		debugFile << endl;
+		//Right side of //debug file
+		//debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
+		//debugFile << endl;
 	}
 	else cout << "Unable to open file";
 }
 
-//This outputs debug information for zeropage + Y instructions
-const void cpu::debugZeroY(unsigned char &opcode, unsigned char dataPC,
+//This outputs //debug information for zeropage + Y instructions
+const void cpu:://debugZeroY(unsigned char &opcode, unsigned char dataPC,
 				unsigned short totalAddress, unsigned char dataAddress, std::string OPname)
 {
 	using namespace std;
 
-	if(debugFile.is_open())
+	if(//debugFile.is_open())
 	{
-		//Left side of debug file
+		//Left side of //debug file
 		//cout << "GOOD" << endl;
-		debugFile << setw(4) << setfill('0') << uppercase  << (PC - 1);	//Prints in uppercase hex
-		debugFile << setw(2) << "  ";
-		debugFile << setw(2) << uppercase  << (int)opcode;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase  << (int)dataPC;
-		debugFile << setw(8) << setfill(' ') << OPname;			//Name of the opcode
-		debugFile << setw(2) << " $" << uppercase << setfill('0') << setw(2) << (int)dataPC 
+		//debugFile << setw(4) << setfill('0') << uppercase  << (PC - 1);	//Prints in uppercase hex
+		//debugFile << setw(2) << "  ";
+		//debugFile << setw(2) << uppercase  << (int)opcode;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase  << (int)dataPC;
+		//debugFile << setw(8) << setfill(' ') << OPname;			//Name of the opcode
+		//debugFile << setw(2) << " $" << uppercase << setfill('0') << setw(2) << (int)dataPC 
 			  << setw(5) << ",Y @ " << setw(2) << (totalAddress & 0xFF) << setw(3) << " = "
 			  << setw(2) << (int)dataAddress;
-		debugFile << setw(13) << setfill(' ') << " ";
+		//debugFile << setw(13) << setfill(' ') << " ";
 		
-		//Right side of debug file
-		debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
-		debugFile << setw(1) << " ";
-		debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
-		debugFile << setw(1) << " ";
-		debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
-		debugFile << endl;
+		//Right side of //debug file
+		//debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
+		//debugFile << endl;
 	}
 	else cout << "Unable to open file";
 }
 
-//This outputs debug information for absolute instructions
-const void cpu::debugAbs(unsigned char &opcode, unsigned char highAddress, unsigned char lowAddress, 
+//This outputs //debug information for absolute instructions
+const void cpu:://debugAbs(unsigned char &opcode, unsigned char highAddress, unsigned char lowAddress, 
 		    unsigned char data, std::string OPname)	
 {
 	using namespace std;
 
-	if(debugFile.is_open())
+	if(//debugFile.is_open())
 	{
-		//Left side of debug file
+		//Left side of //debug file
 		//cout << "GOOD" << endl;
-		debugFile << setw(4) << setfill('0') << uppercase  << (PC - 1);	//Prints in uppercase hex
-		debugFile << setw(2) << "  ";
-		debugFile << setw(2) << uppercase  << (int)opcode;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase  << (int)lowAddress;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase  << (int)highAddress;
-		debugFile << setw(5) << setfill(' ') << OPname;			//Name of the opcode
+		//debugFile << setw(4) << setfill('0') << uppercase  << (PC - 1);	//Prints in uppercase hex
+		//debugFile << setw(2) << "  ";
+		//debugFile << setw(2) << uppercase  << (int)opcode;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase  << (int)lowAddress;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase  << (int)highAddress;
+		//debugFile << setw(5) << setfill(' ') << OPname;			//Name of the opcode
 		if(OPname == "JMP" || OPname == "JSR")
 		{
-			debugFile << setw(2) << "$" << setw(2) << setfill('0') << uppercase  << (int)highAddress
+			//debugFile << setw(2) << "$" << setw(2) << setfill('0') << uppercase  << (int)highAddress
 			 << setw(2) << (int)lowAddress;
-			debugFile << setw(23) << setfill(' ') << " ";
+			//debugFile << setw(23) << setfill(' ') << " ";
 		}
 		else
 		{
-			debugFile << setw(2) << "$" << setw(2) << setfill('0')  << uppercase  << (int)highAddress
+			//debugFile << setw(2) << "$" << setw(2) << setfill('0')  << uppercase  << (int)highAddress
 			 << setw(2) <<(int)lowAddress << setw(3) << " = " << setw(2) << (int)data;
-			debugFile << setw(18) << setfill(' ') << " ";
+			//debugFile << setw(18) << setfill(' ') << " ";
 		}
 		
-		//Right side of debug file
-		debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
-		debugFile << setw(1) << " ";
-		debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
-		debugFile << setw(1) << " ";
-		debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
-		debugFile << endl;
+		//Right side of //debug file
+		//debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
+		//debugFile << endl;
 	}
 	else cout << "Unable to open file";
 }
 
-//This outputs debug information for absolute,X instructions
-const void cpu::debugAbsX(unsigned char &opcode, unsigned char highAddress, unsigned char lowAddress, 
+//This outputs //debug information for absolute,X instructions
+const void cpu:://debugAbsX(unsigned char &opcode, unsigned char highAddress, unsigned char lowAddress, 
 			unsigned short totalAddress, unsigned char data, std::string OPname)
 {
 	using namespace std;
 
-	if(debugFile.is_open())
+	if(//debugFile.is_open())
 	{
-		//Left side of debug file
+		//Left side of //debug file
 		//cout << "GOOD" << endl;
-		debugFile << setw(4) << uppercase << setfill('0') << (PC - 1);	//Prints in uppercase hex
-		debugFile << setw(2) << "  ";
-		debugFile << setw(2) << uppercase << (int)opcode;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase << (int)lowAddress;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase << (int)highAddress;
-		debugFile << setw(5) << setfill(' ') << OPname;			//Name of the opcode
-		debugFile << setw(2) << " $" << uppercase << setfill('0') << setw(2) << (int)highAddress 
+		//debugFile << setw(4) << uppercase << setfill('0') << (PC - 1);	//Prints in uppercase hex
+		//debugFile << setw(2) << "  ";
+		//debugFile << setw(2) << uppercase << (int)opcode;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase << (int)lowAddress;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase << (int)highAddress;
+		//debugFile << setw(5) << setfill(' ') << OPname;			//Name of the opcode
+		//debugFile << setw(2) << " $" << uppercase << setfill('0') << setw(2) << (int)highAddress 
 			  << setw(2) << (int)lowAddress << setw(5) << ",X @ " << setw(4) << totalAddress 
 			  << setw(3) << " = " << setw(2) << (int)data;
-		debugFile << setw(9) << setfill(' ') << " ";
+		//debugFile << setw(9) << setfill(' ') << " ";
 		
-		//Right side of debug file
-		debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
-		debugFile << setw(1) << " ";
-		debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
-		debugFile << setw(1) << " ";
-		debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
-		debugFile << endl;
+		//Right side of //debug file
+		//debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
+		//debugFile << endl;
 	}
 	else cout << "Unable to open file";
 }
 
-//This outputs debug information for absolute, Y instructions
-const void cpu::debugAbsY(unsigned char &opcode, unsigned char highAddress, unsigned char lowAddress, 
+//This outputs //debug information for absolute, Y instructions
+const void cpu:://debugAbsY(unsigned char &opcode, unsigned char highAddress, unsigned char lowAddress, 
 			unsigned short totalAddress, unsigned char data, std::string OPname)
 {
 	using namespace std;
 
-	if(debugFile.is_open())
+	if(//debugFile.is_open())
 	{
-		//Left side of debug file
+		//Left side of //debug file
 		//cout << "GOOD" << endl;
-		debugFile << setw(4) << setfill('0') << uppercase << (PC - 1);	//Prints in uppercase hex
-		debugFile << setw(2) << "  ";
-		debugFile << setw(2) << uppercase << (int)opcode;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase << (int)lowAddress;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase << (int)highAddress;
-		debugFile << setw(5) << setfill(' ') << OPname;			//Name of the opcode
-		debugFile << setw(2) << " $" << uppercase << setfill('0') << setw(2) << (int)highAddress 
+		//debugFile << setw(4) << setfill('0') << uppercase << (PC - 1);	//Prints in uppercase hex
+		//debugFile << setw(2) << "  ";
+		//debugFile << setw(2) << uppercase << (int)opcode;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase << (int)lowAddress;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase << (int)highAddress;
+		//debugFile << setw(5) << setfill(' ') << OPname;			//Name of the opcode
+		//debugFile << setw(2) << " $" << uppercase << setfill('0') << setw(2) << (int)highAddress 
 			  << setw(2) << (int)lowAddress << setw(5) << ",Y @ " << setw(4) << totalAddress 
 			  << setw(3) << " = " << setw(2) << (int)data;
-		debugFile << setw(9) << setfill(' ') << " ";
+		//debugFile << setw(9) << setfill(' ') << " ";
 		
-		//Right side of debug file
-		debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
-		debugFile << setw(1) << " ";
-		debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
-		debugFile << setw(1) << " ";
-		debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
-		debugFile << endl;
+		//Right side of //debug file
+		//debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
+		//debugFile << endl;
 	}
 	else cout << "Unable to open file";
 }
 
-//This outputs debug information for indirect,X instructions
-const void cpu::debugIndirectX(unsigned char &opcode, unsigned char pcAddress,unsigned short indirectAddress, 			unsigned char data, std::string OPname)
+//This outputs //debug information for indirect,X instructions
+const void cpu:://debugIndirectX(unsigned char &opcode, unsigned char pcAddress,unsigned short indirectAddress, 			unsigned char data, std::string OPname)
 {
 	using namespace std;
 
-	if(debugFile.is_open())
+	if(//debugFile.is_open())
 	{
-		//Left side of debug file
+		//Left side of //debug file
 		//cout << "GOOD" << endl;
-		debugFile << setw(4) << setfill('0') << uppercase << (PC - 1);	//Prints in uppercase hex
-		debugFile << setw(2) << "  ";
-		debugFile << setw(2) << uppercase << (int)opcode;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase << (int)pcAddress;	//Gives the indirect address
-		debugFile << setw(8) << setfill(' ') << OPname;				//Name of the opcode
-		debugFile << setw(3) << " ($" << uppercase  << setw(2) << setfill('0') << (int)pcAddress;
-		debugFile << setw(6) << ",X) @ " << setw(2) << (((int)pcAddress + initialX) & 0xFF) 
+		//debugFile << setw(4) << setfill('0') << uppercase << (PC - 1);	//Prints in uppercase hex
+		//debugFile << setw(2) << "  ";
+		//debugFile << setw(2) << uppercase << (int)opcode;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase << (int)pcAddress;	//Gives the indirect address
+		//debugFile << setw(8) << setfill(' ') << OPname;				//Name of the opcode
+		//debugFile << setw(3) << " ($" << uppercase  << setw(2) << setfill('0') << (int)pcAddress;
+		//debugFile << setw(6) << ",X) @ " << setw(2) << (((int)pcAddress + initialX) & 0xFF) 
 			  << setw(3) << " = "; 
-		debugFile << setw(4) << indirectAddress << setw(3) << " = " << setw(2) << (int)data;
-		debugFile << setw(4) << setfill(' ') << " ";
+		//debugFile << setw(4) << indirectAddress << setw(3) << " = " << setw(2) << (int)data;
+		//debugFile << setw(4) << setfill(' ') << " ";
 
-		//Right side of debug file
-		debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
-		debugFile << setw(1) << " ";
-		debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
-		debugFile << setw(1) << " ";
-		debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
-		debugFile << endl;
+		//Right side of //debug file
+		//debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
+		//debugFile << endl;
 	}
 	else cout << "Unable to open file";
 }
 
-//This outputs debug information for indirect,Y instructions
-const void cpu::debugIndirectY(unsigned char &opcode, unsigned char pcAddress,
+//This outputs //debug information for indirect,Y instructions
+const void cpu:://debugIndirectY(unsigned char &opcode, unsigned char pcAddress,
 			  unsigned short indirectAddress, unsigned char data, std::string OPname)
 {
 	using namespace std;
 
-	if(debugFile.is_open())
+	if(//debugFile.is_open())
 	{
-		//Left side of debug file
-		debugFile << setw(4) << setfill('0') << uppercase << (PC - 1);	//Prints in uppercase hex
-		debugFile << setw(2) << "  ";
-		debugFile << setw(2) << uppercase << (int)opcode;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase << (int)pcAddress;	//Gives the indirect address
-		debugFile << setw(8) << setfill(' ') << OPname;				//Name of the opcode
-		debugFile << setw(3) << " ($" << uppercase  << setw(2) << setfill('0') << (int)pcAddress;
-		debugFile << setw(6) << "),Y = " << setw(4) << ((indirectAddress - Y) & 0xFFFF)  << setw(3) << " @ "; 
-		debugFile << setw(4) << indirectAddress << setw(3) << " = " << setw(2) << (int)data;
-		debugFile << setw(2) << setfill(' ') << " ";
+		//Left side of //debug file
+		//debugFile << setw(4) << setfill('0') << uppercase << (PC - 1);	//Prints in uppercase hex
+		//debugFile << setw(2) << "  ";
+		//debugFile << setw(2) << uppercase << (int)opcode;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase << (int)pcAddress;	//Gives the indirect address
+		//debugFile << setw(8) << setfill(' ') << OPname;				//Name of the opcode
+		//debugFile << setw(3) << " ($" << uppercase  << setw(2) << setfill('0') << (int)pcAddress;
+		//debugFile << setw(6) << "),Y = " << setw(4) << ((indirectAddress - Y) & 0xFFFF)  << setw(3) << " @ "; 
+		//debugFile << setw(4) << indirectAddress << setw(3) << " = " << setw(2) << (int)data;
+		//debugFile << setw(2) << setfill(' ') << " ";
 
-		//Right side of debug file
-		debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
-		debugFile << setw(1) << " ";
-		debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
-		debugFile << setw(1) << " ";
-		debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
-		debugFile << endl;
+		//Right side of //debug file
+		//debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
+		//debugFile << endl;
 	}
 	else cout << "Unable to open file";
 }
 
-//This outputs debug information for relative instructions
-const void cpu::debugRelative(unsigned char &opcode, char offset, unsigned char dataPC, std::string OPname)
+//This outputs //debug information for relative instructions
+const void cpu:://debugRelative(unsigned char &opcode, char offset, unsigned char dataPC, std::string OPname)
 {
 	using namespace std;
 
-	if(debugFile.is_open())
+	if(//debugFile.is_open())
 	{
 		//cout << "GOOD" << endl;
-		//Left side of debug file
+		//Left side of //debug file
 		//If branch doesn't succeed, then offset = 0
-		debugFile << setw(4) << uppercase << setfill('0') << (PC - 1);	//Prints in uppercase hex
-		debugFile << setw(2) << "  ";
-		debugFile << setw(2) << uppercase << (int)opcode;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase << (int)dataPC;
-		debugFile << setw(8) << setfill(' ') << OPname;			//Name of the opcode
-		debugFile << setw(2) << "$" << uppercase  << setw(4) << setfill('0') << (PC + offset + 1);
-		debugFile << setw(23) << setfill(' ') << " ";
+		//debugFile << setw(4) << uppercase << setfill('0') << (PC - 1);	//Prints in uppercase hex
+		//debugFile << setw(2) << "  ";
+		//debugFile << setw(2) << uppercase << (int)opcode;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase << (int)dataPC;
+		//debugFile << setw(8) << setfill(' ') << OPname;			//Name of the opcode
+		//debugFile << setw(2) << "$" << uppercase  << setw(4) << setfill('0') << (PC + offset + 1);
+		//debugFile << setw(23) << setfill(' ') << " ";
 
-		//Right side of debug file
-		debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
-		debugFile << setw(1) << " ";
-		debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
-		debugFile << setw(1) << " ";
-		debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
-		debugFile << endl;
+		//Right side of //debug file
+		//debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
+		//debugFile << endl;
 	}
 	else cout << "Unable to open file";
 }
 
-//This outputs debug information for implied instructions
-const void cpu::debugImplied(unsigned char &opcode, std::string OPname)
+//This outputs //debug information for implied instructions
+const void cpu:://debugImplied(unsigned char &opcode, std::string OPname)
 {
 	using namespace std;
 
-	if(debugFile.is_open())
+	if(//debugFile.is_open())
 	{
-		//Left side of debug file
-		debugFile << setw(4) << uppercase << setfill('0') << (PC - 1);	//Prints in uppercase hex
-		debugFile << setw(2) << "  ";
-		debugFile << setw(2) << uppercase  << (int)opcode;
-		debugFile << setw(11) << setfill(' ') << OPname;		//Name of the opcode
-		debugFile << setw(29) << " ";
+		//Left side of //debug file
+		//debugFile << setw(4) << uppercase << setfill('0') << (PC - 1);	//Prints in uppercase hex
+		//debugFile << setw(2) << "  ";
+		//debugFile << setw(2) << uppercase  << (int)opcode;
+		//debugFile << setw(11) << setfill(' ') << OPname;		//Name of the opcode
+		//debugFile << setw(29) << " ";
 
-		//Right side of debug file
-		debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
-		debugFile << setw(1) << " ";
-		debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
-		debugFile << setw(1) << " ";
-		debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
-		debugFile << endl;
+		//Right side of //debug file
+		//debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
+		//debugFile << endl;
 	}
 	else cout << "Unable to open file";
 }
 
-//This outputs debug informatiuon for implicit instructions
-const void cpu::debugIndirect(unsigned char &opcode, unsigned char highAddress, unsigned char lowAddress,
+//This outputs //debug informatiuon for implicit instructions
+const void cpu:://debugIndirect(unsigned char &opcode, unsigned char highAddress, unsigned char lowAddress,
 				unsigned short jumpAddress, std::string OPname)
 {
 	using namespace std;
 
-	if(debugFile.is_open())
+	if(//debugFile.is_open())
 	{
 		//Jump address is the data at the jump address.
-		//Left side of debug file
-		debugFile << setw(4) << uppercase << setfill('0') << (PC - 1);	//Prints in uppercase hex
-		debugFile << setw(2) << "  ";
-		debugFile << setw(2) << uppercase << (int)opcode;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase << (int)lowAddress;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << uppercase << (int)highAddress;
-		debugFile << setw(5) << setfill(' ') << OPname;			//Name of the opcode
-		debugFile << setw(3) << " ($" << uppercase << setfill('0') << setw(2) << (int)highAddress 
+		//Left side of //debug file
+		//debugFile << setw(4) << uppercase << setfill('0') << (PC - 1);	//Prints in uppercase hex
+		//debugFile << setw(2) << "  ";
+		//debugFile << setw(2) << uppercase << (int)opcode;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase << (int)lowAddress;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << uppercase << (int)highAddress;
+		//debugFile << setw(5) << setfill(' ') << OPname;			//Name of the opcode
+		//debugFile << setw(3) << " ($" << uppercase << setfill('0') << setw(2) << (int)highAddress 
 			  << setw(2) << (int)lowAddress << setw(4) << ") = " << setw(4) << jumpAddress;
-		debugFile << setw(14) << setfill(' ') << " ";
+		//debugFile << setw(14) << setfill(' ') << " ";
 		
-		//Right side of debug file
-		debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
-		debugFile << setw(1) << " ";
-		debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
-		debugFile << setw(1) << " ";
-		debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
-		debugFile << setw(1) << " ";
-		debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
-		debugFile << endl;
+		//Right side of //debug file
+		//debugFile << setw(2) << "A:" << uppercase << setw(2) << setfill('0') << (int)initialA;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "X:" << uppercase << setw(2) << setfill('0') << (int)initialX;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "Y:" << uppercase << setw(2) << setfill('0') << (int)initialY;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(2) << "P:" << uppercase << setw(2) << setfill('0') << (int)initialP;
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(3) << "SP:" << uppercase << setw(2) << setfill('0') << (initialSP - 0x0100);
+		//debugFile << setw(1) << " ";
+		//debugFile << setw(4) << "CYC:" << setfill(' ') << setw(3) << dec << initialCycles << hex;
+		//debugFile << endl;
 	}
 	else cout << "Unable to open file";
-}
+}*/

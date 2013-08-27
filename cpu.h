@@ -18,18 +18,18 @@ public:
 	unsigned short PC, SP;	//Stack pointer can be between 0x0100 and 0x01FF in memory
 	unsigned char A, X, Y;
 
-	/* C = Carry flag Z = Zero flag  I = Interrupt disable D = decimal mode B = Break command 
+	/* C = Carry flag Z = Zero flag  I = Interrupt disable D = decimal mode
 	V = Overflow flag N = Negative flag*/
-	bool C, Z, I, D, B, V, N;
+	bool C, Z, I, D, V, N;
 
 	unsigned short emulateCycle(memory*, ppu*);
 	void setPCStart(memory*);					//Sets the PC to the reset vector
 	
 private:
-	ofstream debugFile;					//Used for outputting debug information
-	unsigned char initialA, initialX, initialY, initialP;	//Used for debugging
-	unsigned short initialSP;				//Used for debugging
-	unsigned short cycles, initialCycles;			//Holds the current number of cycles
+	//ofstream debugFile;					//Used for outputting debug information
+	unsigned char initialA; //initialX, initialY, initialP;	//Used for debugging
+	//unsigned short initialSP;				//Used for debugging
+	unsigned short cycles; //initialCycles;			//Holds the current number of cycles
 
 
 	//Functions
@@ -46,7 +46,7 @@ private:
 	//Debug functions
 	//DataPC = data from the PC counter memory address.  dataAddress = data from the PC counters addresses given
 	//in dataPC.
-	const void debugAcc(unsigned char &opcode, string OPname);			//Accumulator
+	/*const void debugAcc(unsigned char &opcode, string OPname);			//Accumulator
 	
 	const void debugImm(unsigned char &opcode, unsigned char data, string OPname); //Immidiate
 
@@ -78,7 +78,7 @@ private:
 	const void debugImplied(unsigned char &opcode, string OPname);
 
 	const void debugIndirect(unsigned char &opcode, unsigned char highAddress, unsigned char lowAddress,
-				unsigned short jumpAddress, string OPname);
+				unsigned short jumpAddress, string OPname);*/
 };
 
 #endif

@@ -14,12 +14,11 @@ memory::memory()
 		VRAM[i] = 0xFF;
 	DMAFlag = false;
 	readBuffer = 0x00;
-	debug.open("blargtest.txt");
 }
 
 memory::~memory()
 {
-	debug.close();
+
 }
 
 bool memory::loadMemory()
@@ -27,7 +26,7 @@ bool memory::loadMemory()
 	using namespace std;
 	bool retval;
 	
-	game.open("05-zp_xy.nes", ios::in | ios::binary | ios::ate);
+	game.open("11-stack.nes", ios::in | ios::binary | ios::ate);
 	if(game.is_open())
 	{
 		retval = true;
@@ -56,7 +55,6 @@ void memory::writeRAM(unsigned short &address, unsigned char &data, ppu* ppu)
 {
 	if(address <= 0x07FF)
 	{
-		//std::cout << "< 0x07FF" << std::endl;
 		//The data is mirrored at 0x0800 intervals 
 		for(int i = address; i <= 0x1FFF; i += 0x0800)
 		{
@@ -223,7 +221,7 @@ const void memory::DMA(unsigned char &data)
 		OAM[counter++] = RAM[i];
 }
 
-void memory::dump()
+void memory::dump()	//Dumps memory addresses $6000-$7FFF for CPU testing
 {
 	bool stringEnd = false, stringStart = false;
 	unsigned char temp[0x3FF];
@@ -250,7 +248,9 @@ void memory::dump()
 
 		if(stringEnd)
 		{
-			text = (char*) memchr(temp, 0x0A, tempCounter);
+			std::stringstream s;
+			s << temp;
+			std::string text = s.str();
 			std::cout << text << std::endl;
 			stringEnd = stringStart = false;
 			tempCounter = 0;

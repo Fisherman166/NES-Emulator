@@ -107,7 +107,7 @@ void display()
 	time(&endTime);
 	seconds = difftime(endTime, startTime);
 
-	if(seconds == 15) flag = true;
+	if(seconds == 7) flag = true;
 
 	if(flag)
 	{
