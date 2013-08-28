@@ -14,11 +14,12 @@ memory::memory()
 		VRAM[i] = 0xFF;
 	DMAFlag = false;
 	readBuffer = 0x00;
+	debug.open("VRAM_DUMP.bin");
 }
 
 memory::~memory()
 {
-
+	debug.close();
 }
 
 bool memory::loadMemory()
@@ -26,7 +27,7 @@ bool memory::loadMemory()
 	using namespace std;
 	bool retval;
 	
-	game.open("11-stack.nes", ios::in | ios::binary | ios::ate);
+	game.open("Donkey_Kong.nes", ios::in | ios::binary | ios::ate);
 	if(game.is_open())
 	{
 		retval = true;
@@ -99,13 +100,14 @@ void memory::writeRAM(unsigned short &address, unsigned char &data, ppu* ppu)
 	switch(address)
 	{
 		case 0x2000:
+			ppu->ppuTempAddress &= ~0x0C00;			//Clears bits 10 and 11
 			ppu->ppuTempAddress |= ((data & 0x03) << 10);	//Shifts the nametable select bits to bit 10 and 11 in the temp address
 			break;
 		case 0x2005:
 			if(ppu->writeToggle)
 			{
 				ppu->ppuTempAddress &= 0x8C1F;				//Makes bits 5-9 and 12-14 zero
-				ppu->ppuTempAddress |= (data & 0xF8) << 5;		//Shifts the data to fill bits 5-9
+				ppu->ppuTempAddress |= (data & 0xF8) << 2;		//Shifts the data to fill bits 5-9
 				ppu->ppuTempAddress |= (data & 0x07) << 12;		//Shifts the data to fill bits 12-14
 				ppu->writeToggle = false;
 				break;
@@ -113,7 +115,7 @@ void memory::writeRAM(unsigned short &address, unsigned char &data, ppu* ppu)
 			else
 			{
 				ppu->ppuTempAddress &= ~0x001F;				//Makes the first 5 bits zero
-				ppu->ppuTempAddress |= data & 0xF8;			//Gets the last 5 bits for the address
+				ppu->ppuTempAddress |= (data & 0xF8) >> 3;		//Gets the last 5 bits for the address
 				ppu->fineXScroll = data & 0x07;				//Gets the first three bits
 				ppu->writeToggle = true;
 			}
@@ -169,32 +171,90 @@ unsigned char memory::readRAM(unsigned short address, ppu* ppu)
 void memory::writeVRAM(unsigned short address, unsigned char &data)
 {
 	//Address above 0x3FFF wrap around between the 0x0000 and 0x3FFF range.
-	address %= 0x4000;
+	address &= 0x3FFF;
 
 	if(address >= 0x2000 && address <= 0x2FFF)
 	{
 		if(horizontalMirror) 
 		{
 			//$2000 = $2400 and $2800 = $2C00
-			VRAM[address] = data;
-			VRAM[address + 0x400] = data;
-			VRAM[address + 0x1000] = data;
-			if(address < 0x2B00) VRAM[address + 0x1400] = data;	//No mirror above 0x2EFF
+			if(address < 0x2400)			//Address in first nametable
+			{
+				VRAM[address] = data;
+				VRAM[address + 0x400] = data;
+				VRAM[address + 0x1000] = data;
+				VRAM[address + 0x1400] = data;	
+			}
+			else if(address < 0x2800)
+			{
+				VRAM[address] = data;
+				VRAM[address - 0x400] = data;
+				VRAM[address + 0xC00] = data;			//Mirror for $2000 range
+				VRAM[address + 0x1000] = data;
+			}
+			else if(address < 0x2C00)
+			{
+				VRAM[address] = data;
+				VRAM[address + 0x400] = data;
+				VRAM[address + 0x1000] = data;
+				if(address < 0x2B00) VRAM[address + 0x1400] = data;	//No mirror above 0x2EFF
+			}
+			else
+			{
+				VRAM[address] = data;
+				VRAM[address - 0x400] = data;
+				if(address < 0x2F00) VRAM[address + 0x1000] = data;	//No mirror above 0x2EFF
+				VRAM[address + 0xC00] = data;
+			}
 		}
-		else 
+		else 	//Vertical mirroring
 		{
 			//$2000 = $2800 and $2400 = $2C00
-			VRAM[address] = data;
-			VRAM[address + 0x800] = data;
-			VRAM[address + 0x1000] = data;				//Mirrored up one number
-			if(address < 0x2300) VRAM[address + 0x1800] = data;	//0x2AFF = 0x2EFF.  No mirror above that
+			if(address < 0x2400)			//Address in first nametable
+			{
+				VRAM[address] = data;
+				VRAM[address + 0x800] = data;
+				VRAM[address + 0x1000] = data;
+				VRAM[address + 0x1800] = data;	
+			}
+			else if(address < 0x2800)		//$2400 range
+			{
+				VRAM[address] = data;
+				VRAM[address + 0x800] = data;
+				VRAM[address + 0x1000] = data;	
+				if(address < 0x2700) VRAM[address + 0x1800] = data;
+			}
+			else if(address < 0x2C00)		//$2800 range
+			{
+				VRAM[address] = data;
+				VRAM[address - 0x800] = data;
+				VRAM[address + 0x800] = data;			//Mirror for $2000 range
+				VRAM[address + 0x1000] = data;
+			}
+			else					//$2C00 range
+			{
+				VRAM[address] = data;
+				VRAM[address - 0x800] = data;
+				if(address < 0x2F00) VRAM[address + 0x1000] = data;	//No mirror above 0x2EFF
+				VRAM[address + 0x800] = data;				//Mirror for $2400 range
+			}
 		}	
 	}
-	else
+	else	//Pallete write
 	{
-		//Palletes are mirrored every 0x20 bytes
-		VRAM[address] = data;
-		VRAM[address + 0x20] = data;
+		//Pallete glitch where these areas of BG pallete are also copied to sprite pallete
+		if(address == 0x3F00 || address == 0x3F04 || address == 0x3F08 || address == 0x3F0C)
+		{
+			//Sets and mirrors the data
+			for(int i = address; i < 0x4000; i += 0x20)
+				VRAM[i] = VRAM[i + 0x10] = data;
+		}
+		else
+		{
+			//Sets and mirrors the data
+			for(int i = address; i < 0x4000; i += 0x20)
+				VRAM[i] = data;
+		}
 	}
 }
 
@@ -221,7 +281,7 @@ const void memory::DMA(unsigned char &data)
 		OAM[counter++] = RAM[i];
 }
 
-void memory::dump()	//Dumps memory addresses $6000-$7FFF for CPU testing
+void memory::dumpRAM()	//Dumps memory addresses $6000-$7FFF for CPU testing
 {
 	bool stringEnd = false, stringStart = false;
 	unsigned char temp[0x3FF];
@@ -258,6 +318,18 @@ void memory::dump()	//Dumps memory addresses $6000-$7FFF for CPU testing
 	}
 }
 
+void memory::dumpVRAM()
+{
+	using namespace std;
+
+	for(int i = 0; i < 0x4000; i++)
+	{
+		debug << VRAM[i];
+		if( ((i & 0xFF) == 0x30) || ((i & 0xFF) == 0x60) || ((i & 0xFF) == 0x90) || ((i & 0xFF) == 0xC0) )
+			debug << endl;
+	}
+}
+		
 
 //Mapper functions
 

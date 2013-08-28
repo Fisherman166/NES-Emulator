@@ -107,11 +107,11 @@ void display()
 	time(&endTime);
 	seconds = difftime(endTime, startTime);
 
-	if(seconds == 7) flag = true;
+	if(seconds == 5) flag = true;
 
 	if(flag)
 	{
-		systemMemory->dump();
+		systemMemory->dumpVRAM();
 		std::cout << "DONE" << std::endl;
 		run = false;
 	}
