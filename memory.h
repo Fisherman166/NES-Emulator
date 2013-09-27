@@ -4,49 +4,62 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-#include <cstring>
+#include <string>
+#include <sstream>
 
-class ppu;							//Foward declaration
+class ppu;						//Foward declaration
 
 class memory
 {
 public:
+	typedef unsigned char byte;
+	typedef unsigned short word;			//Two bytes
+
 	memory();
 	~memory();	
 	
 	//CPU
-	unsigned char RAM[0xFFFF]; 				//Memory for the system
+	byte RAM[0x10000]; 				//Memory for the system
+	byte *RAMPTR[0x10000];				//Pointers for RAM
 
 	//PPU
-	unsigned char VRAM[0x4000];				//Memory for the PPU. 16384 bytes large
-	unsigned char OAM[0xFF];				//256 byte area for sprites
-	char header[16];					//Holds the iNES header
+	byte chrRom[0x2001];				//$0000-$1FFF in VRAM. Holds CHR-ROM
+	byte nameTable1[0x401];				//$2000-$23FF in VRAM. Holds first nametable
+	byte nameTable2[0x401];				//$2400-$27FF in VRAM. Holds second nametable
+	byte pallete[0x21];				//$3F00-$3F1F in VRAM. Holds pallete for sprite and BG
+	byte *VRAMPTR[0x4001];				//Pointers for VRAM
+	byte OAM[0x100];				//256 byte area for sprites
+	char header[16];				//Holds the iNES header
 
 	//Functions
-	void writeRAM(unsigned short&, unsigned char&, ppu*); 	//Writes to RAM
-	unsigned char readRAM(unsigned short, ppu*);		//Reads from RAM
-	void writeVRAM(unsigned short, unsigned char&);		//Writes to VRAM
-	unsigned char readVRAM(unsigned short&);
-	void clearDMA();					//Clears the DMA flag
+	void writeRAM(word&, byte&, ppu*); 	//Writes to RAM
+	byte readRAM(word, ppu*);		//Reads from RAM
+	void writeVRAM(word, byte&);		//Writes to VRAM
+	byte readVRAM(word&);
+
+	void clearDMA();				//Clears the DMA flag
 	bool loadMemory();
-	void dump();						//Dumps $6000 to $7FFF
+	void dumpRAM();					//Dumps $6000 to $7FFF
+	void dumpVRAM();					
+	void setMirror(bool);				//True = horizontal, false = vertical
 
 	//Data peices
-	bool DMAFlag;						//Flag for if a DMA has occured
+	bool DMAFlag;					//Flag for if a DMA has occured
 
 private:
-	unsigned char mapper;					//Holds the mapper number
-	char*	memBlock;					//Holds the temporary cartridge data
-	std::ifstream game;					//Loads the game
+	byte mapper;					//Holds the mapper number
+	char*	memBlock;				//Holds the temporary cartridge data
+	std::ifstream game;				//Loads the game
 	std::ofstream debug;
-	bool	horizontalMirror;				//0 = vertical mirroring, 1 = horizontal mirroring
-	unsigned char	readBuffer;				//The intertal buffer for $2007 reads
+	int gameSize;
+	bool	horizontalMirror;			//0 = vertical mirroring, 1 = horizontal mirroring
+	byte	readBuffer;				//The intertal buffer for $2007 reads
 
 	//Functions
-	const void DMA(unsigned char&);				//Used in a DMA
+	const void DMA(byte&);				//Used in a DMA
 
 	//Mapper functions
-	const void NROM();					//Used for mapper 0x00
+	const void NROM();				//Used for mapper 0x00
 };
 
 #endif

@@ -9,76 +9,88 @@
 #include "ppu.h"
 
 using namespace std;
+#define illegal
 
 class cpu
 {
 public:
+	typedef unsigned char byte;
+	typedef unsigned short word;			//Two bytes
+
 	cpu();
 	~cpu();
-	unsigned short PC, SP;	//Stack pointer can be between 0x0100 and 0x01FF in memory
-	unsigned char A, X, Y;
+	word PC, SP;	//Stack pointer can be between 0x0100 and 0x01FF in memory
+	byte A, X, Y;
 
 	/* C = Carry flag Z = Zero flag  I = Interrupt disable D = decimal mode
 	V = Overflow flag N = Negative flag*/
 	bool C, Z, I, D, V, N;
+	static byte const instr_lens[];
+	static byte const cycleCount[];
 
-	unsigned short emulateCycle(memory*, ppu*);
-	void setPCStart(memory*);					//Sets the PC to the reset vector
+	byte emulateCycle(memory*, ppu*);
+	void setPCStart(memory*, ppu*);					//Sets the PC to the reset vector
 	
 private:
-	//ofstream debugFile;					//Used for outputting debug information
-	unsigned char initialA; //initialX, initialY, initialP;	//Used for debugging
-	//unsigned short initialSP;				//Used for debugging
-	unsigned short cycles; //initialCycles;			//Holds the current number of cycles
+	byte initialA;
+	byte cycles, opcode;
 
 
 	//Functions
-	const void pushStack(memory*, unsigned char&, ppu*);
-	const unsigned char popStack(memory*, ppu*);
-	const void compareFlags(unsigned char&, unsigned char);
-	const unsigned char encodeBits(bool bools[8]);
-	const void decodeBits(bool (&bools)[8], unsigned char input);
-	const void pageBoundry(unsigned short, unsigned short&, unsigned char);
+	const void pushStack(memory*, byte&, ppu*);
+	const byte popStack(memory*, ppu*);
+	const void compareFlags(byte&, byte);
+	const byte encodeBits(bool bools[8]);
+	const void decodeBits(bool (&bools)[8], byte input);
+	const void pageBoundry(word, word&);
 	const void pageBranch(char&);
+
+	//Get address functions
+	const word zeroPageX(memory*, ppu*);
+	const word zeroPageY(memory*, ppu*);
+	const word absolute(memory*, ppu*);
+	const word absoluteX(memory*, ppu*);
+	const word absoluteY(memory*, ppu*);
+	const word indirectX(memory*, ppu*);
+	const word indirectY(memory*, ppu*);
 
 	const void NMI(memory*, ppu*);
 
 	//Debug functions
 	//DataPC = data from the PC counter memory address.  dataAddress = data from the PC counters addresses given
 	//in dataPC.
-	/*const void debugAcc(unsigned char &opcode, string OPname);			//Accumulator
+
+#ifdef debugOn
+	ofstream debugFile;
+	byte initialX, initialY, initialP;
+	word initialSP, initialCycles;
 	
-	const void debugImm(unsigned char &opcode, unsigned char data, string OPname); //Immidiate
-
-	const void debugZero(unsigned char &opcode,  unsigned char dataPC, 
-			     unsigned char dataAddress, string OPname); 		//Zeropage
-
-	const void debugZeroX(unsigned char &opcode, unsigned char dataPC,
-			unsigned short totalAddress, unsigned char dataAddress, string Opname); //Zeropage, X
-
-	const void debugZeroY(unsigned char &opcode, unsigned char dataPC,
-			unsigned short totalAddress, unsigned char dataAddress, string Opname); //Zeropage, Y
-
-	const void debugAbs(unsigned char &opcode, unsigned char highAddress, unsigned char lowAddress, 
-				unsigned char data, string OPname);	   //Absolute
-
-	const void debugAbsX(unsigned char &opcode, unsigned char highAddress, unsigned char lowAddress, 
-			unsigned short totalAddress, unsigned char data, string OPname);	//Absolute,X
-
-	const void debugAbsY(unsigned char &opcode, unsigned char highAddress, unsigned char lowAddress, 
-			unsigned short totalAddress, unsigned char data, string OPname);	//Absolute,Y
-
-	const void debugIndirectX(unsigned char &opcode, unsigned char pcAddress, unsigned short indirectAddress, 					unsigned char data, string OPname);	//Indirect, X
-
-	const void debugIndirectY(unsigned char &opcode, unsigned char pcAddress,
-			unsigned short indirectAddress, unsigned char data, string OPname);	//Indirect, Y
-
-	const void debugRelative(unsigned char &opcode, char offset, unsigned char dataPC, string OPname);
+	const void debugAcc(ppu*, byte &opcode, string OPname);			//Accumulator
 	
-	const void debugImplied(unsigned char &opcode, string OPname);
+	const void debugImm(ppu*, byte &opcode, byte data, string OPname); //Immidiate
 
-	const void debugIndirect(unsigned char &opcode, unsigned char highAddress, unsigned char lowAddress,
-				unsigned short jumpAddress, string OPname);*/
+	const void debugZero(ppu*, byte &opcode,  byte dataPC, byte dataAddress, string OPname); 		//Zeropage
+
+	const void debugZeroX(ppu*, byte &opcode, byte dataPC, word totalAddress, byte dataAddress, string Opname); //Zeropage, X
+
+	const void debugZeroY(ppu*, byte &opcode, byte dataPC, word totalAddress, byte dataAddress, string Opname); //Zeropage, Y
+
+	const void debugAbs(ppu*, byte &opcode, byte highAddress, byte lowAddress, byte data, string OPname);	   //Absolute
+
+	const void debugAbsX(ppu*, byte &opcode, byte highAddress, byte lowAddress, word totalAddress, byte data, string OPname);	//Absolute,X
+
+	const void debugAbsY(ppu*, byte &opcode, byte highAddress, byte lowAddress, word totalAddress, byte data, string OPname);	//Absolute,Y
+
+	const void debugIndirectX(ppu*, byte &opcode, byte pcAddress, word indirectAddress, byte data, string OPname);	//Indirect, X
+
+	const void debugIndirectY(ppu*, byte &opcode, byte pcAddress, word indirectAddress, byte data, string OPname);	//Indirect, Y
+
+	const void debugRelative(ppu*, byte &opcode, char offset, byte dataPC, string OPname);
+	
+	const void debugImplied(ppu*, byte &opcode, byte BRK, string OPname);
+
+	const void debugIndirect(ppu*, byte &opcode, byte highAddress, byte lowAddress, word jumpAddress, string OPname);
+#endif
 };
 
 #endif
