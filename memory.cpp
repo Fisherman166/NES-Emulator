@@ -51,7 +51,7 @@ bool memory::loadMemory()
 	using namespace std;
 	bool retval;
 	
-	game.open("16-special.nes", ios::binary);
+	game.open("Donkey_Kong.nes", ios::binary);
 	if(game.is_open())
 	{
 		retval = true;

@@ -43,27 +43,27 @@ private:
 	word coarseY;
 
 	//For background rendering
-	word 	highBGShift, lowBGShift;		//Hold the higher and lower background tiles
-	byte	highBGFetch,lowBGFetch;			//Holds the two fetches for the shifter
-	byte 	highAttShift, lowAttShift;		//Shift registers for attribute bytes that apply to the BG tiles
-	byte	attFetch, nameFetch;			//Used in attrtibute fetch and nametable fetch
-	word 	tileAddress, attAddress;		//Addresses for these two things
-	word 	nameAddress;
+	word 	highBGShift, lowBGShift;			//Hold the higher and lower background tiles
+	byte	highBGFetch,lowBGFetch;				//Holds the two fetches for the shifter
+	byte 	highAttShift, lowAttShift;			//Shift registers for attribute bytes that apply to the BG tiles
+	byte	attFetch, nameFetch;				//Used in attrtibute fetch and nametable fetch
+	word 	tileAddress, attAddress;			//Addresses for these two things
+	word 	nameAddress;	
 	
 	//For Pixel Rendering
-	word palleteAddress;					//Holds the pallete address for the pixel
+	word palleteAddress;						//Holds the pallete address for the pixel
 	byte palleteData;						//The pallete number to be looked up in pallete arrays
 	
 
 	//I/O register data 
 	byte reg2000;						//$2000
 	byte reg2001;						//$2001
-	word reg2002 = 0x2002;				//Holds the address for $2002
+	word reg2002 = 0x2002;					//Holds the address for $2002
 
 	//$2002
-	bool spriteOverflow;						//Set if > 8 sprites on scanline
-	bool zeroFlag;								//Sprite zero hit flag
-	byte vblankValue = 0x80;			//Holds the vblank value
+	bool spriteOverflow;					//Set if > 8 sprites on scanline
+	bool zeroFlag;						//Sprite zero hit flag
+	byte vblankValue = 0x80;				//Holds the vblank value
 
 
 	//Functions
@@ -73,14 +73,13 @@ private:
 	const void checkVblank(memory*);
 	
 	//Used for different scanlines
-	const void visableScanline(memory*);
 	const void visableBGFetch(memory*);
 	const void preBGFetch(memory*);
 	
 	//Muxes
-	const void fourToOneMux();					//Used when loading attribute shift register
-	const bool eightToOneMux1(word&);			//Used when picking four bits for a pixel.
-	const bool eightToOneMux2(byte&);
+	const void fourToOneMux();				//Used when loading attribute shift register
+	const bool eightToOneMux(word&);			//Used when picking four bits for a pixel.
+	const bool eightToOneMux(byte&);
 
 	//Debug stuff
 	std::ofstream ppuDebug;

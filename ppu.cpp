@@ -48,7 +48,7 @@ void ppu::emulateCycle(memory* memory)
 				//For getting the background data.
 				if(scanline < 240) 
 				{
-					visableScanline(memory);					//For visable scanlines
+					visableBGFetch(memory);						//For visable scanlines
 				}
 				else if(scanline == 240) 
 				{
@@ -176,8 +176,8 @@ const void ppu::renderPixel(memory *memory)
 	{
 		if(reg2001 & 0x08)		//Checks if background rendering is enabled
 		{
-			palleteAddress = 0x3F00 | eightToOneMux1(lowBGShift) | (eightToOneMux1(highBGShift) << 1)
-							| (eightToOneMux2(lowAttShift) << 2) | (eightToOneMux2(highAttShift) << 3);
+			palleteAddress = 0x3F00 | eightToOneMux(lowBGShift) | (eightToOneMux(highBGShift) << 1)
+							| (eightToOneMux(lowAttShift) << 2) | (eightToOneMux(highAttShift) << 3);
 			palleteData = memory->readVRAM(palleteAddress);
 		
 			//Sets the RGB values for the screen
@@ -187,7 +187,7 @@ const void ppu::renderPixel(memory *memory)
 		}
 		else
 		{
-			if(ppuAddress >= 0x3F00) palleteAddress = ppuAddress;
+			if(ppuAddress >= 0x3F00) palleteAddress = ppuAddress;	//If ppuAddress in pallete address range, use that address.
 			else palleteAddress = 0x3F00;
 			palleteData = memory->readVRAM(palleteAddress);
 
@@ -212,13 +212,13 @@ const void ppu::renderPixel(memory *memory)
 
 const void ppu::checkVblank(memory* memory)
 {
-	if(scanline == 240 && dotNumber == 329) 
+	if(scanline == 241 && dotNumber == 1) 
 	{
 		ppu* dummy = NULL;							//Dummy pointer so I can write to RAM
 		memory->writeRAM(reg2002, vblankValue, dummy);
 		vblank = true;
 		bufferVblank = true;
-		if(reg2000 & 0x80) NMI = true;
+		if(reg2000 & 0x80) NMI = true;				//NMI bit set
 	}
 	else if(scanline == 261 && dotNumber == 1)
 	{
@@ -234,56 +234,56 @@ const void ppu::checkVblank(memory* memory)
 
 
 //----------------------------------------------------------------------------------------------------------------------------------------
-//Scanline functions
-const void ppu::visableScanline(memory *memory)
-{
-	if(dotNumber == 257) idleCounter += 63;		//Idle between cycles 258-320
-	else visableBGFetch(memory);
-}		
+//Scanline functions	
 
 const void ppu::visableBGFetch(memory* memory)
 {
-	if((dotNumber > 0 && dotNumber < 257) || (dotNumber > 320 && dotNumber < 337))
+	if(dotNumber != 257)
 	{
-		if(ntFetch)
+		if((dotNumber > 0 && dotNumber < 257) || (dotNumber > 320 && dotNumber < 337))
 		{
-			nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
-			nameFetch = memory->readVRAM(nameAddress);
-			ntFetch = false;
-			atFetch = true;
-			idleCounter++;
-		}
-		else if(atFetch)
-		{
-			attAddress = 0x23C0 | (ppuAddress & 0x0C00) | ((ppuAddress >> 4) & 0x38) | ((ppuAddress >> 2) & 0x07);
-			attFetch = memory->readVRAM(attAddress);
-			atFetch = false;
-			bgLowFetch = true;
-			idleCounter++;
-		}
-		else if(bgLowFetch)
-		{
-			//Finds the bg tile address
-			if(reg2000 & 0x10) tileAddress = 0x1000 | (nameFetch << 4) | ((ppuAddress & 0x7000) >> 12);
-			else tileAddress = 0x0000 | (nameFetch << 4) | ((ppuAddress & 0x7000) >> 12);
-			lowBGFetch = memory->readVRAM(tileAddress);
-			bgLowFetch = false;
-			idleCounter++;
+			if(ntFetch)	//First in the order
+			{
+				nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
+				nameFetch = memory->readVRAM(nameAddress);
+				ntFetch = false;
+				atFetch = true;
+				idleCounter++;
+			}
+			else if(atFetch)
+			{
+				attAddress = 0x23C0 | (ppuAddress & 0x0C00) | ((ppuAddress >> 4) & 0x38) | ((ppuAddress >> 2) & 0x07);
+				attFetch = memory->readVRAM(attAddress);
+				atFetch = false;
+				bgLowFetch = true;
+				idleCounter++;
+			}
+			else if(bgLowFetch)
+			{
+				//Finds the bg tile address
+				if(reg2000 & 0x10) tileAddress = 0x1000 | (nameFetch << 4) | ((ppuAddress & 0x7000) >> 12);
+				else tileAddress = 0x0000 | (nameFetch << 4) | ((ppuAddress & 0x7000) >> 12);
+				lowBGFetch = memory->readVRAM(tileAddress);
+				bgLowFetch = false;
+				idleCounter++;
+			}
+			else		//End of cycle.  Do nametable fetch next.
+			{
+				tileAddress += 8;				//8 bytes ahead
+				highBGFetch = memory->readVRAM(tileAddress);
+				ntFetch = true;
+				idleCounter++;
+			}	
 		}
 		else
 		{
-			tileAddress += 8;				//8 bytes ahead
-			highBGFetch = memory->readVRAM(tileAddress);
-			ntFetch = true;
+			nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
+			nameFetch = memory->readVRAM(nameAddress);
 			idleCounter++;
-		}	
+		}
 	}
 	else
-	{
-		nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
-		nameFetch = memory->readVRAM(nameAddress);
-		idleCounter++;
-	}
+		idleCounter += 63;		//Idle between cycles 258-320
 }
 
 
@@ -374,72 +374,34 @@ const void ppu::fourToOneMux()				//Used to refill attribute shift registers
 }
 
 
-const bool ppu::eightToOneMux1(unsigned short &data)		//16 bit numbers
+const bool ppu::eightToOneMux(unsigned short &data)		//16 bit numbers
 {
 	bool retval;
 		
-	switch(fineXScroll)
-	{
-		case 0:
-			retval = data & 0x01;
-			break;
-		case 1:
-			retval = data & 0x02;
-			break;
-		case 2:
-			retval = data & 0x04;
-			break;
-		case 3:
-			retval = data & 0x08;
-			break;
-		case 4:
-			retval = data & 0x10;
-			break;
-		case 5:
-			retval = data & 0x20;
-			break;
-		case 6:
-			retval = data & 0x40;
-			break;
-		case 7:
-			retval = data & 0x80;
-			break;
-	}
+	if(fineXScroll == 0) retval = data & 0x01;
+	else if(fineXScroll == 1) retval = data & 0x02;
+	else if(fineXScroll == 2) retval = data & 0x04;
+	else if(fineXScroll == 3) retval = data & 0x08;
+	else if(fineXScroll == 4) retval = data & 0x10;
+	else if(fineXScroll == 5) retval = data & 0x20;
+	else if(fineXScroll == 6) retval = data & 0x40;
+	else retval = data & 0x80;
 
 	return retval;
 }
 
-const bool ppu::eightToOneMux2(unsigned char &data)		//8 bit numbers
+const bool ppu::eightToOneMux(unsigned char &data)		//8 bit numbers
 {
 	bool retval;
 		
-	switch(fineXScroll)
-	{
-		case 0:
-			retval = data & 0x01;
-			break;
-		case 1:
-			retval = data & 0x02;
-			break;
-		case 2:
-			retval = data & 0x04;
-			break;
-		case 3:
-			retval = data & 0x08;
-			break;
-		case 4:
-			retval = data & 0x10;
-			break;
-		case 5:
-			retval = data & 0x20;
-			break;
-		case 6:
-			retval = data & 0x40;
-			break;
-		case 7:
-			retval = data & 0x80;
-			break;
-	}
+	if(fineXScroll == 0) retval = data & 0x01;
+	else if(fineXScroll == 1) retval = data & 0x02;
+	else if(fineXScroll == 2) retval = data & 0x04;
+	else if(fineXScroll == 3) retval = data & 0x08;
+	else if(fineXScroll == 4) retval = data & 0x10;
+	else if(fineXScroll == 5) retval = data & 0x20;
+	else if(fineXScroll == 6) retval = data & 0x40;
+	else retval = data & 0x80;
 
 	return retval;
 }

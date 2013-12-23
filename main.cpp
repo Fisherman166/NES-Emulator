@@ -25,14 +25,15 @@ void keyboardDown(unsigned char key, int x, int y);
 void specialUp(int key, int x, int y);
 void specialDown(int key, int x, int y);
 void setupTexture();
+void closeGlut();
 
-time_t startTime, endTime;
+time_t startTime, endTime;					//Only used for debugging
 double seconds;
 
 int main(int argc, char *args[])
 {
 	systemMemory->loadMemory();
-	core->setPCStart(systemMemory);
+	core->setPCStart(systemMemory, video);
 
 	// Setup OpenGL
 	glutInit(&argc, args);          
@@ -54,10 +55,8 @@ int main(int argc, char *args[])
 
 	setupTexture();			
 
+	glutCloseFunc(closeGlut);
 	glutMainLoop(); 
-
-
-	delete systemMemory, core, video;	//Cleanup
 	
 	return 0;
 }
@@ -102,19 +101,21 @@ void updateTexture()
 
 void display()
 {
+	#ifdef debugOn
 	if(run)
 	{
 	time(&endTime);
 	seconds = difftime(endTime, startTime);
 
-	if(seconds == 5) flag = true;
+	if(seconds == 10) flag = true;
 
 	if(flag)
 	{
-		systemMemory->dumpVRAM();
+		systemMemory->dumpRAM();
 		std::cout << "DONE" << std::endl;
 		run = false;
 	}
+	#endif
 	
 	ppuCycles = core->emulateCycle(systemMemory, video);
 
@@ -136,7 +137,10 @@ void display()
 
 		video->bufferVblank = false;
 	}
+
+	#ifdef debugOn
 	}
+	#endif
 }
 
 void reshape_window(GLsizei w, GLsizei h)
@@ -157,33 +161,49 @@ void keyboardDown(unsigned char key, int x, int y)
 {
 	if(key == 27)    // esc
 		exit(0);
-
-	if(key == 'w') systemMemory->RAM[0x4016] |= 0x10;	//Up
-	if(key == 'a') systemMemory->RAM[0x4016] |= 0x40;	//Down
-	if(key == 's') systemMemory->RAM[0x4016] |= 0x20;	//Left
-	if(key == 'd') systemMemory->RAM[0x4016] |= 0x80;	//Right
-	if(key == 32) systemMemory->RAM[0x4016] |= 0x08;	//Enter key, start in NES
-	if(key == 'l') systemMemory->RAM[0x4016] |= 0x40;	//Select
+	if(systemMemory->RAM[0x4016] & 1)	//Only get keyboard state if strobe on
+	{
+		if(key == 'w') systemMemory->RAM[0x4016] |= 0x10;	//Up
+		if(key == 'a') systemMemory->RAM[0x4016] |= 0x20;	//Down
+		if(key == 's') systemMemory->RAM[0x4016] |= 0x40;	//Left
+		if(key == 'd') systemMemory->RAM[0x4016] |= 0x80;	//Right
+		if(key == 32) systemMemory->RAM[0x4016] |= 0x08;	//Enter key, start in NES
+		if(key == 'l') systemMemory->RAM[0x4016] |= 0x04;	//Select
+	}
 }
 
 void keyboardUp(unsigned char key, int x, int y)
 {
-	if(key == 'w') systemMemory->RAM[0x4016] &= ~0x10;	//Up
-	if(key == 'a') systemMemory->RAM[0x4016] &= ~0x40;	//Down
-	if(key == 's') systemMemory->RAM[0x4016] &= ~0x20;	//Left
-	if(key == 'd') systemMemory->RAM[0x4016] &= ~0x80;	//Right
-	if(key == 32) systemMemory->RAM[0x4016] &= ~0x08;	//Enter key, start in NES
-	if(key == 'l') systemMemory->RAM[0x4016] &= ~0x40;	//Select
+	if(systemMemory->RAM[0x4016] & 1)
+	{
+		if(key == 'w') systemMemory->RAM[0x4016] &= ~0x10;	//Up
+		if(key == 'a') systemMemory->RAM[0x4016] &= ~0x20;	//Down
+		if(key == 's') systemMemory->RAM[0x4016] &= ~0x40;	//Left
+		if(key == 'd') systemMemory->RAM[0x4016] &= ~0x80;	//Right
+		if(key == 32) systemMemory->RAM[0x4016] &= ~0x08;	//Enter key, start in NES
+		if(key == 'l') systemMemory->RAM[0x4016] &= ~0x04;	//Select
+	}
 }
 
 void specialUp(int key, int x, int y)
 {
-	if(key == GLUT_KEY_UP) systemMemory->RAM[0x4016] |= 0x01; //Up arrow, A in NES
-	if(key == GLUT_KEY_LEFT) systemMemory->RAM[0x4016] |= 0x02; //Left arrow, B in NES
+	if(systemMemory->RAM[0x4016] & 1)
+	{
+		if(key == GLUT_KEY_UP) systemMemory->RAM[0x4016] |= 0x01; //Up arrow, A in NES
+		if(key == GLUT_KEY_LEFT) systemMemory->RAM[0x4016] |= 0x02; //Left arrow, B in NES
+	}
 }
 
 void specialDown(int key, int x, int y)
 {
-	if(key == GLUT_KEY_UP) systemMemory->RAM[0x4016] &= ~0x01; //Up arrow, A in NES
-	if(key == GLUT_KEY_LEFT) systemMemory->RAM[0x4016] &= ~0x02; //Left arrow, B in NES
+	if(systemMemory->RAM[0x4016] & 1)
+	{
+		if(key == GLUT_KEY_UP) systemMemory->RAM[0x4016] &= ~0x01; //Up arrow, A in NES
+		if(key == GLUT_KEY_LEFT) systemMemory->RAM[0x4016] &= ~0x02; //Left arrow, B in NES
+	}
+}
+
+void closeGlut()
+{
+	delete systemMemory, core, video;	//Cleanup
 }
