@@ -3,29 +3,27 @@
 #include "cpu.h"
 #include "memory.h"
 #include "ppu.h"
-#include "GL/freeglut.h"	//These are for graphics
+#include "SDL/SDL.h"	//These are for graphics
 #include "GL/gl.h"
 #include "GL/glu.h"
 
 using namespace std;
 bool run = true;
 bool flag = false;
-int screenWidth = 1024;
-int screenHeight = 768;
+int screenWidth = 256;
+int screenHeight = 224;
 
 memory* systemMemory = new memory;
 cpu* core = new cpu();
 ppu* video = new ppu;
 int ppuCycles;							//Number of ppu cycles to run
 
-void display();
-void reshape_window(GLsizei w, GLsizei h);
-void keyboardUp(unsigned char key, int x, int y);
-void keyboardDown(unsigned char key, int x, int y);
-void specialUp(int key, int x, int y);
-void specialDown(int key, int x, int y);
-void setupTexture();
-void closeGlut();
+SDL_Surface *screen = NULL;
+SDL_Surface *next = NULL;
+
+void checkInput();
+void quitEmu();
+Uint8* keyboard;
 
 time_t startTime, endTime;					//Only used for debugging
 double seconds;
@@ -35,175 +33,106 @@ int main(int argc, char *args[])
 	systemMemory->loadMemory();
 	core->setPCStart(systemMemory, video);
 
-	// Setup OpenGL
-	glutInit(&argc, args);          
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
+	if( SDL_Init(SDL_INIT_EVERYTHING) < 0) cout << "Video init failed" << endl;
+	screen = SDL_SetVideoMode(screenWidth, screenHeight, 24, SDL_HWSURFACE);
 
-	glutInitWindowSize(screenWidth, screenHeight);
-    	glutInitWindowPosition(100, 100);
-	glutCreateWindow("NES Emulator by Dartht33bagger");
-	
-	glutDisplayFunc(display);
-	glutIdleFunc(display);
-    	glutReshapeFunc(reshape_window);        
+	if(screen == NULL)
+		cout << "Get mode set failed: " << SDL_GetError() << endl;
 
-	//Controls
-	glutKeyboardFunc(keyboardDown);
-	glutKeyboardUpFunc(keyboardUp); 
-	glutSpecialFunc(specialDown);
-	glutSpecialUpFunc(specialUp);
+	SDL_WM_SetCaption("NES Emulator by Dartht33bagger", NULL);
 
-	setupTexture();			
+	uint32_t *pixels = (uint32_t*)screen->pixels;
 
-	glutCloseFunc(closeGlut);
-	glutMainLoop(); 
+	for(;;)
+	{
+		//Run the cpu for one instruction
+		ppuCycles = core->emulateCycle(systemMemory, video);
+
+		//3 PPU cycles per CPU cycle
+		for(int i = 0; i < (ppuCycles * 3); i++)
+			video->emulateCycle(systemMemory);
+
+		//Checks for keyboard input
+		checkInput();
+
+		if(video->bufferVblank)	//Time to render a frame!
+		{
+			/*//Create surface from the array values
+			next = SDL_CreateRGBSurfaceFrom((void*)video->pixels,
+					screenWidth,
+					screenHeight,
+					24,			//24 bpp because no alpha
+					screenWidth * 3,	//Width * channels, where channels = 3
+					0xFF,			//Red mask
+					0xFF00,			//Green mask
+					0xFF0000,		//Blue mask
+					0);			//Alpha mask (none)
+
+			SDL_Rect offset;
+			offset.x = 0;
+			offset.y = 0;
+			SDL_BlitSurface(next, NULL, screen, &offset);
+
+			if( SDL_Flip(screen) < 0) cout << "Flip error" << endl;*/
+
+			for(int y = 0; y < 224; ++y)                
+                		for(int x = 0; x < 256; ++x)
+					pixels[x + y * screen->w] = video->screenData[x][y][0]
+								| (video->screenData[x][y][1] << 8)
+								| (video->screenData[x][y][2] << 16);
+
+			SDL_UpdateRect(screen, 0, 0, 0, 0);
+
+			video->bufferVblank = false;
+		}
+	}
 	
 	return 0;
 }
 
-
-// Setup Texture
-void setupTexture()
+void checkInput()
 {
-	// Clear screen
-	for(int y = 0; y < 224; ++y)		
-		for(int x = 0; x < 256; ++x)
-			video->screenData[y][x][0] = video->screenData[y][x][1] = video->screenData[y][x][2] = 0xF0;
-
-	// Create a texture 
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 224, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)video->screenData);
-
-	// Set up the texture
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP); 
-
-	// Enable textures
-	glEnable(GL_TEXTURE_2D);
-
-	time(&startTime);
-}
-
-void updateTexture()
-{	
-	// Update Texture
-	glTexSubImage2D(GL_TEXTURE_2D, 0 ,0, 0, 256, 224, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)video->screenData);
-
-	glBegin( GL_QUADS );
-		glTexCoord2d(0.0, 0.0);		glVertex2d(0.0,	0.0);
-		glTexCoord2d(1.0, 0.0); 	glVertex2d(screenWidth, 0.0);
-		glTexCoord2d(1.0, 1.0); 	glVertex2d(screenWidth, screenHeight);
-		glTexCoord2d(0.0, 1.0); 	glVertex2d(0.0,	screenHeight);
-	glEnd();
-}
-
-
-void display()
-{
-	#ifdef debugOn
-	if(run)
-	{
-	time(&endTime);
-	seconds = difftime(endTime, startTime);
-
-	if(seconds == 10) flag = true;
-
-	if(flag)
-	{
-		systemMemory->dumpRAM();
-		std::cout << "DONE" << std::endl;
-		run = false;
-	}
-	#endif
+	unsigned char reload = 0;		//Temp value that is updated every function call
+	SDL_PumpEvents();
+	keyboard = SDL_GetKeyState(NULL);
 	
-	ppuCycles = core->emulateCycle(systemMemory, video);
+	if(keyboard[SDLK_ESCAPE]) quitEmu();	//Closes the emulator
 
-	//3 PPU cycles per CPU cycle
-	for(int i = 0; i < (ppuCycles * 3); i++)
-		video->emulateCycle(systemMemory);
+	//Right
+	if(keyboard[SDLK_d]) reload |= 0x80;
 
+	//Left
+	if(keyboard[SDLK_a]) reload |= 0x40;
+	
+	//Down
+	if(keyboard[SDLK_s]) reload |= 0x20;
 
+	//Up
+	if(keyboard[SDLK_w]) reload |= 0x10;
 
-	if(video->bufferVblank)	//Time to render a frame!
-	{
-		// Clear framebuffer
-		glClear(GL_COLOR_BUFFER_BIT);
-    
-		updateTexture();
+	//Start
+	if(keyboard[SDLK_RETURN]) reload |= 0x8;
 
-		// Swap buffers!
-		glutSwapBuffers();    
+	//Select
+	if(keyboard[SDLK_l]) reload |= 0x4;
 
-		video->bufferVblank = false;
-	}
+	//B
+	if(keyboard[SDLK_LEFT]) reload |= 0x2;
 
-	#ifdef debugOn
-	}
-	#endif
+	//A
+	if(keyboard[SDLK_UP]) reload |= 0x1;
+
+	//If strobe is high, reload the controller1 shift register
+	if(systemMemory->RAM[0x4016] & 1) systemMemory->controller1 = reload;
 }
 
-void reshape_window(GLsizei w, GLsizei h)
+//Used to exit the emulate when done running
+void quitEmu()
 {
-	glClearColor(0.0f, 0.0f, 0.5f, 0.0f);
-	glMatrixMode(GL_PROJECTION);
-  	glLoadIdentity();
-    	gluOrtho2D(0, w, h, 0);        
-    	glMatrixMode(GL_MODELVIEW);
-    	glViewport(0, 0, w, h);
-
-	// Resize quad
-	screenWidth = w;
-	screenHeight = h;
+	//systemMemory->dumpVRAM();
+	delete [] video, systemMemory, core;
+	SDL_FreeSurface(next);
+	SDL_FreeSurface(screen);
+	SDL_Quit();
 }
-
-void keyboardDown(unsigned char key, int x, int y)
-{
-	if(key == 27)    // esc
-		exit(0);
-	if(systemMemory->RAM[0x4016] & 1)	//Only get keyboard state if strobe on
-	{
-		if(key == 'w') systemMemory->RAM[0x4016] |= 0x10;	//Up
-		if(key == 'a') systemMemory->RAM[0x4016] |= 0x20;	//Down
-		if(key == 's') systemMemory->RAM[0x4016] |= 0x40;	//Left
-		if(key == 'd') systemMemory->RAM[0x4016] |= 0x80;	//Right
-		if(key == 32) systemMemory->RAM[0x4016] |= 0x08;	//Enter key, start in NES
-		if(key == 'l') systemMemory->RAM[0x4016] |= 0x04;	//Select
-	}
-}
-
-void keyboardUp(unsigned char key, int x, int y)
-{
-	if(systemMemory->RAM[0x4016] & 1)
-	{
-		if(key == 'w') systemMemory->RAM[0x4016] &= ~0x10;	//Up
-		if(key == 'a') systemMemory->RAM[0x4016] &= ~0x20;	//Down
-		if(key == 's') systemMemory->RAM[0x4016] &= ~0x40;	//Left
-		if(key == 'd') systemMemory->RAM[0x4016] &= ~0x80;	//Right
-		if(key == 32) systemMemory->RAM[0x4016] &= ~0x08;	//Enter key, start in NES
-		if(key == 'l') systemMemory->RAM[0x4016] &= ~0x04;	//Select
-	}
-}
-
-void specialUp(int key, int x, int y)
-{
-	if(systemMemory->RAM[0x4016] & 1)
-	{
-		if(key == GLUT_KEY_UP) systemMemory->RAM[0x4016] |= 0x01; //Up arrow, A in NES
-		if(key == GLUT_KEY_LEFT) systemMemory->RAM[0x4016] |= 0x02; //Left arrow, B in NES
-	}
-}
-
-void specialDown(int key, int x, int y)
-{
-	if(systemMemory->RAM[0x4016] & 1)
-	{
-		if(key == GLUT_KEY_UP) systemMemory->RAM[0x4016] &= ~0x01; //Up arrow, A in NES
-		if(key == GLUT_KEY_LEFT) systemMemory->RAM[0x4016] &= ~0x02; //Left arrow, B in NES
-	}
-}
-
-void closeGlut()
-{
-	delete systemMemory, core, video;	//Cleanup
-}
+		
