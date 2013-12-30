@@ -1,7 +1,7 @@
 #include "memory.h"
 #include "ppu.h"
 
-memory::memory(): DMAFlag(false), readBuffer(0x00)
+memory::memory(): DMAFlag(false), readBuffer(0x00), video(NULL)
 {
 	for(int i = 0; i < 0x4000; i++)	//Clears ram
 		RAM[i] = 0x00;
@@ -50,7 +50,7 @@ bool memory::loadMemory()
 {
 	using namespace std;
 	bool retval;
-	
+
 	game.open("Donkey_Kong.nes", ios::binary);
 	if(game.is_open())
 	{
@@ -67,8 +67,8 @@ bool memory::loadMemory()
 		//The uppernibble of mapper number is in 7 and lower is in 6
 		mapper = (header[7] & 0xF0) | ((header[6] & 0xF0) >> 4);
 
-		if(header[6] & 1) horizontalMirror = true;		//Checks the first bit for the mirror mode
-		else horizontalMirror = false;
+		if(header[6] & 1) horizontalMirror = false;		//Checks the first bit for the mirror mode
+		else horizontalMirror = true;
 		
 		switch(mapper)
 		{
@@ -78,11 +78,11 @@ bool memory::loadMemory()
 		}
 	}
 	else retval = false;
-	
+
 	return retval;
 }
 
-void memory::writeRAM(word &address, byte &data, ppu* ppu)
+void memory::writeRAM(word &address, byte &data)
 {
 	if(address >= 0x2000 && address <= 0x3FFF)
 	{
@@ -91,8 +91,8 @@ void memory::writeRAM(word &address, byte &data, ppu* ppu)
 		if(tempAddress == 0)
 		{
 			RAM[0x2000] = data;
-			ppu->ppuTempAddress &= ~0x0C00;			//Clears bits 10 and 11
-			ppu->ppuTempAddress |= ((data & 0x03) << 10);	//Shifts the nametable select bits to bit 10 and 11 in the temp address
+			video->ppuTempAddress &= ~0x0C00;			//Clears bits 10 and 11
+			video->ppuTempAddress |= ((data & 0x03) << 10);	//Shifts the nametable select bits to bit 10 and 11 in the temp address
 		}
 		else if(tempAddress == 2 && data == 0x80) 
 		{
@@ -104,47 +104,47 @@ void memory::writeRAM(word &address, byte &data, ppu* ppu)
 		}
 		else if(tempAddress == 5)
 		{
-			if(ppu->writeToggle)
+			if(video->writeToggle)
 			{
 				RAM[0x2005] = data;
-				ppu->ppuTempAddress &= 0x8C1F;				//Makes bits 5-9 and 12-14 zero
-				ppu->ppuTempAddress |= (data & 0xF8) << 2;		//Shifts the data to fill bits 5-9
-				ppu->ppuTempAddress |= (data & 0x07) << 12;		//Shifts the data to fill bits 12-14
-				ppu->writeToggle = false;
+				video->ppuTempAddress &= 0x8C1F;				//Makes bits 5-9 and 12-14 zero
+				video->ppuTempAddress |= (data & 0xF8) << 2;		//Shifts the data to fill bits 5-9
+				video->ppuTempAddress |= (data & 0x07) << 12;		//Shifts the data to fill bits 12-14
+				video->writeToggle = false;
 			}
 			else
 			{
 				RAM[0x2005] = data;
-				ppu->ppuTempAddress &= ~0x001F;				//Makes the first 5 bits zero
-				ppu->ppuTempAddress |= (data & 0xF8) >> 3;		//Gets the last 5 bits for the address
-				ppu->fineXScroll = data & 0x07;				//Gets the first three bits
-				ppu->writeToggle = true;
+				video->ppuTempAddress &= ~0x001F;			//Makes the first 5 bits zero
+				video->ppuTempAddress |= (data & 0xF8) >> 3;		//Gets the last 5 bits for the address
+				video->fineXScroll = data & 0x07;			//Gets the first three bits
+				video->writeToggle = true;
 			}
 		}
 		else if(tempAddress == 6)
 		{
-			if(ppu->writeToggle) 
+			if(video->writeToggle) 
 			{
 				RAM[0x2006] = data;
-				ppu->ppuTempAddress &= 0xFF00;				//Clears the lower 8 bits
-				ppu->ppuTempAddress |= data;				//Lower byte of address
-				ppu->ppuAddress = ppu->ppuTempAddress;			//Set after temp address is filled
-				ppu->writeToggle = false;
+				video->ppuTempAddress &= 0xFF00;			//Clears the lower 8 bits
+				video->ppuTempAddress |= data;				//Lower byte of address
+				video->ppuAddress = video->ppuTempAddress;		//Set after temp address is filled
+				video->writeToggle = false;
 			}
 			else 
 			{
 				RAM[0x2006] = data;
-				ppu->ppuTempAddress &= 0x00FF;				//Clears upper 8 bits
-				ppu->ppuTempAddress = (data & 0x3F) << 8;		//Upper piece of address
-				ppu->writeToggle = true;
+				video->ppuTempAddress &= 0x00FF;			//Clears upper 8 bits
+				video->ppuTempAddress = (data & 0x3F) << 8;		//Upper piece of address
+				video->writeToggle = true;
 			}
 		}
 		else if(tempAddress == 7)
 		{
 			RAM[0x2007] = data;
-			writeVRAM(ppu->ppuAddress, data);
-			if(RAM[0x2000] & 0x04) ppu->ppuAddress += 32;			//Checks increment bit
-			else ppu->ppuAddress++;
+			writeVRAM(video->ppuAddress, data);
+			if(RAM[0x2000] & 0x04) video->ppuAddress += 32;			//Checks increment bit
+			else video->ppuAddress++;
 		}
 		else	RAM[tempAddress + 0x2000] = data;
 	}
@@ -156,7 +156,7 @@ void memory::writeRAM(word &address, byte &data, ppu* ppu)
 	else	*RAMPTR[address] = data;
 }
 
-memory::byte memory::readRAM(word address, ppu* ppu)
+memory::byte memory::readRAM(word address)
 {
 	byte retval;
 	
@@ -169,16 +169,27 @@ memory::byte memory::readRAM(word address, ppu* ppu)
 			retval = RAM[0x2002];
 			//Have to reset things for the PPU
 			RAM[0x2002] &= 0x7F;			//Turns off the 7th bit only
-			ppu->writeToggle = false;
+			video->writeToggle = false;
 		}
 		else if(address == 7)
 		{
-			retval = readBuffer;
-			readBuffer = *VRAMPTR[ppu->ppuAddress];
-			if(RAM[0x2000] & 0x04) ppu->ppuAddress += 32;		//Checks increment bit
-			else ppu->ppuAddress++;
+			//ppuAddress < 0x3EFF, then has to read from the buffer
+			//If in the pallete range, it reads from there
+			if(video->ppuAddress > 0x3EFF) retval = *VRAMPTR[video->ppuAddress];
+			else
+			{
+				retval = readBuffer;
+				readBuffer = *VRAMPTR[video->ppuAddress];
+			}
+			if(RAM[0x2000] & 0x04) video->ppuAddress += 32;		//Checks increment bit
+			else video->ppuAddress++;
 		}
 		else retval = RAM[0x2000 + address];
+	}
+	else if(address == 0x4016)
+	{
+		retval = controller1 & 0x1;	//Grab only the first bit
+		controller1 >>= 1;		//Shift the register
 	}
 	else	retval = *RAMPTR[address];
 
@@ -197,6 +208,19 @@ memory::byte memory::readVRAM(word &address)
 {
 	return *VRAMPTR[address];
 }
+
+//Sets the video pointer
+bool memory::setPointer(ppu* ppu)
+{
+	bool retval = true;
+
+	video = ppu;
+
+	if(video == NULL) retval = false;
+
+	return retval;
+}
+
 
 void memory::clearDMA()
 {
@@ -255,12 +279,17 @@ void memory::dumpRAM()	//Dumps memory addresses $6000-$7FFF for CPU testing
 void memory::dumpVRAM()
 {
 	using namespace std;
+	int counter = 0;
 
-	for(int i = 0; i < 0x4000; i++)
+	for(int i = 0; i < 0x3F21; i++)
 	{
-		debug << hex << (int)*VRAMPTR[i];
-		if( ((i & 0xFF) == 0x00) || ((i & 0xFF) == 0x30) || ((i & 0xFF) == 0x60) || ((i & 0xFF) == 0x90) || ((i & 0xFF) == 0xC0) )
+		if(!(i & 0xF))
+		{
 			debug << endl;
+			debug << "0x" << hex << setfill('0') << setw(4) << counter << ": ";
+			counter += 0x10;
+		}
+		debug << hex << setfill('0') << setw(2) << (int)*VRAMPTR[i] << " ";
 	}
 }
 
@@ -268,7 +297,7 @@ void memory::setMirror(bool horizontal)
 {
 	int j;
 	
-	//$2000-$27FF contains the data in VRAM (nameTable1 and nameTable2
+	//$2000-$27FF contains the data in VRAM (nameTable1 and nameTable2)
 	if(horizontal) //$2400 = $2000 and $2C00 = $2800
 	{
 		j = 0x2000;
@@ -314,7 +343,7 @@ const void memory::NROM()
 {
 	int j = 0x8000;							//Address of lower PRG bank
 
-	if(header[4] > 1)
+	if(header[4] > 1)	//Fills both banks
 	{
 		for(int i = 0x10; i < 0x8010; i++)
 		{
@@ -334,7 +363,7 @@ const void memory::NROM()
 		
 		setMirror(horizontalMirror);
 	}
-	else
+	else		//First bank mirrored in second
 	{
 		//For 0x8000 bank
 		for(int i = 0x10; i < 0x4010; i++)
@@ -358,7 +387,4 @@ const void memory::NROM()
 
 	delete [] memBlock;
 }
-
-	
-
 	

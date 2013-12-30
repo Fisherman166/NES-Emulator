@@ -13,10 +13,11 @@ public:
 	ppu();
 	~ppu();
 
-	void emulateCycle(memory*);
-	void setIdleCounter(word);
+	//Functions
+	void emulateCycle();
+	bool setPointer(memory*);
 
-	byte screenData[224][256][3];					//Holds the RGB values of the screen
+	byte screenData[256][224][3];					//Holds the RGB values of the screen
 	word ppuAddress, ppuTempAddress;				//Holds the addresses
 	byte fineXScroll;						//For scrolling
 	word dotNumber;							//What the current dot the PPU is running
@@ -24,14 +25,14 @@ public:
 
 	bool writeToggle;						//For $2005 and $2006
 	bool vblank,bufferVblank;					//Buffervblank is for rendering a frame
-	bool NMI;
+	bool NMI;							//Used to signal a NMI
 
 	//Pallete colors
-	static byte const red[];
-	static byte const green[];
-	static byte const blue[];
+	static int const RGB[];
 	
 private:
+	memory* VRAM;							//Pointer to memory object
+
 	//PPU status
 	bool oddFrame;							//Used to keep track of even and odd frame
 	bool ntFetch;							//Next operation will be nametable fetch
@@ -45,7 +46,7 @@ private:
 	//For background rendering
 	word 	highBGShift, lowBGShift;			//Hold the higher and lower background tiles
 	byte	highBGFetch,lowBGFetch;				//Holds the two fetches for the shifter
-	byte 	highAttShift, lowAttShift;			//Shift registers for attribute bytes that apply to the BG tiles
+	word 	highAttShift, lowAttShift;			//Shift registers for attribute bytes that apply to the BG tiles
 	byte	attFetch, nameFetch;				//Used in attrtibute fetch and nametable fetch
 	word 	tileAddress, attAddress;			//Addresses for these two things
 	word 	nameAddress;	
@@ -69,12 +70,12 @@ private:
 	//Functions
 	const void checkDotNumber();				//Does different things on different dot numbers
 	const void shiftRegisters();				//Shifts the shifting registers
-	const void renderPixel(memory*);			//Puts pixel data into 
-	const void checkVblank(memory*);
+	const void renderPixel();				//Puts pixel data into 
+	const void checkVblank();				//Checks if vblank is occuring
 	
 	//Used for different scanlines
-	const void visableBGFetch(memory*);
-	const void preBGFetch(memory*);
+	const void visableBGFetch();
+	const void preBGFetch();
 	
 	//Muxes
 	const void fourToOneMux();				//Used when loading attribute shift register

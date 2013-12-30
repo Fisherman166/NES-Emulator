@@ -13,25 +13,29 @@ bool flag = false;
 int screenWidth = 256;
 int screenHeight = 224;
 
-memory* systemMemory = new memory;
+//Objects
+memory* systemMemory = new memory();
 cpu* core = new cpu();
-ppu* video = new ppu;
-int ppuCycles;							//Number of ppu cycles to run
+ppu* video = new ppu();
+unsigned char ppuCycles;					//Number of ppu cycles to run
 
+//For rendering
 SDL_Surface *screen = NULL;
-SDL_Surface *next = NULL;
 
-void checkInput();
-void quitEmu();
-Uint8* keyboard;
+//Functions
+void checkInput();						//Checks for input
+void quitEmu();							//Quits the emulator
+bool setPointers();						//Sets object pointers
+Uint8* keyboard;						//Holds keyboars state
 
 time_t startTime, endTime;					//Only used for debugging
 double seconds;
 
 int main(int argc, char *args[])
-{
+{	
+	if( !setPointers() ) cout << "Error setting pointers" << endl;
 	systemMemory->loadMemory();
-	core->setPCStart(systemMemory, video);
+	core->setPCStart();
 
 	if( SDL_Init(SDL_INIT_EVERYTHING) < 0) cout << "Video init failed" << endl;
 	screen = SDL_SetVideoMode(screenWidth, screenHeight, 24, SDL_HWSURFACE);
@@ -46,11 +50,11 @@ int main(int argc, char *args[])
 	for(;;)
 	{
 		//Run the cpu for one instruction
-		ppuCycles = core->emulateCycle(systemMemory, video);
+		ppuCycles = core->emulateCycle();
 
 		//3 PPU cycles per CPU cycle
-		for(int i = 0; i < (ppuCycles * 3); i++)
-			video->emulateCycle(systemMemory);
+		for(int i = (ppuCycles * 3); i > 0; i--)
+			video->emulateCycle();
 
 		//Checks for keyboard input
 		checkInput();
@@ -74,7 +78,7 @@ int main(int argc, char *args[])
 			SDL_BlitSurface(next, NULL, screen, &offset);
 
 			if( SDL_Flip(screen) < 0) cout << "Flip error" << endl;*/
-
+			
 			for(int y = 0; y < 224; ++y)                
                 		for(int x = 0; x < 256; ++x)
 					pixels[x + y * screen->w] = video->screenData[x][y][0]
@@ -129,10 +133,21 @@ void checkInput()
 //Used to exit the emulate when done running
 void quitEmu()
 {
-	//systemMemory->dumpVRAM();
-	delete [] video, systemMemory, core;
-	SDL_FreeSurface(next);
+	systemMemory->dumpVRAM();
+	delete video, systemMemory, core;
 	SDL_FreeSurface(screen);
 	SDL_Quit();
 }
-		
+
+
+bool setPointers()
+{
+	bool retval = true;
+
+	//Setting the pointers
+	if( !video->setPointer(systemMemory) ) retval = false;
+	if( !systemMemory->setPointer(video) ) retval = false;
+	if( !core->setPointers(systemMemory, video) ) retval = false;
+	
+	return retval;
+}

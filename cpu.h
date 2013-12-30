@@ -19,6 +19,13 @@ public:
 
 	cpu();
 	~cpu();
+
+	//Functions
+	bool setPointers(memory*, ppu*);			//Set pointers to the object
+	void setPCStart();					//Sets the PC to the reset vector
+	byte emulateCycle();
+
+	//Variables
 	word PC, SP;	//Stack pointer can be between 0x0100 and 0x01FF in memory
 	byte A, X, Y;
 
@@ -27,18 +34,18 @@ public:
 	bool C, Z, I, D, V, N;
 	static byte const instr_lens[];
 	static byte const cycleCount[];
-
-	byte emulateCycle(memory*, ppu*);
-	void setPCStart(memory*, ppu*);					//Sets the PC to the reset vector
 	
 private:
+	memory* RAM;							//Pointer to system memory
+	ppu* video;							//Pointer to ppu
+
+	//Private variables
 	byte initialA;
 	byte cycles, opcode;
 
-
 	//Functions
-	const void pushStack(memory*, byte&, ppu*);
-	const byte popStack(memory*, ppu*);
+	const void pushStack(byte&);
+	const byte popStack();
 	const void compareFlags(byte&, byte);
 	const byte encodeBits(bool bools[8]);
 	const void decodeBits(bool (&bools)[8], byte input);
@@ -46,15 +53,15 @@ private:
 	const void pageBranch(char&);
 
 	//Get address functions
-	const word zeroPageX(memory*, ppu*);
-	const word zeroPageY(memory*, ppu*);
-	const word absolute(memory*, ppu*);
-	const word absoluteX(memory*, ppu*);
-	const word absoluteY(memory*, ppu*);
-	const word indirectX(memory*, ppu*);
-	const word indirectY(memory*, ppu*);
+	const word zeroPageX();
+	const word zeroPageY();
+	const word absolute();
+	const word absoluteX();
+	const word absoluteY();
+	const word indirectX();
+	const word indirectY();
 
-	const void NMI(memory*, ppu*);
+	const void NMI();
 
 	//Debug functions
 	//DataPC = data from the PC counter memory address.  dataAddress = data from the PC counters addresses given
@@ -65,31 +72,31 @@ private:
 	byte initialX, initialY, initialP;
 	word initialSP, initialCycles;
 	
-	const void debugAcc(ppu*, byte &opcode, string OPname);			//Accumulator
+	const void debugAcc( byte &opcode, string OPname);			//Accumulator
 	
-	const void debugImm(ppu*, byte &opcode, byte data, string OPname); //Immidiate
+	const void debugImm(byte &opcode, byte data, string OPname); //Immidiate
 
-	const void debugZero(ppu*, byte &opcode,  byte dataPC, byte dataAddress, string OPname); 		//Zeropage
+	const void debugZero(byte &opcode,  byte dataPC, byte dataAddress, string OPname); 		//Zeropage
 
-	const void debugZeroX(ppu*, byte &opcode, byte dataPC, word totalAddress, byte dataAddress, string Opname); //Zeropage, X
+	const void debugZeroX(byte &opcode, byte dataPC, word totalAddress, byte dataAddress, string Opname); //Zeropage, X
 
-	const void debugZeroY(ppu*, byte &opcode, byte dataPC, word totalAddress, byte dataAddress, string Opname); //Zeropage, Y
+	const void debugZeroY(byte &opcode, byte dataPC, word totalAddress, byte dataAddress, string Opname); //Zeropage, Y
 
-	const void debugAbs(ppu*, byte &opcode, byte highAddress, byte lowAddress, byte data, string OPname);	   //Absolute
+	const void debugAbs(byte &opcode, byte highAddress, byte lowAddress, byte data, string OPname);	   //Absolute
 
-	const void debugAbsX(ppu*, byte &opcode, byte highAddress, byte lowAddress, word totalAddress, byte data, string OPname);	//Absolute,X
+	const void debugAbsX(byte &opcode, byte highAddress, byte lowAddress, word totalAddress, byte data, string OPname);	//Absolute,X
 
-	const void debugAbsY(ppu*, byte &opcode, byte highAddress, byte lowAddress, word totalAddress, byte data, string OPname);	//Absolute,Y
+	const void debugAbsY(byte &opcode, byte highAddress, byte lowAddress, word totalAddress, byte data, string OPname);	//Absolute,Y
 
-	const void debugIndirectX(ppu*, byte &opcode, byte pcAddress, word indirectAddress, byte data, string OPname);	//Indirect, X
+	const void debugIndirectX(byte &opcode, byte pcAddress, word indirectAddress, byte data, string OPname);	//Indirect, X
 
-	const void debugIndirectY(ppu*, byte &opcode, byte pcAddress, word indirectAddress, byte data, string OPname);	//Indirect, Y
+	const void debugIndirectY(byte &opcode, byte pcAddress, word indirectAddress, byte data, string OPname);	//Indirect, Y
 
-	const void debugRelative(ppu*, byte &opcode, char offset, byte dataPC, string OPname);
+	const void debugRelative(byte &opcode, char offset, byte dataPC, string OPname);
 	
-	const void debugImplied(ppu*, byte &opcode, byte BRK, string OPname);
+	const void debugImplied(byte &opcode, byte BRK, string OPname);
 
-	const void debugIndirect(ppu*, byte &opcode, byte highAddress, byte lowAddress, word jumpAddress, string OPname);
+	const void debugIndirect(byte &opcode, byte highAddress, byte lowAddress, word jumpAddress, string OPname);
 #endif
 };
 

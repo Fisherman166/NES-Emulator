@@ -11,21 +11,19 @@ ppu::~ppu()
 	ppuDebug.close();
 }
 
-void ppu::emulateCycle(memory* memory)
+void ppu::emulateCycle()
 {
 	using namespace std;
 	//Update the registers
-	reg2000 = memory->RAM[0x2000];
-	reg2001 = memory->RAM[0x2001];
+	reg2000 = VRAM->RAM[0x2000];
+	reg2001 = VRAM->RAM[0x2001];
 
 	if(!vblank)					//If vblank is going on, none of this happens
 	{
 		//These are the only pixels that make it onto the screen
 		//The top and bottom 8 scanlines are cut off
 		if(scanline > 7 && scanline < 232)
-		{
-			if(dotNumber < 256) renderPixel(memory);
-		}
+			if(dotNumber < 256) renderPixel();
 		
 		if(reg2001 & 0x18)				//Checks if rendering is enabled
 		{
@@ -48,7 +46,7 @@ void ppu::emulateCycle(memory* memory)
 				//For getting the background data.
 				if(scanline < 240) 
 				{
-					visableBGFetch(memory);						//For visable scanlines
+					visableBGFetch();						//For visable scanlines
 				}
 				else if(scanline == 240) 
 				{
@@ -56,7 +54,7 @@ void ppu::emulateCycle(memory* memory)
 				}
 				else 
 				{
-					preBGFetch(memory);						//For the prerender scanline
+					preBGFetch();							//For the prerender scanline
 				}
 			}
 
@@ -84,17 +82,24 @@ void ppu::emulateCycle(memory* memory)
 			else
 			{
 				oddFrame = true;
-				//dotNumber = 1;				//Dot 0 is skipped on odd frame
+				dotNumber = 1;				//Dot 0 is skipped on odd frame
 			}
 		}
 	}
 
-	checkVblank(memory);				//Checks if vblank is happening
+	checkVblank();					//Checks if vblank is happening
 }
 
-void ppu::setIdleCounter(unsigned short value)
+//Sets the VRAM pointer
+bool ppu::setPointer(memory* memory)
 {
-	idleCounter = value;
+	bool retval = true;
+
+	VRAM = memory;
+
+	if(VRAM == NULL) retval = false;
+
+	return retval;
 }
 
 
@@ -138,7 +143,7 @@ const void ppu::checkDotNumber()
 	}
 	else if(dotNumber > 279 && dotNumber < 305)
 	{
-		ppuAddress &= ~0xFBE0;						//Clears the vertical bits
+		ppuAddress &= ~0xFBE0;				//Clears the vertical bits
 		ppuAddress |= ppuTempAddress & 0xFBE0;		//Puts the vertical bits in
 	}
 	else if(dotNumber < 257 || dotNumber > 327)
@@ -165,69 +170,68 @@ const void ppu::shiftRegisters()
 	//The registers only shift between dots 2-257 and 322-337 (inclusive)
 	lowBGShift >>= 1;
 	highBGShift >>= 1;
-	//lowAtShift >>= 1;
-	//highAttShift >>= 1;
+	lowAttShift >>= 1;
+	highAttShift >>= 1;
 
 }
 
-const void ppu::renderPixel(memory *memory)
+const void ppu::renderPixel()
 {
 	if(reg2001 & 0x18)
-	{
-		if(reg2001 & 0x08)		//Checks if background rendering is enabled
-		{
-			palleteAddress = 0x3F00 | eightToOneMux(lowBGShift) | (eightToOneMux(highBGShift) << 1)
-							| (eightToOneMux(lowAttShift) << 2) | (eightToOneMux(highAttShift) << 3);
-			palleteData = memory->readVRAM(palleteAddress);
-		
-			//Sets the RGB values for the screen
-			screenData[scanline - 8][dotNumber][0] = red[palleteData];
-			screenData[scanline - 8][dotNumber][1] = green[palleteData];
-			screenData[scanline - 8][dotNumber][2] = blue[palleteData];
-		}
-		else
-		{
-			if(ppuAddress >= 0x3F00) palleteAddress = ppuAddress;	//If ppuAddress in pallete address range, use that address.
-			else palleteAddress = 0x3F00;
-			palleteData = memory->readVRAM(palleteAddress);
+        {
+                if(reg2001 & 0x08)                //Checks if background rendering is enabled
+                {
+                        palleteAddress = 0x3F00 | eightToOneMux(lowBGShift) | (eightToOneMux(highBGShift) << 1)
+                                                        | (eightToOneMux(lowAttShift) << 2) | (eightToOneMux(highAttShift) << 3);
+                        palleteData = VRAM->readVRAM(palleteAddress);
+                
+                        //Format: 0x00rrggbb
+			//rr = red std::hex, gg = green std::hex, bb = blue std::hex
+                        screenData[dotNumber][scanline - 8][0] = RGB[palleteData] & 0xFF;
+                        screenData[dotNumber][scanline - 8][1] = (RGB[palleteData] >> 8) & 0xFF;
+                        screenData[dotNumber][scanline - 8][2] = (RGB[palleteData] >> 16) & 0xFF;
+                }
+                else
+                {
+                        if(ppuAddress >= 0x3F00) palleteAddress = ppuAddress;        //If ppuAddress in pallete address range, use that address.
+                        else palleteAddress = 0x3F00;
+                        palleteData = VRAM->readVRAM(palleteAddress);
 
-			//Sets the RGB values for the screen
-			screenData[scanline - 8][dotNumber][0] = red[palleteData];
-			screenData[scanline - 8][dotNumber][1] = green[palleteData];
-			screenData[scanline - 8][dotNumber][2] = blue[palleteData];
-		}
-	}
-	else
-	{
-		if(ppuAddress >= 0x3F00) palleteAddress = ppuAddress;
-		else palleteAddress = 0x3F00;
-		palleteData = memory->readVRAM(palleteAddress);
+                        //Sets the RGB values for the screen
+                       screenData[dotNumber][scanline - 8][0] = RGB[palleteData] & 0xFF;
+                       screenData[dotNumber][scanline - 8][1] = (RGB[palleteData] >> 8) & 0xFF;
+                       screenData[dotNumber][scanline - 8][2] = (RGB[palleteData] >> 16) & 0xFF;
+                }
+        }
+        else
+        {
+                if(ppuAddress >= 0x3F00) palleteAddress = ppuAddress;
+                else palleteAddress = 0x3F00;
+                palleteData = VRAM->readVRAM(palleteAddress);
 
-		//Sets the RGB values for the screen
-		screenData[scanline - 8][dotNumber][0] = red[palleteData];
-		screenData[scanline - 8][dotNumber][1] = green[palleteData];
-		screenData[scanline - 8][dotNumber][2] = blue[palleteData];
-	}
+                //Sets the RGB values for the screen
+                screenData[dotNumber][scanline - 8][0] = RGB[palleteData] & 0xFF;
+                screenData[dotNumber][scanline - 8][1] = (RGB[palleteData] >> 8) & 0xFF;
+                screenData[dotNumber][scanline - 8][2] = (RGB[palleteData] >> 16) & 0xFF;
+        }
 }
 
-const void ppu::checkVblank(memory* memory)
+const void ppu::checkVblank()
 {
 	if(scanline == 241 && dotNumber == 1) 
 	{
-		ppu* dummy = NULL;							//Dummy pointer so I can write to RAM
-		memory->writeRAM(reg2002, vblankValue, dummy);
+		VRAM->writeRAM(reg2002, vblankValue);
 		vblank = true;
 		bufferVblank = true;
 		if(reg2000 & 0x80) NMI = true;				//NMI bit set
 	}
 	else if(scanline == 261 && dotNumber == 1)
 	{
-		ppu* dummy = NULL;
 		unsigned char clearData = 0x9F;				//Value that clears the flags
 		zeroFlag = false;
 		spriteOverflow = false;
 		vblank = false;
-		memory->writeRAM(reg2002, clearData, dummy);		//Clears sprite 0 hit and overflow bit
+		VRAM->writeRAM(reg2002, clearData);		//Clears sprite 0 hit and overflow bit
 	}
 }
 
@@ -236,8 +240,8 @@ const void ppu::checkVblank(memory* memory)
 //----------------------------------------------------------------------------------------------------------------------------------------
 //Scanline functions	
 
-const void ppu::visableBGFetch(memory* memory)
-{
+const void ppu::visableBGFetch()
+{	
 	if(dotNumber != 257)
 	{
 		if((dotNumber > 0 && dotNumber < 257) || (dotNumber > 320 && dotNumber < 337))
@@ -245,7 +249,8 @@ const void ppu::visableBGFetch(memory* memory)
 			if(ntFetch)	//First in the order
 			{
 				nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
-				nameFetch = memory->readVRAM(nameAddress);
+				nameFetch = VRAM->readVRAM(nameAddress);
+				ppuDebug << std::hex << std::setfill('0') << "Name: 0x" << std::setw(4) << nameAddress;
 				ntFetch = false;
 				atFetch = true;
 				idleCounter++;
@@ -253,7 +258,8 @@ const void ppu::visableBGFetch(memory* memory)
 			else if(atFetch)
 			{
 				attAddress = 0x23C0 | (ppuAddress & 0x0C00) | ((ppuAddress >> 4) & 0x38) | ((ppuAddress >> 2) & 0x07);
-				attFetch = memory->readVRAM(attAddress);
+				attFetch = VRAM->readVRAM(attAddress);
+				ppuDebug << std::hex << std::setfill('0') << " Att: 0x" << std::setw(4) << attAddress;
 				atFetch = false;
 				bgLowFetch = true;
 				idleCounter++;
@@ -263,14 +269,16 @@ const void ppu::visableBGFetch(memory* memory)
 				//Finds the bg tile address
 				if(reg2000 & 0x10) tileAddress = 0x1000 | (nameFetch << 4) | ((ppuAddress & 0x7000) >> 12);
 				else tileAddress = 0x0000 | (nameFetch << 4) | ((ppuAddress & 0x7000) >> 12);
-				lowBGFetch = memory->readVRAM(tileAddress);
+				ppuDebug << std::hex << std::setfill('0') << " Low tile: 0x" << std::setw(4) << tileAddress;
+				lowBGFetch = VRAM->readVRAM(tileAddress);
 				bgLowFetch = false;
 				idleCounter++;
 			}
 			else		//End of cycle.  Do nametable fetch next.
 			{
 				tileAddress += 8;				//8 bytes ahead
-				highBGFetch = memory->readVRAM(tileAddress);
+				ppuDebug << std::hex << std::setfill('0') << " High tile: 0x" << std::setw(4) << tileAddress << std::endl;
+				highBGFetch = VRAM->readVRAM(tileAddress);
 				ntFetch = true;
 				idleCounter++;
 			}	
@@ -278,7 +286,7 @@ const void ppu::visableBGFetch(memory* memory)
 		else
 		{
 			nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
-			nameFetch = memory->readVRAM(nameAddress);
+			nameFetch = VRAM->readVRAM(nameAddress);
 			idleCounter++;
 		}
 	}
@@ -287,14 +295,14 @@ const void ppu::visableBGFetch(memory* memory)
 }
 
 
-const void ppu::preBGFetch(memory *memory)
+const void ppu::preBGFetch()
 {
 	if((dotNumber > 0 && dotNumber < 257) || (dotNumber > 320 && dotNumber < 337))
 	{
 		if(ntFetch)
 		{
 			nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
-			nameFetch = memory->readVRAM(nameAddress);
+			nameFetch = VRAM->readVRAM(nameAddress);
 			ntFetch = false;
 			atFetch = true;
 			idleCounter++;
@@ -302,7 +310,7 @@ const void ppu::preBGFetch(memory *memory)
 		else if(atFetch)
 		{
 			attAddress = 0x23C0 | (ppuAddress & 0x0C00) | ((ppuAddress >> 4) & 0x38) | ((ppuAddress >> 2) & 0x07);
-			attFetch = memory->readVRAM(attAddress);
+			attFetch = VRAM->readVRAM(attAddress);
 			atFetch = false;
 			bgLowFetch = true;
 			idleCounter++;
@@ -312,14 +320,14 @@ const void ppu::preBGFetch(memory *memory)
 			//Finds the bg tile address
 			if(reg2000 & 0x10) tileAddress = 0x1000 | (nameFetch << 4) | ((ppuAddress & 0x7000) >> 12);
 			else tileAddress = 0x0000 | (nameFetch << 4) | ((ppuAddress & 0x7000) >> 12);
-			lowBGFetch = memory->readVRAM(tileAddress);
+			lowBGFetch = VRAM->readVRAM(tileAddress);
 			bgLowFetch = false;
 			idleCounter++;
 		}
 		else
 		{
 			tileAddress += 8;
-			highBGFetch = memory->readVRAM(tileAddress);	//8 bytes ahead of the address
+			highBGFetch = VRAM->readVRAM(tileAddress);	//8 bytes ahead of lower address
 			ntFetch = true;
 			idleCounter++;
 		}	
@@ -327,7 +335,7 @@ const void ppu::preBGFetch(memory *memory)
 	else
 	{
 		nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
-		nameFetch = memory->readVRAM(nameAddress);
+		nameFetch = VRAM->readVRAM(nameAddress);
 		idleCounter++;
 	}
 }
@@ -367,10 +375,11 @@ const void ppu::fourToOneMux()				//Used to refill attribute shift registers
 	}
 	
 	//Sets all the bits the same
-	highAttShift = attBit2 | (attBit2 << 1) | (attBit2 << 2) | (attBit2 << 3) | (attBit2 << 4)
-					| (attBit2 << 5) | (attBit2 << 6) | (attBit2 << 7);
-	lowAttShift = attBit1 | (attBit1 << 1) | (attBit1 << 2) | (attBit1 << 3) | (attBit1 << 4)
-					| (attBit1 << 5) | (attBit1 << 6) | (attBit1 << 7);
+	if(attBit2) highAttShift = 0xFFFF;		//All 1s
+	else highAttShift = 0;				//All 0s
+	
+	if(attBit1) lowAttShift = 0xFFFF;		//All 1s
+	else lowAttShift = 0;				//All 0s
 }
 
 
@@ -408,27 +417,18 @@ const bool ppu::eightToOneMux(unsigned char &data)		//8 bit numbers
 
 
 //Pallete colors
-ppu::byte const ppu::red[] = {
-	0x75, 0x27, 0x00, 0x47, 0x8F, 0xAB, 0xA7, 0x7F, 0x43, 0x00, 0x00,	//0x0A
-	0x00, 0x1B, 0x00, 0x00, 0x00, 0xBC, 0x00, 0x23, 0x83, 0xBF, 0xE7,	//0x15
-	0xDB, 0xCB, 0x8B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,	//0x20 
-	0x3F, 0x5F, 0xA7, 0xF7, 0xFF, 0xFF, 0xFF, 0xF3, 0x83, 0x4F, 0x58, 	//0x2B
-	0x00, 0x00, 0x00, 0x00, 0xFF, 0xAB, 0xC7, 0xD7, 0xFF, 0xFF, 0xFF, 	//0x36
-	0xFF, 0xFF, 0xE3, 0xAB, 0xB3, 0x9F, 0x00, 0x00, 0x00};
+int const ppu::RGB[] =
+{
+   0x00808080, 0x00003DA6, 0x000012B0, 0x00440096, 0x00A1005E, 0x00C70028, 0x00BA0600, 
+   0x008C1700, 0x005C2F00, 0x00104500, 0x00054A00, 0x0000472E, 0x00004166, 0x00000000, 
+   0x00050505, 0x00050505, 0x00C7C7C7, 0x000077FF, 0x002155FF, 0x008237FA, 0x00EB2FB5, 
+   0x00FF2950, 0x00FF2200, 0x00D63200, 0x00C46200, 0x00358000, 0x00058F00, 0x00008A55, 
+   0x000099CC, 0x00212121, 0x00090909, 0x00090909, 0x00FFFFFF, 0x000FD7FF, 0x0069A2FF, 
+   0x00D480FF, 0x00FF45F3, 0x00FF618B, 0x00FF8833, 0x00FF9C12, 0x00FABC20, 0x009FE30E, 
+   0x002BF035, 0x000CF0A4, 0x0005FBFF, 0x005E5E5E, 0x000D0D0D, 0x000D0D0D, 0x00FFFFFF, 
+   0x00A6FCFF, 0x00B3ECFF, 0x00DAABEB, 0x00FFA8F9, 0x00FFABB3, 0x00FFD2B0, 0x00FFEFA6, 
+   0x00FFF79C, 0x00D7E895, 0x00A6EDAF, 0x00A2F2DA, 0x0099FFFC, 0x00DDDDDD, 0x00111111, 
+   0x00111111
+};
 
-ppu::byte const ppu::green[] = {
-	0x75, 0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0B, 0x2F, 0x47, 0x51,	//0x0A
-	0x3F, 0x3F, 0x00, 0x00, 0x00, 0xBC, 0x73, 0x3B, 0x00, 0x00, 0x00,	//0x15
-	0x2B, 0x4F, 0x73, 0x97, 0xAB, 0x93, 0x83, 0x00, 0x00, 0x00, 0xFF,	//0x20 
-	0xBF, 0x97, 0x8B, 0x7B, 0x77, 0x77, 0x9B, 0xBF, 0xD3, 0xDF, 0xF8, 	//0x2B
-	0xEB, 0x00, 0x00, 0x00, 0xFF, 0xE7, 0xD7, 0xCB, 0xC7, 0xC7, 0xBF, 	//0x36
-	0xDB, 0xE7, 0xFF, 0xF3, 0xFF, 0xFF, 0x00, 0x00, 0x00};
-
-ppu::byte const ppu::blue[] = {
-	0x75, 0x8F, 0xAB, 0x9F, 0x77, 0x13, 0x00, 0x00, 0x00, 0x00, 0x00,	//0x0A
-	0x17, 0x5F, 0x00, 0x00, 0x00, 0xBC, 0xEF, 0xEF, 0xF3, 0xBF, 0x5B,	//0x15
-	0x00, 0x0F, 0x00, 0x00, 0x00, 0x3B, 0x8B, 0x00, 0x00, 0x00, 0xFF,	//0x20 
-	0xFF, 0xFF, 0xFD, 0xFF, 0xB7, 0x63, 0x3B, 0x3F, 0x13, 0x4B, 0x98, 	//0x2B
-	0xDB, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xDB, 0xB3, 	//0x36
-	0xAB, 0xA3, 0xA3, 0xBF, 0xCF, 0xF3, 0x00, 0x00, 0x00};
 
