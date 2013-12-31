@@ -17,7 +17,7 @@ public:
 	void emulateCycle();
 	bool setPointer(memory*);
 
-	byte screenData[256][224][3];					//Holds the RGB values of the screen
+	int screenData[256][224];					//Holds RGB data for the screen
 	word ppuAddress, ppuTempAddress;				//Holds the addresses
 	byte fineXScroll;						//For scrolling
 	word dotNumber;							//What the current dot the PPU is running

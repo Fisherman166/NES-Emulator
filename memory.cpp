@@ -281,7 +281,7 @@ void memory::dumpVRAM()
 	using namespace std;
 	int counter = 0;
 
-	for(int i = 0; i < 0x3F21; i++)
+	for(int i = 0; i < 0x3F00; i++)
 	{
 		if(!(i & 0xF))
 		{

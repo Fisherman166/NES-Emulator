@@ -21,9 +21,10 @@ unsigned char ppuCycles;					//Number of ppu cycles to run
 
 //For rendering
 SDL_Surface *screen = NULL;
+SDL_Surface *next = NULL;
 
 //Functions
-void checkInput();						//Checks for input
+bool checkInput();						//Checks for input
 void quitEmu();							//Quits the emulator
 bool setPointers();						//Sets object pointers
 Uint8* keyboard;						//Holds keyboars state
@@ -33,19 +34,25 @@ double seconds;
 
 int main(int argc, char *args[])
 {	
+	//Initalize objects
 	if( !setPointers() ) cout << "Error setting pointers" << endl;
 	systemMemory->loadMemory();
 	core->setPCStart();
 
 	if( SDL_Init(SDL_INIT_EVERYTHING) < 0) cout << "Video init failed" << endl;
-	screen = SDL_SetVideoMode(screenWidth, screenHeight, 24, SDL_HWSURFACE);
+	screen = SDL_SetVideoMode(screenWidth, screenHeight, 32, SDL_HWSURFACE);
 
 	if(screen == NULL)
 		cout << "Get mode set failed: " << SDL_GetError() << endl;
 
 	SDL_WM_SetCaption("NES Emulator by Dartht33bagger", NULL);
 
-	uint32_t *pixels = (uint32_t*)screen->pixels;
+	//Create initial surface for next
+	next = SDL_CreateRGBSurface(SDL_HWSURFACE, screen->w, screen->h, screen->format->BitsPerPixel, screen->format->Rmask,
+					screen->format->Gmask, screen->format->Bmask, screen->format->Amask);
+	
+	//Create a pointer to the next pixels
+	Uint32 *pixels = (Uint32*)next->pixels;
 
 	for(;;)
 	{
@@ -56,51 +63,51 @@ int main(int argc, char *args[])
 		for(int i = (ppuCycles * 3); i > 0; i--)
 			video->emulateCycle();
 
-		//Checks for keyboard input
-		checkInput();
+		//Checks for keyboard input and stops the loop if esc hit
+		if(checkInput()) break;
 
 		if(video->bufferVblank)	//Time to render a frame!
-		{
-			/*//Create surface from the array values
-			next = SDL_CreateRGBSurfaceFrom((void*)video->pixels,
-					screenWidth,
-					screenHeight,
-					24,			//24 bpp because no alpha
-					screenWidth * 3,	//Width * channels, where channels = 3
-					0xFF,			//Red mask
-					0xFF00,			//Green mask
-					0xFF0000,		//Blue mask
-					0);			//Alpha mask (none)
+		{	
+			//If the screen has to be locked, lock it.
+			if( SDL_MUSTLOCK(next) )
+				SDL_LockSurface(next);
 
+			//Fill in next's pixel data from the ppu array
+			for(int x = 0; x < 224; x++)                
+                		for(int y = 0; y < 256; y++)
+					pixels[y + x * next->w] = video->screenData[y][x];
+
+			if(SDL_MUSTLOCK(next)) 
+				SDL_UnlockSurface(next);
+
+			//Set x and y offset to 0
 			SDL_Rect offset;
 			offset.x = 0;
 			offset.y = 0;
+
 			SDL_BlitSurface(next, NULL, screen, &offset);
 
-			if( SDL_Flip(screen) < 0) cout << "Flip error" << endl;*/
-			
-			for(int y = 0; y < 224; ++y)                
-                		for(int x = 0; x < 256; ++x)
-					pixels[x + y * screen->w] = video->screenData[x][y][0]
-								| (video->screenData[x][y][1] << 8)
-								| (video->screenData[x][y][2] << 16);
-
-			SDL_UpdateRect(screen, 0, 0, 0, 0);
+			//Draw the new screen
+			SDL_Flip(screen);
 
 			video->bufferVblank = false;
 		}
 	}
+
+	//Cleanup
+	quitEmu();
 	
 	return 0;
 }
 
-void checkInput()
+bool checkInput()
 {
 	unsigned char reload = 0;		//Temp value that is updated every function call
+	bool quit = false;
 	SDL_PumpEvents();
 	keyboard = SDL_GetKeyState(NULL);
 	
-	if(keyboard[SDLK_ESCAPE]) quitEmu();	//Closes the emulator
+	if(keyboard[SDLK_ESCAPE]) quit = true;	//Closes the emulator
 
 	//Right
 	if(keyboard[SDLK_d]) reload |= 0x80;
@@ -128,18 +135,21 @@ void checkInput()
 
 	//If strobe is high, reload the controller1 shift register
 	if(systemMemory->RAM[0x4016] & 1) systemMemory->controller1 = reload;
+
+	return quit;
 }
 
 //Used to exit the emulate when done running
 void quitEmu()
 {
-	systemMemory->dumpVRAM();
+	//systemMemory->dumpVRAM();
 	delete video, systemMemory, core;
 	SDL_FreeSurface(screen);
+	SDL_FreeSurface(next);
 	SDL_Quit();
 }
 
-
+//Sets the pointers inside of the classes
 bool setPointers()
 {
 	bool retval = true;

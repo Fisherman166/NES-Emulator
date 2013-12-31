@@ -184,12 +184,8 @@ const void ppu::renderPixel()
                         palleteAddress = 0x3F00 | eightToOneMux(lowBGShift) | (eightToOneMux(highBGShift) << 1)
                                                         | (eightToOneMux(lowAttShift) << 2) | (eightToOneMux(highAttShift) << 3);
                         palleteData = VRAM->readVRAM(palleteAddress);
-                
-                        //Format: 0x00rrggbb
-			//rr = red std::hex, gg = green std::hex, bb = blue std::hex
-                        screenData[dotNumber][scanline - 8][0] = RGB[palleteData] & 0xFF;
-                        screenData[dotNumber][scanline - 8][1] = (RGB[palleteData] >> 8) & 0xFF;
-                        screenData[dotNumber][scanline - 8][2] = (RGB[palleteData] >> 16) & 0xFF;
+
+                	screenData[dotNumber][scanline - 8] = RGB[palleteData];	//RGB data
                 }
                 else
                 {
@@ -197,10 +193,7 @@ const void ppu::renderPixel()
                         else palleteAddress = 0x3F00;
                         palleteData = VRAM->readVRAM(palleteAddress);
 
-                        //Sets the RGB values for the screen
-                       screenData[dotNumber][scanline - 8][0] = RGB[palleteData] & 0xFF;
-                       screenData[dotNumber][scanline - 8][1] = (RGB[palleteData] >> 8) & 0xFF;
-                       screenData[dotNumber][scanline - 8][2] = (RGB[palleteData] >> 16) & 0xFF;
+			screenData[dotNumber][scanline - 8] = RGB[palleteData];
                 }
         }
         else
@@ -209,10 +202,7 @@ const void ppu::renderPixel()
                 else palleteAddress = 0x3F00;
                 palleteData = VRAM->readVRAM(palleteAddress);
 
-                //Sets the RGB values for the screen
-                screenData[dotNumber][scanline - 8][0] = RGB[palleteData] & 0xFF;
-                screenData[dotNumber][scanline - 8][1] = (RGB[palleteData] >> 8) & 0xFF;
-                screenData[dotNumber][scanline - 8][2] = (RGB[palleteData] >> 16) & 0xFF;
+		screenData[dotNumber][scanline - 8] = RGB[palleteData];
         }
 }
 
@@ -277,7 +267,8 @@ const void ppu::visableBGFetch()
 			else		//End of cycle.  Do nametable fetch next.
 			{
 				tileAddress += 8;				//8 bytes ahead
-				ppuDebug << std::hex << std::setfill('0') << " High tile: 0x" << std::setw(4) << tileAddress << std::endl;
+				ppuDebug << std::hex << std::setfill('0') << " High tile: 0x" << std::setw(4) << tileAddress;
+				ppuDebug << std::hex << std::setfill('0') << " PPU: 0x" << std::setw(4) << ppuAddress << std::endl;
 				highBGFetch = VRAM->readVRAM(tileAddress);
 				ntFetch = true;
 				idleCounter++;
