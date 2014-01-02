@@ -3,7 +3,7 @@
 #include "cpu.h"
 #include "memory.h"
 #include "ppu.h"
-#include "SDL/SDL.h"	//These are for graphics
+#include "SDL2/SDL.h"	//These are for graphics
 #include "GL/gl.h"
 #include "GL/glu.h"
 
@@ -20,14 +20,18 @@ ppu* video = new ppu();
 unsigned char ppuCycles;					//Number of ppu cycles to run
 
 //For rendering
-SDL_Surface *screen = NULL;
-SDL_Surface *next = NULL;
+SDL_Window *screen = NULL;
+SDL_Renderer *renderer = NULL;
+SDL_Texture *texture = NULL;
+
+//Video functions
+void initSDL();
 
 //Functions
 bool checkInput();						//Checks for input
 void quitEmu();							//Quits the emulator
 bool setPointers();						//Sets object pointers
-Uint8* keyboard;						//Holds keyboars state
+const Uint8* keyboard;						//Holds keyboars state
 
 //Debugging stuff
 time_t startTime, endTime;
@@ -43,20 +47,10 @@ int main(int argc, char *args[])
 	systemMemory->loadMemory();
 	core->setPCStart();
 
-	if( SDL_Init(SDL_INIT_EVERYTHING) < 0) cout << "Video init failed" << endl;
-	screen = SDL_SetVideoMode(screenWidth, screenHeight, 32, SDL_HWSURFACE);
+	//Setup everything for SDL
+	initSDL();
 
-	if(screen == NULL)
-		cout << "Get mode set failed: " << SDL_GetError() << endl;
-
-	SDL_WM_SetCaption("NES Emulator by Dartht33bagger", NULL);
-
-	//Create initial surface for next
-	next = SDL_CreateRGBSurface(SDL_HWSURFACE, screen->w, screen->h, screen->format->BitsPerPixel, screen->format->Rmask,
-					screen->format->Gmask, screen->format->Bmask, screen->format->Amask);
-	
-	//Create a pointer to the next pixels
-	Uint32 *pixels = (Uint32*)next->pixels;
+	int *pixels = &video->screenData[0][0];
 
 	for(;;)
 	{
@@ -73,28 +67,13 @@ int main(int argc, char *args[])
 		
 		if(video->bufferVblank)	//Time to render a frame!
 		{
-			startStep = true;
-			//If the screen has to be locked, lock it.
-			if( SDL_MUSTLOCK(next) )
-				SDL_LockSurface(next);
+			//Update the texture from screen data
+			SDL_UpdateTexture(texture, NULL, (void*)pixels, 256 * 4);
 
-			//Fill in next's pixel data from the ppu array
-			for(int x = 0; x < 224; x++)                
-                		for(int y = 0; y < 256; y++)
-					pixels[y + x * next->w] = video->screenData[y][x];
-
-			if(SDL_MUSTLOCK(next)) 
-				SDL_UnlockSurface(next);
-
-			//Set x and y offset to 0
-			SDL_Rect offset;
-			offset.x = 0;
-			offset.y = 0;
-
-			SDL_BlitSurface(next, NULL, screen, &offset);
-
-			//Draw the new screen
-			SDL_Flip(screen);
+			//Render updated texture
+			SDL_RenderClear(renderer);
+			SDL_RenderCopy(renderer, texture, NULL, NULL);
+			SDL_RenderPresent(renderer);
 
 			video->bufferVblank = false;
 		}
@@ -106,14 +85,54 @@ int main(int argc, char *args[])
 	return 0;
 }
 
+//Sets everything up for SDL
+void initSDL()
+{
+	if( SDL_Init(SDL_INIT_EVERYTHING) < 0) cout << "Video init failed" << endl;
+
+	//Creates our screen
+	screen = SDL_CreateWindow("NES Emulator by Dartht33bagger",
+				SDL_WINDOWPOS_UNDEFINED,
+				SDL_WINDOWPOS_UNDEFINED,
+				0,
+				0,
+				SDL_WINDOW_FULLSCREEN_DESKTOP);
+	
+	//Creates our renderer
+	renderer = SDL_CreateRenderer(screen, -1, 0);
+	
+	//Error checking
+	if(screen == NULL || renderer == NULL)
+		cout << "Opening window failed." << SDL_GetError() << endl;
+
+	//Clear the window
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+	SDL_RenderClear(renderer);
+	SDL_RenderPresent(renderer);
+
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");	//Scale linearly
+	SDL_RenderSetLogicalSize(renderer, 256, 224);
+
+	//Create a texture
+	texture = SDL_CreateTexture(renderer,
+			SDL_PIXELFORMAT_ARGB8888,
+			SDL_TEXTUREACCESS_STREAMING,
+			256, 224);
+
+	if(texture == NULL) cout << "Error creating texture" << endl;
+
+	//Get pointer to keyboard state
+	keyboard = SDL_GetKeyboardState(NULL);
+}
+
 bool checkInput()
 {
 	unsigned char reload = 0;		//Temp value that is updated every function call
 	bool quit = false;
-	SDL_PumpEvents();
-	keyboard = SDL_GetKeyState(NULL);
+
+	SDL_PumpEvents();			//Update keyboard states
 	
-	if(keyboard[SDLK_ESCAPE]) quit = true;	//Closes the emulator
+	if(keyboard[SDL_SCANCODE_ESCAPE]) quit = true;	//Closes the emulator
 
 	if(keyboard[SDLK_p]) startStep = true;	//Starts stepping
 
@@ -134,28 +153,28 @@ bool checkInput()
 	printDebug = true;
 
 	//Right
-	if(keyboard[SDLK_d]) reload |= 0x80;
+	if(keyboard[SDL_SCANCODE_D]) reload |= 0x80;
 
 	//Left
-	if(keyboard[SDLK_a]) reload |= 0x40;
+	if(keyboard[SDL_SCANCODE_A]) reload |= 0x40;
 	
 	//Down
-	if(keyboard[SDLK_s]) reload |= 0x20;
+	if(keyboard[SDL_SCANCODE_S]) reload |= 0x20;
 
 	//Up
-	if(keyboard[SDLK_w]) reload |= 0x10;
+	if(keyboard[SDL_SCANCODE_W]) reload |= 0x10;
 
 	//Start
-	if(keyboard[SDLK_RETURN]) reload |= 0x8;
+	if(keyboard[SDL_SCANCODE_RETURN]) reload |= 0x8;
 
 	//Select
-	if(keyboard[SDLK_l]) reload |= 0x4;
+	if(keyboard[SDL_SCANCODE_L]) reload |= 0x4;
 
 	//B
-	if(keyboard[SDLK_LEFT]) reload |= 0x2;
+	if(keyboard[SDL_SCANCODE_LEFT]) reload |= 0x2;
 
 	//A
-	if(keyboard[SDLK_UP]) reload |= 0x1;
+	if(keyboard[SDL_SCANCODE_UP]) reload |= 0x1;
 
 	//If strobe is high, reload the controller1 shift register
 	if(systemMemory->RAM[0x4016] & 1) systemMemory->controller1 = reload;
@@ -168,8 +187,6 @@ void quitEmu()
 {
 	systemMemory->dumpVRAM();
 	delete video, systemMemory, core;
-	SDL_FreeSurface(screen);
-	SDL_FreeSurface(next);
 	SDL_Quit();
 }
 
