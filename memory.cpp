@@ -35,8 +35,15 @@ memory::memory(): DMAFlag(false), readBuffer(0x00), video(NULL)
 	{
 		VRAMPTR[i + 0x3F00] = VRAMPTR[i + 0x3F20] = VRAMPTR[i + 0x3F40] = VRAMPTR[i + 0x3F60] 
 		= VRAMPTR[i + 0x3F80] = VRAMPTR[i + 0x3FA0] = VRAMPTR[i + 0x3FC0] = &pallete[i];
-		pallete[i] = 0x0D;	//Sets the background to black
+			
+		pallete[i] = 0x3F;	//Sets the background to black
 	}
+
+	//Mirrors of the pallete addresses
+	VRAMPTR[0x3F10] = VRAMPTR[0x3F00];
+	VRAMPTR[0x3F14] = VRAMPTR[0x3F04];
+	VRAMPTR[0x3F18] = VRAMPTR[0x3F08];
+	VRAMPTR[0x3F1C] = VRAMPTR[0x3F0C];
 
 	debug.open("VRAM_DUMP.bin");
 }
@@ -107,7 +114,7 @@ void memory::writeRAM(word &address, byte &data)
 			if(video->writeToggle)
 			{
 				RAM[0x2005] = data;
-				video->ppuTempAddress &= 0x8C1F;				//Makes bits 5-9 and 12-14 zero
+				video->ppuTempAddress &= 0x8C1F;			//Makes bits 5-9 and 12-14 zero
 				video->ppuTempAddress |= (data & 0xF8) << 2;		//Shifts the data to fill bits 5-9
 				video->ppuTempAddress |= (data & 0x07) << 12;		//Shifts the data to fill bits 12-14
 				video->writeToggle = false;
@@ -128,6 +135,7 @@ void memory::writeRAM(word &address, byte &data)
 				RAM[0x2006] = data;
 				video->ppuTempAddress &= 0xFF00;			//Clears the lower 8 bits
 				video->ppuTempAddress |= data;				//Lower byte of address
+				video->ppuTempAddress &= 0x3FFF;			//Mirrors down if too large
 				video->ppuAddress = video->ppuTempAddress;		//Set after temp address is filled
 				video->writeToggle = false;
 			}
@@ -198,9 +206,6 @@ memory::byte memory::readRAM(word address)
 
 void memory::writeVRAM(word address, byte &data)
 {
-	//Address above 0x3FFF wrap around between the 0x0000 and 0x3FFF range.
-	address &= 0x3FFF;
-
 	*VRAMPTR[address] = data;
 }
 
@@ -281,7 +286,7 @@ void memory::dumpVRAM()
 	using namespace std;
 	int counter = 0;
 
-	for(int i = 0; i < 0x3F00; i++)
+	for(int i = 0; i < 0x3F30; i++)
 	{
 		if(!(i & 0xF))
 		{

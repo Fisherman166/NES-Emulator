@@ -29,8 +29,12 @@ void quitEmu();							//Quits the emulator
 bool setPointers();						//Sets object pointers
 Uint8* keyboard;						//Holds keyboars state
 
-time_t startTime, endTime;					//Only used for debugging
+//Debugging stuff
+time_t startTime, endTime;
 double seconds;
+bool startStep = false;
+bool spaceHit = false;
+bool printDebug = true;
 
 int main(int argc, char *args[])
 {	
@@ -66,8 +70,10 @@ int main(int argc, char *args[])
 		//Checks for keyboard input and stops the loop if esc hit
 		if(checkInput()) break;
 
+		
 		if(video->bufferVblank)	//Time to render a frame!
-		{	
+		{
+			startStep = true;
 			//If the screen has to be locked, lock it.
 			if( SDL_MUSTLOCK(next) )
 				SDL_LockSurface(next);
@@ -109,6 +115,24 @@ bool checkInput()
 	
 	if(keyboard[SDLK_ESCAPE]) quit = true;	//Closes the emulator
 
+	if(keyboard[SDLK_p]) startStep = true;	//Starts stepping
+
+	while(startStep == true && spaceHit == false)
+	{
+		if(printDebug)
+		{
+			printDebug = false;
+			core->printDebug();
+			video->printDebug();	
+		}	
+
+		if(keyboard[SDLK_p]) startStep = false;	//Starts stepping
+		if(keyboard[SDLK_SPACE]) spaceHit = true;	//Starts stepping
+	}
+
+	spaceHit = false;
+	printDebug = true;
+
 	//Right
 	if(keyboard[SDLK_d]) reload |= 0x80;
 
@@ -142,7 +166,7 @@ bool checkInput()
 //Used to exit the emulate when done running
 void quitEmu()
 {
-	//systemMemory->dumpVRAM();
+	systemMemory->dumpVRAM();
 	delete video, systemMemory, core;
 	SDL_FreeSurface(screen);
 	SDL_FreeSurface(next);

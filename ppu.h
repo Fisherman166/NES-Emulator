@@ -15,6 +15,7 @@ public:
 
 	//Functions
 	void emulateCycle();
+	void printDebug();						//Outputs addresses and values.
 	bool setPointer(memory*);
 
 	int screenData[256][224];					//Holds RGB data for the screen
@@ -74,8 +75,8 @@ private:
 	const void checkVblank();				//Checks if vblank is occuring
 	
 	//Used for different scanlines
-	const void visableBGFetch();
-	const void preBGFetch();
+	const void backgroundFetch();
+	//const void preBGFetch();
 	
 	//Muxes
 	const void fourToOneMux();				//Used when loading attribute shift register

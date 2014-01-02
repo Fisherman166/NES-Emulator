@@ -26,8 +26,9 @@ void ppu::emulateCycle()
 			if(dotNumber < 256) renderPixel();
 		
 		if(reg2001 & 0x18)				//Checks if rendering is enabled
-		{
-			if(scanline < 240 || scanline == 261)
+		{	
+			if(idleCounter > 0) idleCounter--;
+			else
 			{
 				//Reload the registers
 				if(dotNumber == reloadDot)
@@ -38,31 +39,17 @@ void ppu::emulateCycle()
 					fourToOneMux();							//Fills the attribute registers
 					reloadDot += 8;							//Reload up to 257
 				}
-			}
-			
-			if(idleCounter != 0) idleCounter--;
-			else
-			{
+
 				//For getting the background data.
-				if(scanline < 240) 
-				{
-					visableBGFetch();						//For visable scanlines
-				}
-				else if(scanline == 240) 
-				{
+				if(scanline == 240) 
 					idleCounter += 340;						//Idles for a scanline + 1 dot
-				}
-				else 
-				{
-					preBGFetch();							//For the prerender scanline
-				}
+				else
+					backgroundFetch();						//Fetch name, att, tiles
 			}
 
-			if(scanline < 240 || scanline == 261)
-			{
-				//The registers only shift between dots 2-257 and 322-337 (inclusive)
-				if((dotNumber > 1 && dotNumber < 258) || (dotNumber > 321 && dotNumber < 338)) shiftRegisters();
-			}
+			
+			//The registers only shift between dots 2-257 and 322-337 (inclusive)
+			if((dotNumber > 1 && dotNumber < 258) || (dotNumber > 321 && dotNumber < 338)) shiftRegisters();
 
 			checkDotNumber();						//Does stuff depending on the dot number
 		}
@@ -90,6 +77,28 @@ void ppu::emulateCycle()
 	checkVblank();					//Checks if vblank is happening
 }
 
+//Prints out debug info.
+void ppu::printDebug()
+{
+	using namespace std;
+
+	/*cout << hex << setfill('0') << "Name: 0x" << setw(4) << nameAddress;
+	cout << hex << setfill('0') << " Value: 0x" << setw(2) << (int)nameFetch;
+	cout << hex << setfill('0') << " Att: 0x" << setw(4) << attAddress;
+	cout << hex << setfill('0') << " Value: 0x" << setw(2) << (int)attFetch;
+	cout << hex << setfill('0') << " Low tile: 0x" << setw(4) << tileAddress;
+	cout << hex << setfill('0') << " Value: 0x" << setw(2) << (int)lowBGFetch;
+	cout << hex << setfill('0') << " High tile: 0x" << setw(4) << (int)tileAddress;
+	cout << hex << setfill('0') << " Value: 0x" << setw(2) << (int)highBGFetch;*/
+	cout << hex << setfill('0') << "PPU: 0x" << setw(4) << ppuAddress;
+	cout << hex << setfill('0') << " Palletteaddr: 0x" << setw(4) << palleteAddress;
+	cout << hex << setfill('0') << " Value: 0x" << setw(2) << (int)palleteData << endl;
+	cout << dec << "Scanline: " << setw(3) << scanline;
+	cout << dec << " Dot: " << setw(3) << dotNumber;
+	cout << dec << " Scanline: " << setw(3) << scanline << endl << endl;
+}
+
+
 //Sets the VRAM pointer
 bool ppu::setPointer(memory* memory)
 {
@@ -105,6 +114,8 @@ bool ppu::setPointer(memory* memory)
 
 //----------------------------------------------------------------------------------------------------------------------------------------
 //Private functions
+
+//Rendering has to be enabled for this function to be called
 const void ppu::checkDotNumber()
 {
 	if(dotNumber == 256)
@@ -121,30 +132,26 @@ const void ppu::checkDotNumber()
 				ppuAddress ^= 0x8000;		//Switch vertical nametable
 			}
 			else if(coarseY == 31) 
-			{
 				coarseY = 0;			//Coarse Y = 0, nametable not switched
-				ppuAddress = (ppuAddress & ~0x03E0) | (coarseY << 5);		//Put coarse Y back into address
-			}
 			else
-			{
-				coarseY++;							//Increment coarse Y
-				ppuAddress = (ppuAddress & ~0x03E0) | (coarseY << 5);		//Put coarse Y back into address
-			}
+				coarseY++;							//Increment coarse 
+			
+			ppuAddress = (ppuAddress & ~0x03E0) | (coarseY << 5);		//Put coarse Y back into address		
 		}
 	}
 
 
 	if(dotNumber == 257)
 	{
-		ppuAddress &= 0x7DF0;						//Clears the bits for horizontal position
-		ppuAddress |= ppuTempAddress & ~0x7DF0;				//Keeps the bits that were cleared above
+		ppuAddress &= ~0x41F;						//Clears the bits for horizontal position
+		ppuAddress |= ppuTempAddress & 0x41F;				//Keeps the bits that were cleared above
 		horizontalDot = 328;						//Next time this is needed
 		reloadDot = 329;						//Next time the registers are reloaded
 	}
 	else if(dotNumber > 279 && dotNumber < 305)
 	{
-		ppuAddress &= ~0xFBE0;				//Clears the vertical bits
-		ppuAddress |= ppuTempAddress & 0xFBE0;		//Puts the vertical bits in
+		ppuAddress &= ~0x7BE0;				//Clears the vertical bits
+		ppuAddress |= ppuTempAddress & 0x7BE0;		//Puts the vertical bits in
 	}
 	else if(dotNumber < 257 || dotNumber > 327)
 	{
@@ -230,7 +237,7 @@ const void ppu::checkVblank()
 //----------------------------------------------------------------------------------------------------------------------------------------
 //Scanline functions	
 
-const void ppu::visableBGFetch()
+const void ppu::backgroundFetch()
 {	
 	if(dotNumber != 257)
 	{
@@ -240,7 +247,6 @@ const void ppu::visableBGFetch()
 			{
 				nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
 				nameFetch = VRAM->readVRAM(nameAddress);
-				ppuDebug << std::hex << std::setfill('0') << "Name: 0x" << std::setw(4) << nameAddress;
 				ntFetch = false;
 				atFetch = true;
 				idleCounter++;
@@ -249,7 +255,6 @@ const void ppu::visableBGFetch()
 			{
 				attAddress = 0x23C0 | (ppuAddress & 0x0C00) | ((ppuAddress >> 4) & 0x38) | ((ppuAddress >> 2) & 0x07);
 				attFetch = VRAM->readVRAM(attAddress);
-				ppuDebug << std::hex << std::setfill('0') << " Att: 0x" << std::setw(4) << attAddress;
 				atFetch = false;
 				bgLowFetch = true;
 				idleCounter++;
@@ -259,17 +264,16 @@ const void ppu::visableBGFetch()
 				//Finds the bg tile address
 				if(reg2000 & 0x10) tileAddress = 0x1000 | (nameFetch << 4) | ((ppuAddress & 0x7000) >> 12);
 				else tileAddress = 0x0000 | (nameFetch << 4) | ((ppuAddress & 0x7000) >> 12);
-				ppuDebug << std::hex << std::setfill('0') << " Low tile: 0x" << std::setw(4) << tileAddress;
 				lowBGFetch = VRAM->readVRAM(tileAddress);
+				ppuDebug << std::endl;
 				bgLowFetch = false;
 				idleCounter++;
 			}
 			else		//End of cycle.  Do nametable fetch next.
 			{
 				tileAddress += 8;				//8 bytes ahead
-				ppuDebug << std::hex << std::setfill('0') << " High tile: 0x" << std::setw(4) << tileAddress;
-				ppuDebug << std::hex << std::setfill('0') << " PPU: 0x" << std::setw(4) << ppuAddress << std::endl;
 				highBGFetch = VRAM->readVRAM(tileAddress);
+				ppuDebug << std::endl;
 				ntFetch = true;
 				idleCounter++;
 			}	
@@ -286,7 +290,7 @@ const void ppu::visableBGFetch()
 }
 
 
-const void ppu::preBGFetch()
+/*const void ppu::preBGFetch()
 {
 	if((dotNumber > 0 && dotNumber < 257) || (dotNumber > 320 && dotNumber < 337))
 	{
@@ -329,7 +333,7 @@ const void ppu::preBGFetch()
 		nameFetch = VRAM->readVRAM(nameAddress);
 		idleCounter++;
 	}
-}
+}*/
 
 
 

@@ -23,6 +23,7 @@ public:
 	//Functions
 	bool setPointers(memory*, ppu*);			//Set pointers to the object
 	void setPCStart();					//Sets the PC to the reset vector
+	void printDebug();					//Prints opcode, PC, registers
 	byte emulateCycle();
 
 	//Variables

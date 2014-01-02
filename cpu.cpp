@@ -18,6 +18,24 @@ void cpu::setPCStart()
 	PC = (RAM->readRAM(0xFFFD) << 8) | RAM->readRAM(0xFFFC);		//Starts at the reset vector
 }
 
+void cpu::printDebug()
+{
+	using namespace std;
+	bool statusFlags[8];			//Used for putting status flags into a byte
+
+	//Create flag byte
+	statusFlags[0] = C, statusFlags[1] = Z, statusFlags[2] = I, statusFlags[3] = D,
+	statusFlags[4] = 0, statusFlags[5] = 1, statusFlags[6] = V, statusFlags[7] = N;
+	unsigned char procFlags = encodeBits(statusFlags);
+
+	cout << hex << setfill('0') << "A: " << setw(2) << (int)A;
+	cout << hex << setfill('0') << "X: " << setw(2) << (int)X;
+	cout << hex << setfill('0') << "Y: " << setw(2) << (int)Y;
+	cout << hex << setfill('0') << "P: " << setw(2) << (int)procFlags;
+	cout << hex << setfill('0') << "SP: " << setw(4) << (int)SP;
+	cout << hex << setfill('0') << "PC: " << setw(4) << (int)PC << endl;
+}
+
 
 //This sets the RAM and video pointers to the objects in main
 bool cpu::setPointers(memory* memory, ppu* ppu)
