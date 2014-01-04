@@ -5,6 +5,8 @@
 #include <fstream>
 #include "memory.h"
 
+using namespace std;
+
 class ppu
 {
 public:
@@ -14,11 +16,12 @@ public:
 	~ppu();
 
 	//Functions
-	void emulateCycle();
+	void emulateCycle();						//Render one pixel per cycle
+	void simpleRender();						//Render a nametable all at once
 	void printDebug();						//Outputs addresses and values.
 	bool setPointer(memory*);
 
-	int screenData[256][224];					//Holds RGB data for the screen
+	int screenData[240][256];					//Holds RGB data for the screen
 	word ppuAddress, ppuTempAddress;				//Holds the addresses
 	byte fineXScroll;						//For scrolling
 	word dotNumber;							//What the current dot the PPU is running
@@ -42,7 +45,7 @@ private:
 	word idleCounter;						//Current idle cycles to wait
 	word reloadDot;							//Allows PPU to keep track of when registers need to be reloaded
 	word horizontalDot;						//Allows PPU to check when coarse X needs to be incremented
-	word coarseY;
+	int  coarseY;
 
 	//For background rendering
 	word 	highBGShift, lowBGShift;			//Hold the higher and lower background tiles
@@ -53,8 +56,9 @@ private:
 	word 	nameAddress;	
 	
 	//For Pixel Rendering
-	word palleteAddress;						//Holds the pallete address for the pixel
-	byte palleteData;						//The pallete number to be looked up in pallete arrays
+	word palleteAddress;					//Holds the pallete address for the pixel
+	byte palleteData;					//The pallete number to be looked up in pallete arrays
+	bool top, left;						//For simple rendering only
 	
 
 	//I/O register data 
@@ -73,6 +77,7 @@ private:
 	const void shiftRegisters();				//Shifts the shifting registers
 	const void renderPixel();				//Puts pixel data into 
 	const void checkVblank();				//Checks if vblank is occuring
+	const void simRenAtt();					//Return attribute value for simple rendering
 	
 	//Used for different scanlines
 	const void backgroundFetch();
