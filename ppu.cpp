@@ -213,18 +213,19 @@ bool ppu::setPointer(memory* memory)
 //Rendering has to be enabled for this function to be called
 const void ppu::checkDotNumber()
 {
+	//Coarse Y increment
 	if(dotNumber == 256)
 	{
 		if((ppuAddress & 0x7000) != 0x7000)	ppuAddress += 0x1000;	//If fine Y < 7 increment it
 		else
 		{
 			ppuAddress &= ~0x7000;		//Fine Y = 0
-			coarseY = (ppuAddress & 0x03E0) >> 5;	//Let y = coarse Y
+			int coarseY = (ppuAddress & 0x03E0) >> 5;	//Let y = coarse Y
+
 			if(coarseY == 29)
 			{
 				coarseY = 0;			//Coarse Y = 0
-				ppuAddress = (ppuAddress & ~0x03E0) | (coarseY << 5);		//Put coarse Y back into address
-				ppuAddress ^= 0x8000;		//Switch vertical nametable
+				ppuAddress ^= 0x0800;		//Switch vertical nametable
 			}
 			else if(coarseY == 31) 
 				coarseY = 0;			//Coarse Y = 0, nametable not switched
@@ -237,16 +238,13 @@ const void ppu::checkDotNumber()
 
 
 	if(dotNumber == 257)
-	{
+	{	ppuDebug << "Temp: " << hex << uppercase << ppuTempAddress;
+		ppuDebug << " PPU: " << hex << uppercase << ppuAddress;
 		ppuAddress &= ~0x41F;						//Clears the bits for horizontal position
 		ppuAddress |= ppuTempAddress & 0x41F;				//Keeps the bits that were cleared above
 		horizontalDot = 328;						//Next time this is needed
 		reloadDot = 329;						//Next time the registers are reloaded
-	}
-	else if(dotNumber > 279 && dotNumber < 305)
-	{
-		ppuAddress &= ~0x7BE0;				//Clears the vertical bits
-		ppuAddress |= ppuTempAddress & 0x7BE0;		//Puts the vertical bits in
+		ppuDebug << " New PPU: " << hex << uppercase << ppuAddress << endl;
 	}
 	else if(dotNumber < 257 || dotNumber > 327)
 	{
@@ -265,6 +263,13 @@ const void ppu::checkDotNumber()
 		if(dotNumber == 336) horizontalDot = 8;				//Next dot to increment horizontal position
 		else if(dotNumber == 337) reloadDot = 9;			//Next dot to reload registers
 	}
+	else if(scanline == 261 && (dotNumber > 279 && dotNumber < 305))
+	{
+		ppuDebug << "Temp: " << hex << uppercase << ppuTempAddress;
+		ppuDebug << " PPU: " << hex << uppercase << ppuAddress << endl;
+		ppuAddress &= ~0x7BE0;				//Clears the vertical bits
+		ppuAddress |= ppuTempAddress & 0x7BE0;		//Puts the vertical bits in
+	}
 }
 
 const void ppu::shiftRegisters()
@@ -274,7 +279,6 @@ const void ppu::shiftRegisters()
 	highBGShift >>= 1;
 	lowAttShift >>= 1;
 	highAttShift >>= 1;
-
 }
 
 const void ppu::renderPixel()
@@ -412,7 +416,7 @@ const void ppu::backgroundFetch()
 				tileAddress += 8;				//8 bytes ahead
 				highBGFetch = VRAM->readVRAM(tileAddress);
 				ntFetch = true;
-				idleCounter++; printDebug();
+				idleCounter++;
 			}	
 		}
 		else

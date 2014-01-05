@@ -94,25 +94,27 @@ void memory::writeRAM(word &address, byte &data)
 	if(address >= 0x2000 && address <= 0x3FFF)
 	{
 		word tempAddress = address & 0x7;			//Only gets the first three bits
-
+		
+		debug << "Temp address before: " << std::hex << video->ppuTempAddress;
+		debug << " Data: " << std::hex << (int)data;
 		if(tempAddress == 0)
-		{
+		{	debug << " 2000 write";
 			RAM[0x2000] = data;
 			video->ppuTempAddress &= ~0x0C00;			//Clears bits 10 and 11
 			video->ppuTempAddress |= ((data & 0x03) << 10);	//Shifts the nametable select bits to bit 10 and 11 in the temp address
 		}
 		else if(tempAddress == 2 && data == 0x80) 
-		{
+		{	debug << " 2002 vblank";
 			RAM[0x2002] |= 0x80;				//Wants to set vblank only
 		}
 		else if(tempAddress == 2 && data == 0x9F)
-		{
+		{	debug << " 2002 sprite 0";
 			RAM[0x2002] &= 0x9F;				//Clears sprite 0 and overflow flags
 		}
 		else if(tempAddress == 5)
-		{
+		{	//data = 0xFF;
 			if(video->writeToggle)
-			{
+			{	debug << " 2005 2nd";
 				RAM[0x2005] = data;
 				video->ppuTempAddress &= 0x8C1F;			//Makes bits 5-9 and 12-14 zero
 				video->ppuTempAddress |= (data & 0xF8) << 2;		//Shifts the data to fill bits 5-9
@@ -120,7 +122,7 @@ void memory::writeRAM(word &address, byte &data)
 				video->writeToggle = false;
 			}
 			else
-			{
+			{	debug << " 2005 1st";
 				RAM[0x2005] = data;
 				video->ppuTempAddress &= ~0x001F;			//Makes the first 5 bits zero
 				video->ppuTempAddress |= (data & 0xF8) >> 3;		//Gets the last 5 bits for the address
@@ -129,18 +131,17 @@ void memory::writeRAM(word &address, byte &data)
 			}
 		}
 		else if(tempAddress == 6)
-		{
+		{	
 			if(video->writeToggle) 
-			{
+			{	debug << " 2006 2nd";
 				RAM[0x2006] = data;
 				video->ppuTempAddress &= 0xFF00;			//Clears the lower 8 bits
 				video->ppuTempAddress |= data;				//Lower byte of address
-				video->ppuTempAddress &= 0x3FFF;			//Mirrors down if too large
 				video->ppuAddress = video->ppuTempAddress;		//Set after temp address is filled
 				video->writeToggle = false;
 			}
 			else 
-			{
+			{	debug << " 2006 1st";
 				RAM[0x2006] = data;
 				video->ppuTempAddress &= 0x00FF;			//Clears upper 8 bits
 				video->ppuTempAddress = (data & 0x3F) << 8;		//Upper piece of address
@@ -148,13 +149,15 @@ void memory::writeRAM(word &address, byte &data)
 			}
 		}
 		else if(tempAddress == 7)
-		{
+		{	debug << " 2007";
 			RAM[0x2007] = data;
 			writeVRAM(video->ppuAddress, data);
 			if(RAM[0x2000] & 0x04) video->ppuAddress += 32;			//Checks increment bit
 			else video->ppuAddress++;
 		}
 		else	RAM[tempAddress + 0x2000] = data;
+
+		debug << " Temp address after: " << std::hex << video->ppuTempAddress << std::endl;
 	}
 	/*else if(address == 0x4014)
 	{
@@ -183,11 +186,11 @@ memory::byte memory::readRAM(word address)
 		{
 			//ppuAddress < 0x3EFF, then has to read from the buffer
 			//If in the pallete range, it reads from there
-			if(video->ppuAddress > 0x3EFF) retval = *VRAMPTR[video->ppuAddress];
+			if((video->ppuAddress & 0x3FFF) > 0x3EFF) retval = readVRAM(video->ppuAddress);
 			else
 			{
 				retval = readBuffer;
-				readBuffer = *VRAMPTR[video->ppuAddress];
+				readBuffer = readVRAM(video->ppuAddress);
 			}
 			if(RAM[0x2000] & 0x04) video->ppuAddress += 32;		//Checks increment bit
 			else video->ppuAddress++;
@@ -206,12 +209,14 @@ memory::byte memory::readRAM(word address)
 
 void memory::writeVRAM(word address, byte &data)
 {
-	*VRAMPTR[address] = data;
+	word temp = address & 0x3FFF;		//Wrap around if too big
+	*VRAMPTR[temp] = data;
 }
 
 memory::byte memory::readVRAM(word &address)
 {
-	return *VRAMPTR[address];
+	word temp = address & 0x3FFF;		//Wrap around if too big
+	return *VRAMPTR[temp];
 }
 
 //Sets the video pointer

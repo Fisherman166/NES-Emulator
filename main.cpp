@@ -171,8 +171,11 @@ bool checkInput()
 //Used to exit the emulate when done running
 void quitEmu()
 {
-	systemMemory->dumpVRAM();
+	//systemMemory->dumpVRAM();
 	delete video, systemMemory, core;
+	SDL_DestroyTexture(texture);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(screen);
 	SDL_Quit();
 }
 

@@ -45,7 +45,6 @@ private:
 	word idleCounter;						//Current idle cycles to wait
 	word reloadDot;							//Allows PPU to keep track of when registers need to be reloaded
 	word horizontalDot;						//Allows PPU to check when coarse X needs to be incremented
-	int  coarseY;
 
 	//For background rendering
 	word 	highBGShift, lowBGShift;			//Hold the higher and lower background tiles
