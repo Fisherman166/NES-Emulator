@@ -57,7 +57,7 @@ private:
 	//For Pixel Rendering
 	word palleteAddress;					//Holds the pallete address for the pixel
 	byte palleteData;					//The pallete number to be looked up in pallete arrays
-	bool top, left;						//For simple rendering only
+	bool keepAtt;						//For simple rendering only
 	
 
 	//I/O register data 
@@ -80,12 +80,10 @@ private:
 	
 	//Used for different scanlines
 	const void backgroundFetch();
-	//const void preBGFetch();
 	
 	//Muxes
 	const void fourToOneMux();				//Used when loading attribute shift register
 	const bool eightToOneMux(word&);			//Used when picking four bits for a pixel.
-	const bool eightToOneMux(byte&);
 
 	//Debug stuff
 	std::ofstream ppuDebug;

@@ -1,7 +1,7 @@
 #include "ppu.h"
 
 ppu::ppu() : writeToggle(false), oddFrame(false), reg2000(0x00), reg2001(0x00), NMI(false), vblank(false), ntFetch(true)
-		,ppuAddress(0), scanline(241), dotNumber(0), bufferVblank(false), horizontalDot(8), reloadDot(9), idleCounter(0)
+		,ppuAddress(0), scanline(241), dotNumber(0), bufferVblank(false), horizontalDot(8), reloadDot(9), idleCounter(0), keepAtt(false)
 {	
 	ppuDebug.open("ppuDebug.txt");
 }
@@ -34,9 +34,10 @@ void ppu::emulateCycle()
 				if(dotNumber == reloadDot)
 				{
 					//Fills the upper 8 bits with next tiles
-					highBGShift |= highBGFetch << 8; 
-					lowBGShift |= lowBGFetch << 8; 
-					fourToOneMux();							//Fills the attribute registers
+					highBGShift |= highBGFetch; 
+					lowBGShift |= lowBGFetch; 
+					fourToOneMux();		//Fills the attribute registers
+	
 					reloadDot += 8;							//Reload up to 257
 				}
 
@@ -87,7 +88,7 @@ void ppu::emulateCycle()
 }
 
 
-//Renders a nametable all at once when vblank is reached
+/*//Renders a nametable all at once when vblank is reached
 void ppu::simpleRender()
 {	
 	word highTileAddress;
@@ -137,7 +138,7 @@ void ppu::simpleRender()
 			for(int x = 0; x < 256; x++)
 				screenData[y][x] = RGB[palleteData];		//RGB data
         }
-}
+}*/
 
 
 //Prints out debug info.
@@ -238,13 +239,11 @@ const void ppu::checkDotNumber()
 
 
 	if(dotNumber == 257)
-	{	ppuDebug << "Temp: " << hex << uppercase << ppuTempAddress;
-		ppuDebug << " PPU: " << hex << uppercase << ppuAddress;
+	{	
 		ppuAddress &= ~0x41F;						//Clears the bits for horizontal position
 		ppuAddress |= ppuTempAddress & 0x41F;				//Keeps the bits that were cleared above
 		horizontalDot = 328;						//Next time this is needed
 		reloadDot = 329;						//Next time the registers are reloaded
-		ppuDebug << " New PPU: " << hex << uppercase << ppuAddress << endl;
 	}
 	else if(dotNumber < 257 || dotNumber > 327)
 	{
@@ -265,8 +264,6 @@ const void ppu::checkDotNumber()
 	}
 	else if(scanline == 261 && (dotNumber > 279 && dotNumber < 305))
 	{
-		ppuDebug << "Temp: " << hex << uppercase << ppuTempAddress;
-		ppuDebug << " PPU: " << hex << uppercase << ppuAddress << endl;
 		ppuAddress &= ~0x7BE0;				//Clears the vertical bits
 		ppuAddress |= ppuTempAddress & 0x7BE0;		//Puts the vertical bits in
 	}
@@ -275,10 +272,10 @@ const void ppu::checkDotNumber()
 const void ppu::shiftRegisters()
 {
 	//The registers only shift between dots 2-257 and 322-337 (inclusive)
-	lowBGShift >>= 1;
-	highBGShift >>= 1;
-	lowAttShift >>= 1;
-	highAttShift >>= 1;
+	lowBGShift <<= 1;
+	highBGShift <<= 1;
+	//lowAttShift <<= 1;
+	//highAttShift <<= 1;
 }
 
 const void ppu::renderPixel()
@@ -334,7 +331,7 @@ const void ppu::checkVblank()
 }
 
 
-const void ppu::simRenAtt()
+/*const void ppu::simRenAtt()
 {
 	if( (nameAddress & 0xF00) == 0 ) attAddress = 0x23C0;		//Base att = 0x23C0
 	else if( (nameAddress & 0xF00) == 0x100 ) attAddress = 0x23D0;	//Base att = 0x23D0
@@ -373,7 +370,7 @@ const void ppu::simRenAtt()
 	if(top == true && left == false) attFetch >>= 2;
 	else if(top == false && left == true) attFetch >>= 4;
 	else if(top == false && left == false) attFetch >>= 6;
-}
+}*/
 
 
 
@@ -433,53 +430,6 @@ const void ppu::backgroundFetch()
 }
 
 
-/*const void ppu::preBGFetch()
-{
-	if((dotNumber > 0 && dotNumber < 257) || (dotNumber > 320 && dotNumber < 337))
-	{
-		if(ntFetch)
-		{
-			nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
-			nameFetch = VRAM->readVRAM(nameAddress);
-			ntFetch = false;
-			atFetch = true;
-			idleCounter++;
-		}
-		else if(atFetch)
-		{
-			attAddress = 0x23C0 | (ppuAddress & 0x0C00) | ((ppuAddress >> 4) & 0x38) | ((ppuAddress >> 2) & 0x07);
-			attFetch = VRAM->readVRAM(attAddress);
-			atFetch = false;
-			bgLowFetch = true;
-			idleCounter++;
-		}
-		else if(bgLowFetch)
-		{
-			//Finds the bg tile address
-			if(reg2000 & 0x10) tileAddress = 0x1000 | (nameFetch << 4) | ((ppuAddress & 0x7000) >> 12);
-			else tileAddress = 0x0000 | (nameFetch << 4) | ((ppuAddress & 0x7000) >> 12);
-			lowBGFetch = VRAM->readVRAM(tileAddress);
-			bgLowFetch = false;
-			idleCounter++;
-		}
-		else
-		{
-			tileAddress += 8;
-			highBGFetch = VRAM->readVRAM(tileAddress);	//8 bytes ahead of lower address
-			ntFetch = true;
-			idleCounter++;
-		}	
-	}
-	else
-	{
-		nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
-		nameFetch = VRAM->readVRAM(nameAddress);
-		idleCounter++;
-	}
-}*/
-
-
-
 //------------------------------------------------------------------------------------------------------------------------------------------
 //Muxes
 const void ppu::fourToOneMux()				//Used to refill attribute shift registers
@@ -525,30 +475,14 @@ const bool ppu::eightToOneMux(unsigned short &data)		//16 bit numbers
 {
 	bool retval;
 		
-	if(fineXScroll == 0) retval = data & 0x01;
-	else if(fineXScroll == 1) retval = data & 0x02;
-	else if(fineXScroll == 2) retval = data & 0x04;
-	else if(fineXScroll == 3) retval = data & 0x08;
-	else if(fineXScroll == 4) retval = data & 0x10;
-	else if(fineXScroll == 5) retval = data & 0x20;
-	else if(fineXScroll == 6) retval = data & 0x40;
-	else retval = data & 0x80;
-
-	return retval;
-}
-
-const bool ppu::eightToOneMux(unsigned char &data)		//8 bit numbers
-{
-	bool retval;
-		
-	if(fineXScroll == 0) retval = data & 0x01;
-	else if(fineXScroll == 1) retval = data & 0x02;
-	else if(fineXScroll == 2) retval = data & 0x04;
-	else if(fineXScroll == 3) retval = data & 0x08;
-	else if(fineXScroll == 4) retval = data & 0x10;
-	else if(fineXScroll == 5) retval = data & 0x20;
-	else if(fineXScroll == 6) retval = data & 0x40;
-	else retval = data & 0x80;
+	if(fineXScroll == 0) retval = data & 0x8000;
+	else if(fineXScroll == 1) retval = data & 0x4000;
+	else if(fineXScroll == 2) retval = data & 0x2000;
+	else if(fineXScroll == 3) retval = data & 0x1000;
+	else if(fineXScroll == 4) retval = data & 0x0800;
+	else if(fineXScroll == 5) retval = data & 0x0400;
+	else if(fineXScroll == 6) retval = data & 0x0200;
+	else retval = data & 0x0100;
 
 	return retval;
 }
