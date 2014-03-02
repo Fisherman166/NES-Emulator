@@ -28,7 +28,8 @@ public:
 	byte nameTable2[0x400];				//$2400-$27FF in VRAM. Holds second nametable
 	byte pallete[0x20];				//$3F00-$3F1F in VRAM. Holds pallete for sprite and BG
 	byte *VRAMPTR[0x4000];				//Pointers for VRAM
-	byte OAM[0x100];				//256 byte area for sprites
+	byte primaryOAM[0x100];				//256 byte area for sprites
+	byte secondaryOAM[0x20];			//32 byte area for 8 current sprites
 	char header[16];				//Holds the iNES header
 
 	//Functions
@@ -38,14 +39,13 @@ public:
 	byte readVRAM(word&);				//Reads from VRAM
 	bool setPointer(ppu*);				//Sets video pointer
 
-	void clearDMA();				//Clears the DMA flag
 	bool loadMemory();				//Loads the game
-	void dumpRAM();					//Dumps $6000 to $7FFF
-	void dumpVRAM();				//Dumps all of VRAM	
+	void dumpRAM();				//Dumps $6000 to $7FFF
+	void dumpVRAM();				//Dumps all of VRAM
+	void dumpOAM();				//Dumps primary OAM	
 	void setMirror(bool);				//True = horizontal, false = vertical
 
 	//Varaibles
-	bool DMAFlag;					//Flag for if a DMA has occured
 	byte controller1;				//Shift register for controller1
 
 private:
@@ -55,12 +55,9 @@ private:
 	std::ifstream game;				//Loads the game
 	std::ofstream debug;				//For debug output
 	int gameSize;					//Size of the game
-	bool	horizontalMirror;			//0 = vertical mirroring, 1 = horizontal mirroring
-	byte	readBuffer;				//The intertal buffer for $2007 reads
+	bool horizontalMirror;				//0 = vertical mirroring, 1 = horizontal mirroring
+	byte readBuffer;				//The intertal buffer for $2007 reads
 	ppu* video;					//Pointer to PPU
-
-	//Functions
-	const void DMA(byte&);				//Used in a DMA
 
 	//Mapper functions
 	const void NROM();				//Used for mapper 0x00
