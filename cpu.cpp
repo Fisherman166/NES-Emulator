@@ -1,8 +1,8 @@
 #include "cpu.h"
 
 
-cpu::cpu(): A(0), X(0), Y(0), SP(0x01FD), cycles(0), C(false), Z(false), I(true), D(false),
-		V(false), N(false), RAM(NULL), video(NULL)
+cpu::cpu(): SP(0x01FD), A(0), X(0), Y(0), C(false), Z(false), I(true), D(false),
+		V(false), N(false), RAM(NULL), video(NULL), cycles(0)
 {
 	//debugFile.open("//debug.txt");
 	//debugFile.setf(ios::hex, ios::basefield);
@@ -52,13 +52,11 @@ bool cpu::setPointers(memory* memory, ppu* ppu)
 
 cpu::byte cpu::emulateCycle()
 {
-	if(video->NMI) NMI();
-	else
+	if(!video->NMI)
 	{
 		word temp; 				//Used when reading from other addresses
 		byte data;				//Holds the data to write to memory
 		char offset = 0;			//Used with branches
-		short compare = 0;			//Used with compare instructions
 		byte statusByte;			//Used for putting status flags into a byte
 		bool statusFlags[8];			//Used for putting status flags into a byte
 		bool outputFlags[8] = {false, false, false, false, false, false, false, false}; //For getting flags off stack
@@ -2575,6 +2573,7 @@ cpu::byte cpu::emulateCycle()
 			break;
 		}
 	}
+	else NMI();
 		
 	return cycles;
 }

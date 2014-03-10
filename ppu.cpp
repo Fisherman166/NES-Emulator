@@ -3,7 +3,7 @@
 ppu::ppu() : ppuAddress(0), dotNumber(0), scanline(241), writeToggle(false), vblank(false),
 		bufferVblank(false), NMI(false), VRAM(NULL), oddFrame(false), ntFetch(true),
 		idleCounter(0), reloadDot(9), horizontalDot(8), reg2000(0x00), reg2001(0x00), 
-		reg2002(0x2002), vblankValue(0x80), pOAMCounter(0), sOAMCounter(0), spriteWrite(true)
+		reg2002(0x2002), vblankValue(0x80), pOAMAddress(0), sOAMAddress(0), spriteWrite(true)
 {	
 	ppuDebug.open("ppuDebug.txt");
 }
@@ -66,6 +66,7 @@ void ppu::emulateCycle()
 	{
 		scanline++;		//262 scanlines in a frame
 		dotNumber = 0;
+		sOAMAddress = 0;	//Reset OAM address
 
 		/*This may need to be changed.  On startup, the first run of scanline 261
 		**starts at dot 2.*/
@@ -334,65 +335,78 @@ const void ppu::checkVblank()
 
 const void ppu::spriteEval()
 {
-	if(dotNumber == 1)	//Clear secondary OAM
+	if(dotNumber < 65)	//Clear secondary OAM
 	{
-		for(int i = 0; i < 0x20; i++) VRAM->secondaryOAM[i] = 0xFF;
-		pOAMCounter = 0;
-		sOAMCounter = 0;
-		spriteLowLoad = 261;
-		spriteHighLoad = 263;
-		spriteNum = 0;
-		spriteWrite = true;		//Allow writing to secondary OAM again
+		VRAM->secondaryOAM[sOAMAddress] = 0xFF;
+		sOAMAddress = (sOAMAddress + 1) & 31;	//Cutoff at 32 byte mark
 	}
-	else if( dotNumber > 64 && dotNumber < 257 && spriteWrite == true)
+	else if( dotNumber > 64 && dotNumber < 257)
 	{
-		byte yCord = VRAM->primaryOAM[pOAMCounter];
-		
-		//Check to see if in range of the next scanline
-		if(yCord <= scanline && scanline <= (yCord + 7))
+		if(dotNumber == 65) 
 		{
-			if(sOAMCounter == 0x20) 
+			pOAMAddress = VRAM->readRAM(0x2003);	//Get the OAMAddress
+			sOAMAddress = 0;
+			spriteLowLoad = 261;
+			spriteHighLoad = 263;
+			spriteNum = 0;
+			readCounter = 0;
+			spriteWrite = true;		//Allow writing to secondary OAM again
+		}
+
+		//Odd cycle
+		if(dotNumber & 1) OAMData = VRAM->primaryOAM[pOAMAddress++]; 
+		else	//Even cycle
+		{
+			if(readCounter > 0)
+			{	
+				if(spriteWrite) VRAM->secondaryOAM[sOAMAddress++] = OAMData;
+				readCounter--;
+			}
+			//Check to see if in range of the next scanline
+			else if(OAMData <= scanline && scanline <= (OAMData + 7))
+			{
+				if(spriteWrite) //Only write if secondary OAM isn't full
+				{
+					VRAM->secondaryOAM[sOAMAddress++] = OAMData;
+					readCounter = 3;	//Read in the next three bytes for the sprite
+				}
+			}
+			else 	//Sprite not in range of the next scanline, so skip to next sprite
+				pOAMAddress += 3;
+
+			//Checks to see if secondary OAM is full
+			if(pOAMAddress >= 256) 
+			{
+				spriteWrite = false;
+				pOAMAddress = 0;
+			}
+			else if(sOAMAddress == 0x20) 
 			{
 				spriteWrite = false;
 				spriteOverflow = true;
 				byte overflowValue = 0x20;	//Set sprite overflow
 				VRAM->writeRAM(reg2002, overflowValue);
 			}
-
-			if(spriteWrite) //Only write if secondary OAM isn't full
-			{
-				VRAM->secondaryOAM[sOAMCounter] = VRAM->primaryOAM[pOAMCounter];
-				VRAM->secondaryOAM[++sOAMCounter] = VRAM->primaryOAM[++pOAMCounter];
-				VRAM->secondaryOAM[++sOAMCounter] = VRAM->primaryOAM[++pOAMCounter];
-				VRAM->secondaryOAM[++sOAMCounter] = VRAM->primaryOAM[++pOAMCounter];
-			}
-
-			if(pOAMCounter == 256) spriteWrite = false;
 		}
-		else 
-		{
-			pOAMCounter += 4;
-			if(pOAMCounter == 256) spriteWrite = false;
-		} 
 	}
 	else if( dotNumber > 256 && dotNumber < 321 )	//Fetch stuff
 	{
-		if(dotNumber == 257) sOAMCounter = 0;	//Reset the counter
+		if(dotNumber == 257) sOAMAddress = 1;	//Reset the address
 
 		if(dotNumber == spriteLowLoad)
 		{
 			//Find the tile it's in
-			spriteAddress = (reg2002 & 0x8) | (VRAM->secondaryOAM[sOAMCounter] * 0x10);
+			spriteAddress = (reg2002 & 0x8) | (VRAM->secondaryOAM[sOAMAddress] * 0x10);
 			spritesLow[spriteNum] = VRAM->readVRAM(spriteAddress);
-			spriteAtt[spriteNum] = VRAM->secondaryOAM[sOAMCounter + 2];
-			spriteXPos[spriteNum] = VRAM->secondaryOAM[sOAMCounter + 3];
+			spriteAtt[spriteNum] = VRAM->secondaryOAM[sOAMAddress + 2];
+			spriteXPos[spriteNum] = VRAM->secondaryOAM[sOAMAddress + 3];
 			spriteLowLoad += 4;		//Wait 4 cycles to do this again
 		}
 		else if(dotNumber == spriteHighLoad)
 		{
 			spriteAddress += 8;
 			spritesHigh[spriteNum++] = VRAM->readVRAM(spriteAddress);
-			sOAMCounter += 4;
+			sOAMAddress += 4;
 			spriteHighLoad += 4;
 		}
 	}

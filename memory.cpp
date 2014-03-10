@@ -101,13 +101,18 @@ void memory::writeRAM(word &address, byte &data)
 			video->ppuTempAddress &= ~0x0C00;			//Clears bits 10 and 11
 			video->ppuTempAddress |= ((data & 0x03) << 10);	//Shifts the nametable select bits to bit 10 and 11 in the temp address
 		}
-		else if(tempAddress == 2 && data == 0x80) 
+		else if(tempAddress == 2 && (data == 0x80 || data == 0x20)) 
 		{	
-			RAM[0x2002] |= 0x80;				//Wants to set vblank only
+			RAM[0x2002] |= data;	//Sets either vblank or sprite overflow flag
 		}
 		else if(tempAddress == 2 && data == 0x9F)
 		{	
 			RAM[0x2002] &= 0x9F;				//Clears sprite 0 and overflow flags
+		}
+		else if(tempAddress == 4)
+		{
+			primaryOAM[RAM[0x2003]] = data;			//Use OAMADDRESS to write
+			RAM[0x2003]++;					//Increment OAMADDRESS
 		}
 		else if(tempAddress == 5)
 		{	
@@ -183,6 +188,7 @@ memory::byte memory::readRAM(word address)
 			RAM[0x2002] &= 0x7F;			//Turns off the 7th bit only
 			video->writeToggle = false;
 		}
+		else if(address == 4)	retval = RAM[0x2003];	//Use OAMADDRESS
 		else if(address == 7)
 		{
 			//ppuAddress < 0x3EFF, then has to read from the buffer

@@ -59,8 +59,8 @@ private:
 	byte palleteData;			//The pallete number to be looked up in pallete arrays
 
 	//Sprites
-	word pOAMCounter;			//Primary OAM counter
-	byte sOAMCounter;			//Secondary OAM counter
+	word pOAMAddress;			//Primary OAM adress
+	byte sOAMAddress;			//Secondary OAM address
 	bool spriteWrite;			//Keeps track if secondary OAM full
 	bool spriteActive;			//Signals if a sprite is active
 	word spriteLowLoad;			//Cycle to read low byte
@@ -72,6 +72,8 @@ private:
 	word spriteXPos[8];			//X position of the sprite
 	byte spriteCounter[8];			//How many pixels the sprite has left to render
 	word spriteAddress;			//Pattern table address of the tile
+	byte readCounter;			//Counts current byte from p to s OAM
+	byte OAMData;				//Hold read in OAM data on odd cycle
 	
 
 	//I/O register data 
