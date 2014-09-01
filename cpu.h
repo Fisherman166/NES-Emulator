@@ -21,19 +21,12 @@ public:
 	~cpu();
 
 	//Functions
-	bool setPointers(memory*, ppu*);			//Set pointers to the object
+	int  setPointers(memory*, ppu*);			//Set pointers to the object
 	void setPCStart();					//Sets the PC to the reset vector
 	void printDebug();					//Prints opcode, PC, registers
 	byte emulateCycle();
 	void start_DMA();
 
-//	//Variables
-//	word PC, SP;	//Stack pointer can be between 0x0100 and 0x01FF in memory
-//	byte A, X, Y;
-//
-//	/* C = Carry flag Z = Zero flag  I = Interrupt disable D = decimal mode
-//	V = Overflow flag N = Negative flag*/
-//	bool C, Z, I, D, V, N;
 	static byte const instr_lens[];
 	static byte const cycleCount[];
 	
@@ -51,7 +44,8 @@ private:
 
 	//Private variables
 	byte initialA;
-	byte cycles, opcode;
+	byte instruct_cycles, running_cycles, opcode;
+	
 
 	//Functions
 	const void pushStack(byte&);

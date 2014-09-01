@@ -2,7 +2,7 @@
 
 
 cpu::cpu():  RAM(NULL), video(NULL), SP(0x01FD), A(0), X(0), Y(0), C(false), Z(false), I(true), D(false),
-		V(false), N(false), cycles(0)
+		V(false), N(false), instruct_cycles(0), running_cycles(0)
 {
 	//debugFile.open("//debug.txt");
 	//debugFile.setf(ios::hex, ios::basefield);
@@ -38,15 +38,13 @@ void cpu::printDebug()
 
 
 //This sets the RAM and video pointers to the objects in main
-bool cpu::setPointers(memory* memory, ppu* ppu)
+int cpu::setPointers(memory* memory, ppu* ppu)
 {
-	bool retval = true;
-	
+	int retval = 0;
 	RAM = memory;
 	video = ppu;
-
-	if(RAM == NULL || video == NULL) retval = false;
-
+	if(RAM == NULL) retval = 1;
+	if(video == NULL) retval = 2;
 	return retval;
 }
 
@@ -68,7 +66,7 @@ cpu::byte cpu::emulateCycle()
 		/*initialX = X;
 		initialY = Y;
 		initialSP = SP;
-		//initialCycles = (initialCycles + cycles * 3) % 341;
+		//initialCycles = (initialCycles + instruct_cycles * 3) % 341;
 		char //debugOffset;				//Used for //debugging branches
 		statusFlags[0] = C, statusFlags[1] = Z, statusFlags[2] = I, statusFlags[3] = D,
 		statusFlags[4] = 0, statusFlags[5] = 1, statusFlags[6] = V, statusFlags[7] = N;
@@ -88,7 +86,7 @@ cpu::byte cpu::emulateCycle()
 			N = A & 0x80;
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			//debugImm(opcode, data, "ADC");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break; 
 		case 0x65:	//Zeropage add with carry
@@ -101,7 +99,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break; 
 		case 0x75:	//Zeropage,X add with carry
@@ -114,7 +112,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x6D:	//Absolute add with carry
@@ -127,7 +125,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x7D:	//Absolute,X add with carry
@@ -165,7 +163,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugIndirectX(opcode, RAM->readRAM(PC), temp, data, "ADC");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x71:	//Indirect,Y add with carry
@@ -185,7 +183,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugImm(opcode, RAM->readRAM(PC), "AND");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x25:	//Zeropage AND with A & memory
@@ -195,7 +193,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugZero(opcode, RAM->readRAM(PC), data, "AND");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x35:	//Zeropage,X AND with A & memory
@@ -205,7 +203,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugZeroX(opcode, RAM->readRAM(PC), temp, data,"AND");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x2D:	//Absolute AND
@@ -215,7 +213,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), data, "AND");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x3D:	//Absolute,X AND
@@ -245,7 +243,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugIndirectX(opcode, RAM->readRAM(PC), temp, data, "AND");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x31:	//Indirect,Y AND
@@ -263,7 +261,7 @@ cpu::byte cpu::emulateCycle()
 			A = A << 1;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			//debugAcc(opcode, "ASL");
 			break;
 		case 0x06:	//Zeropage shift left
@@ -275,7 +273,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x16:	//Zeropage,X shift left
@@ -287,7 +285,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x0E:	//Absolute shift left
@@ -299,7 +297,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x1E:	//Absolute,X shift left
@@ -311,7 +309,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x90:	//Branch if carry clear
@@ -321,12 +319,12 @@ cpu::byte cpu::emulateCycle()
 			if(!C) {
 				offset = RAM->readRAM(PC);
 				PC += instr_lens[opcode] - 1;
-				cycles = cycleCount[opcode] + 1;
+				instruct_cycles = cycleCount[opcode] + 1;
 				pageBranch(offset);
 			}
 			else	{
 				PC += instr_lens[opcode] - 1; 
-				cycles = cycleCount[opcode];
+				instruct_cycles = cycleCount[opcode];
 			}
 			PC += offset;	//Moves the PC around if branch suceeds
 			break;
@@ -337,12 +335,12 @@ cpu::byte cpu::emulateCycle()
 			if(C) {
 				offset = RAM->readRAM(PC);
 				PC += instr_lens[opcode] - 1;
-				cycles = cycleCount[opcode] + 1;
+				instruct_cycles = cycleCount[opcode] + 1;
 				pageBranch(offset);
 			}
 			else	{
 				PC += instr_lens[opcode] - 1; 
-				cycles = cycleCount[opcode];
+				instruct_cycles = cycleCount[opcode];
 			}
 			PC += offset;	//Moves the PC around if branch suceeds
 			break;
@@ -353,12 +351,12 @@ cpu::byte cpu::emulateCycle()
 			if(Z) {
 				offset = RAM->readRAM(PC);
 				PC += instr_lens[opcode] - 1;
-				cycles = cycleCount[opcode] + 1;
+				instruct_cycles = cycleCount[opcode] + 1;
 				pageBranch(offset);
 			}
 			else	{
 				PC += instr_lens[opcode] - 1; 
-				cycles = cycleCount[opcode];
+				instruct_cycles = cycleCount[opcode];
 			}
 			PC += offset;	//Moves the PC around if branch suceeds
 			break;
@@ -369,7 +367,7 @@ cpu::byte cpu::emulateCycle()
 			V = data & 0x40;	//Gets the 6th bit only
 			N = data & 0x80;	//Gets the 7th bit only
 			//debugZero(opcode, RAM->readRAM(PC), data, "BIT");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x2C:	//Absolute bit test
@@ -379,7 +377,7 @@ cpu::byte cpu::emulateCycle()
 			V = data & 0x40;	//Gets the 6th bit only
 			N = data & 0x80;	//Gets the 7th bit only	
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), data, "BIT"); 
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x30:	//Branch if minus (N set)
@@ -389,12 +387,12 @@ cpu::byte cpu::emulateCycle()
 			if(N) {
 				offset = RAM->readRAM(PC);
 				PC += instr_lens[opcode] - 1;
-				cycles = cycleCount[opcode] + 1;
+				instruct_cycles = cycleCount[opcode] + 1;
 				pageBranch(offset);
 			}
 			else	{
 				PC += instr_lens[opcode] - 1; 
-				cycles = cycleCount[opcode];
+				instruct_cycles = cycleCount[opcode];
 			}
 			PC += offset;	//Moves the PC around if branch suceeds
 			break;
@@ -405,12 +403,12 @@ cpu::byte cpu::emulateCycle()
 			if(!Z) {
 				offset = RAM->readRAM(PC);
 				PC += instr_lens[opcode] - 1;
-				cycles = cycleCount[opcode] + 1;
+				instruct_cycles = cycleCount[opcode] + 1;
 				pageBranch(offset);
 			}
 			else	{
 				PC += instr_lens[opcode] - 1; 
-				cycles = cycleCount[opcode];
+				instruct_cycles = cycleCount[opcode];
 			}
 			PC += offset;	//Moves the PC around if branch suceeds
 			break;
@@ -421,12 +419,12 @@ cpu::byte cpu::emulateCycle()
 			if(!N) {
 				offset = RAM->readRAM(PC);
 				PC += instr_lens[opcode] - 1;
-				cycles = cycleCount[opcode] + 1;
-				pageBranch(offset);			//Will only add the extra 2 cycles if page crossed
+				instruct_cycles = cycleCount[opcode] + 1;
+				pageBranch(offset);			//Will only add the extra 2 instruct_cycles if page crossed
 			}
 			else	{
 				PC += instr_lens[opcode] - 1; 
-				cycles = cycleCount[opcode];
+				instruct_cycles = cycleCount[opcode];
 			}
 			PC += offset;	//Moves the PC around if branch suceeds
 			break;
@@ -446,7 +444,7 @@ cpu::byte cpu::emulateCycle()
 			PC = (RAM->readRAM(0xFFFF) << 8);
 			PC |= RAM->readRAM(0xFFFE);
 			I = true;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x50:	//Branch if overflow clear (V not set)
 			data = RAM->readRAM(PC);			//Needs unsigned information
@@ -455,12 +453,12 @@ cpu::byte cpu::emulateCycle()
 			if(!V) {
 				offset = RAM->readRAM(PC);
 				PC += instr_lens[opcode] - 1;
-				cycles = cycleCount[opcode] + 1;
+				instruct_cycles = cycleCount[opcode] + 1;
 				pageBranch(offset);
 			}
 			else	{
 				PC += instr_lens[opcode] - 1; 
-				cycles = cycleCount[opcode];
+				instruct_cycles = cycleCount[opcode];
 			}
 			PC += offset;	//Moves the PC around if branch suceeds
 			break;
@@ -471,39 +469,39 @@ cpu::byte cpu::emulateCycle()
 			if(V) {
 				offset = RAM->readRAM(PC);
 				PC += instr_lens[opcode] - 1;
-				cycles = cycleCount[opcode] + 1;
+				instruct_cycles = cycleCount[opcode] + 1;
 				pageBranch(offset);
 			}
 			else	{
 				PC += instr_lens[opcode] - 1; 
-				cycles = cycleCount[opcode];
+				instruct_cycles = cycleCount[opcode];
 			}
 			PC += offset;	//Moves the PC around if branch suceeds
 			break;
 		case 0x18:	//Clear carry flag
 			C = false;
 			//debugImplied(opcode, RAM->readRAM(PC), "CLC");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0xD8:	//Clear decimal flag
 			D = false;
 			//debugImplied(opcode, RAM->readRAM(PC), "CLD");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x58:	//Clear interrupt flag
 			I = false;
 			//debugImplied(opcode, RAM->readRAM(PC), "CLI");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0xB8:	//Clear overflow flag
 			V = false;
 			//debugImplied(opcode, RAM->readRAM(PC), "CLV");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0xC9:	//Immediate A compare
 			compareFlags(A, RAM->readRAM(PC));
 			//debugImm(opcode, RAM->readRAM(PC), "CMP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xC5:	//Zeropage A compare
@@ -511,7 +509,7 @@ cpu::byte cpu::emulateCycle()
 			data = RAM->readRAM(temp);
 			compareFlags(A, data);
 			//debugZero(opcode, RAM->readRAM(PC), data, "CMP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xD5:	//Zeropage,X A compare
@@ -519,7 +517,7 @@ cpu::byte cpu::emulateCycle()
 			data = RAM->readRAM(temp);
 			compareFlags(A, data);
 			//debugZeroX(opcode, RAM->readRAM(PC), temp, data, "CMP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xCD:	//Absolute A compare
@@ -527,7 +525,7 @@ cpu::byte cpu::emulateCycle()
 			data = RAM->readRAM(temp);
 			compareFlags(A, data);
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), data, "CMP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xDD:	//Absolute,X A compare
@@ -551,7 +549,7 @@ cpu::byte cpu::emulateCycle()
 			data = RAM->readRAM(temp);
 			compareFlags(A, data);
 			//debugIndirectX(opcode, RAM->readRAM(PC), temp, data, "CMP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xD1:	//Indirect,Y A compare
@@ -566,7 +564,7 @@ cpu::byte cpu::emulateCycle()
 			data = RAM->readRAM(PC);
 			compareFlags(X, data);
 			//debugImm(opcode, RAM->readRAM(PC), "CPX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xE4:	//Zeropage X compare
@@ -574,7 +572,7 @@ cpu::byte cpu::emulateCycle()
 			data = RAM->readRAM(temp);
 			compareFlags(X, data);
 			//debugZero(opcode, RAM->readRAM(PC), data, "CPX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xEC:	//Absolute X compare
@@ -582,14 +580,14 @@ cpu::byte cpu::emulateCycle()
 			data = RAM->readRAM(temp);
 			compareFlags(X, data);
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), data, "CPX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xC0:	//Immediate Y compare
 			data = RAM->readRAM(PC);
 			compareFlags(Y, data);
 			//debugImm(opcode, RAM->readRAM(PC), "CPY");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xC4:	//Zeropage Y compare
@@ -597,7 +595,7 @@ cpu::byte cpu::emulateCycle()
 			data = RAM->readRAM(temp);
 			compareFlags(Y, data);
 			//debugZero(opcode, RAM->readRAM(PC), data, "CPY");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xCC:	//Absolute Y compare
@@ -605,7 +603,7 @@ cpu::byte cpu::emulateCycle()
 			data = RAM->readRAM(temp);
 			compareFlags(Y, data);
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), data, "CPY");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xC6:	//Zeropage decrement memory
@@ -616,7 +614,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);	//Decrements before assigning
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xD6:	//Zeropage,X decrement memory
@@ -627,7 +625,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);	//Decrements before assigning
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xCE:	//Absolute decrement memory
@@ -638,7 +636,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);	//Decrements before assigning
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xDE:	//Absolute,X decrement memory
@@ -649,7 +647,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);	//Decrements before assigning
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xCA:	//Implied decrement X register
@@ -657,21 +655,21 @@ cpu::byte cpu::emulateCycle()
 			Z = !(X);
 			N = X & 0x80;
 			//debugImplied(opcode, RAM->readRAM(PC), "DEX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x88:	//Implied decrement Y register
 			Y--;
 			Z = !(Y);
 			N = Y & 0x80;
 			//debugImplied(opcode, RAM->readRAM(PC), "DEY");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x49:	//Immediate XOR
 			A = A ^ RAM->readRAM(PC);
 			Z = !(A);
 			N = A & 0x80;
 			//debugImm(opcode, RAM->readRAM(PC), "EOR");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x45:	//Zeropage XOR
@@ -681,7 +679,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugZero(opcode, RAM->readRAM(PC), data, "EOR");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x55:	//Zeropage,X XOR
@@ -691,7 +689,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugZeroX(opcode, RAM->readRAM(PC), temp, data, "EOR");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x4D:	//Absolute XOR
@@ -701,7 +699,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), data, "EOR");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x5D:	//Absolute,X XOR
@@ -731,7 +729,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugIndirectX(opcode, RAM->readRAM(PC), temp, data, "EOR");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x51:	//Indirect,Y XOR
@@ -752,7 +750,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);	//Increments before assigning
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xF6:	//Zeropage,X increment memory
@@ -763,7 +761,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);	//Increments before assigning
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xEE:	//Absolute increment memory
@@ -774,7 +772,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);	//Increments before assigning
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xFE:	//Absolute,X increment memory
@@ -785,7 +783,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);	//Increments before assigning
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xE8:	//Increment X register
@@ -793,20 +791,20 @@ cpu::byte cpu::emulateCycle()
 			Z = !(X);
 			N = X & 0x80;
 			//debugImplied(opcode, RAM->readRAM(PC), "INX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0xC8:	//Increment Y register
 			Y++;
 			Z = !(Y);
 			N = Y & 0x80;
 			//debugImplied(opcode, RAM->readRAM(PC), "INY");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x4C:	//Absolute, Sets PC to specified address
 			temp = absolute();
 			data = 0;		//Used for //debugging
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), data, "JMP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC = temp;
 			break;
 		case 0x6C:	//Indirect, Sets PC to specified address
@@ -816,7 +814,7 @@ cpu::byte cpu::emulateCycle()
 			if((temp & 0x00FF) == 0xFF)	temp= (RAM->readRAM(temp & 0xFF00) << 8) | RAM->readRAM(temp);
 			else	temp= (RAM->readRAM(temp + 1) << 8) | RAM->readRAM(temp);
 			//debugIndirect(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), temp, "JMP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC = temp;
 			break;
 		case 0x20:	//Jump to subroutine
@@ -828,7 +826,7 @@ cpu::byte cpu::emulateCycle()
 			pushStack(data);
 			data = PC & 0x00FF;
 			pushStack(data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC = temp;
 			break;
 		case 0xA9:	//Immediate load A
@@ -836,7 +834,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugImm(opcode, RAM->readRAM(PC), "LDA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xA5:	//Zeropage load A
@@ -845,7 +843,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugZero(opcode, RAM->readRAM(PC), RAM->readRAM(temp), "LDA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xB5:	//Zeropage,X load A
@@ -854,7 +852,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugZeroX(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "LDA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xAD:	//Absolute load A
@@ -863,7 +861,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), RAM->readRAM(temp), "LDA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xBD:	//Absolute,X load A
@@ -890,7 +888,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugIndirectX(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "LDA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xB1:	//Indirect,Y load A
@@ -907,7 +905,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(X);
 			N = X & 0x80;
 			//debugImm(opcode, RAM->readRAM(PC), "LDX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xA6:	//Zeropage load X
@@ -916,7 +914,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(X);
 			N = X & 0x80;
 			//debugZero(opcode, RAM->readRAM(PC), RAM->readRAM(temp), "LDX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xB6:	//Zeropage,Y load X
@@ -925,7 +923,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(X);
 			N = X & 0x80;
 			//debugZeroY(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "LDX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xAE:	//Absolute load X
@@ -934,7 +932,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(X);
 			N = X & 0x80;
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), RAM->readRAM(temp), "LDX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xBE:	//Absolute,Y load X
@@ -951,7 +949,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(Y);
 			N = Y & 0x80;
 			//debugImm(opcode, RAM->readRAM(PC), "LDY");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xA4:	//Zeropage load Y
@@ -960,7 +958,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(Y);
 			N = Y & 0x80;
 			//debugZero(opcode, RAM->readRAM(PC), RAM->readRAM(temp), "LDY");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xB4:	//Zeropage,X load Y
@@ -969,7 +967,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(Y);
 			N = Y & 0x80;
 			//debugZeroX(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "LDY");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xAC:	//Absolute load Y
@@ -978,7 +976,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(Y);
 			N = Y & 0x80;
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), RAM->readRAM(temp), "LDY");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xBC:	//Absolute,X load Y
@@ -996,7 +994,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugAcc(opcode, "LSR");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x46:	//Zeropage shift right
 			temp = RAM->readRAM(PC);	//Gets the ZP address
@@ -1007,7 +1005,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x56:	//Zeropage,X shift right
@@ -1019,7 +1017,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x4E:	//Absolute shift right
@@ -1031,7 +1029,7 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x5E:	//Absolute,X shift right
@@ -1043,19 +1041,19 @@ cpu::byte cpu::emulateCycle()
 			RAM->writeRAM(temp, data);
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xEA:	//No instruction, only moves PC
 			//debugImplied(opcode, RAM->readRAM(PC), "NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x09:	//Immediate OR
 			A = A | RAM->readRAM(PC);
 			Z = !(A);
 			N = A & 0x80;
 			//debugImm(opcode, RAM->readRAM(PC), "ORA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x05:	//Zeropage OR
@@ -1065,7 +1063,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugZero(opcode, RAM->readRAM(PC), data, "ORA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x15:	//Zeropage,X OR
@@ -1075,7 +1073,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugZeroX(opcode, RAM->readRAM(PC), temp, data, "ORA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x0D:	//Absolute OR
@@ -1085,7 +1083,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), data, "ORA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x1D:	//Absolute,X OR
@@ -1115,7 +1113,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugIndirectX(opcode, RAM->readRAM(PC), temp, data, "ORA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x11:	//Indirect,Y OR
@@ -1131,7 +1129,7 @@ cpu::byte cpu::emulateCycle()
 		case 0x48:	//Push A onto stack
 			pushStack(A);
 			//debugImplied(opcode, RAM->readRAM(PC), "PHA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x08:	//Push copy of status flags onto stack
 			//Bit-----7--6--5--4--3--2--1--0 PHP B and bit 5 true
@@ -1141,14 +1139,14 @@ cpu::byte cpu::emulateCycle()
 			statusByte = encodeBits(statusFlags);	//Puts the status flags into a byte
 			pushStack(statusByte);			
 			//debugImplied(opcode, RAM->readRAM(PC), "PHP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x68:	//Pops value off stack into A
 			A = popStack();
 			Z = !(A);
 			N = A & 0x80;
 			//debugImplied(opcode, RAM->readRAM(PC), "PLA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x28:	//Pops process status flags off stack
 			statusByte = popStack();
@@ -1162,7 +1160,7 @@ cpu::byte cpu::emulateCycle()
 			V = outputFlags[6];
 			N = outputFlags[7];
 			//debugImplied(opcode, RAM->readRAM(PC), "PLP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x2A:	//Accumulator rotate left
 			oldBit7 = A & 0x80; //Old bit 7
@@ -1172,7 +1170,7 @@ cpu::byte cpu::emulateCycle()
 			C = oldBit7;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x26:	//Zeropage rotate left
 			temp = RAM->readRAM(PC);
@@ -1185,7 +1183,7 @@ cpu::byte cpu::emulateCycle()
 			C = oldBit7;
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x36:	//Zeropage,X rotate left
@@ -1199,7 +1197,7 @@ cpu::byte cpu::emulateCycle()
 			C = oldBit7;
 			N = data & 0x80;
 			Z = !(data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x2E:	//Absolute rotate left
@@ -1213,7 +1211,7 @@ cpu::byte cpu::emulateCycle()
 			C = oldBit7;
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x3E:	//Absolute,X rotate left
@@ -1227,7 +1225,7 @@ cpu::byte cpu::emulateCycle()
 			C = oldBit7;
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x6A:	//Accumulator rotate right
@@ -1238,7 +1236,7 @@ cpu::byte cpu::emulateCycle()
 			C = oldBit0;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x66:	//Zeropage rotate right
 			temp = RAM->readRAM(PC);
@@ -1251,7 +1249,7 @@ cpu::byte cpu::emulateCycle()
 			C = oldBit0;
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x76:	//Zeropage,X rotate right
@@ -1265,7 +1263,7 @@ cpu::byte cpu::emulateCycle()
 			C = oldBit0;
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x6E:	//Absolute rotate right
@@ -1279,7 +1277,7 @@ cpu::byte cpu::emulateCycle()
 			C = oldBit0;
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x7E:	//Absolute,X rotate right
@@ -1293,7 +1291,7 @@ cpu::byte cpu::emulateCycle()
 			C = oldBit0;
 			Z = !(data);
 			N = data & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x40:	//Return from interrupt
@@ -1313,7 +1311,7 @@ cpu::byte cpu::emulateCycle()
 			PC = data;
 			data = popStack();		//Gets the high byte
 			PC |= (data << 8);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x60:	//Return from subroutine
 			//debugImplied(opcode, RAM->readRAM(PC), "RTS");
@@ -1321,7 +1319,7 @@ cpu::byte cpu::emulateCycle()
 			PC = data;
 			data = popStack();		//Gets the high byte
 			PC |= (data << 8);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC++;					//Add one once off stack for right address
 			break;
 		case 0xE9:	//Immidiate SBC
@@ -1335,7 +1333,7 @@ cpu::byte cpu::emulateCycle()
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
 			//debugImm(opcode, RAM->readRAM(PC), "SBC");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break; 
 		case 0xE5:	//Zeropage SBC
@@ -1350,7 +1348,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xF5:	//Zeropage,X SBC
@@ -1365,7 +1363,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xED:	//Absolute SBC
@@ -1380,7 +1378,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xFD:	//Absolute,X SBC
@@ -1425,7 +1423,7 @@ cpu::byte cpu::emulateCycle()
 			C = (temp >> 8) & 1;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xF1:	//Indirect,Y SBC
@@ -1445,107 +1443,107 @@ cpu::byte cpu::emulateCycle()
 		case 0x38:	//Set carry flag
 			C = true;
 			//debugImplied(opcode, RAM->readRAM(PC), "SEC");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0xF8:	//Set decimal flag
 			D = true;
 			//debugImplied(opcode, RAM->readRAM(PC), "SED");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x78:	//Set interrupt disable
 			I = true;
 			//debugImplied(opcode, RAM->readRAM(PC), "SEI");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x85:	//Zeropage store A to memory
 			temp = RAM->readRAM(PC);
 			//debugZero(opcode, RAM->readRAM(PC), RAM->readRAM(temp), "STA");
 			RAM->writeRAM(temp, A);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x95:	//Zeropage,X store A to memory
 			temp = zeroPageX();
 			//debugZeroX(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "STA");
 			RAM->writeRAM(temp, A);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x8D:	//Absolute store A to memory
 			temp = absolute();
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), RAM->readRAM(temp), "STA");
 			RAM->writeRAM(temp, A);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x9D:	//Absolute,X store A to memory
 			temp = absoluteX();
 			//debugAbsX(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), temp, RAM->readRAM(temp), "STA");
 			RAM->writeRAM(temp, A);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x99:	//Absolute,Y store A to memory
 			temp = absoluteY();
 			//debugAbsY(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), temp, RAM->readRAM(temp), "STA");
 			RAM->writeRAM(temp, A);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x81:	//Indirect,X store A to memory
 			temp = indirectX();
 			//debugIndirectX(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "STA");
 			RAM->writeRAM(temp, A);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x91:	//Indirect,Y store A to memory
 			temp = indirectY();
 			//debugIndirectY(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "STA");
 			RAM->writeRAM(temp, A);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x86:	//Zeropage store X to memory
 			temp = RAM->readRAM(PC);
 			//debugZero(opcode, RAM->readRAM(PC), RAM->readRAM(temp), "STX");
 			RAM->writeRAM(temp, X);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x96:	//Zeropage,Y store X to memory
 			temp = (RAM->readRAM(PC)+ Y) & 0xFF;
 			//debugZeroY(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "STX");
 			RAM->writeRAM(temp, X);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x8E:	//Absolute store X to memory
 			temp = absolute();
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), RAM->readRAM(temp), "STX");
 			RAM->writeRAM(temp, X);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x84:	//Zeropage store Y to memory
 			temp = RAM->readRAM(PC);
 			//debugZero(opcode, RAM->readRAM(PC), RAM->readRAM(temp), "STY");
 			RAM->writeRAM(temp, Y);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x94:	//Zeropage,X store Y to memory
 			temp = zeroPageX();
 			//debugZeroX(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "STY");
 			RAM->writeRAM(temp, Y);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x8C:	//Absolute store Y to memory
 			temp = absolute();
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), RAM->readRAM(temp), "STY");
 			RAM->writeRAM(temp, Y);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xAA:	//Transfer A to X
@@ -1553,40 +1551,40 @@ cpu::byte cpu::emulateCycle()
 			Z = !(X);
 			N = X & 0x80;
 			//debugImplied(opcode, RAM->readRAM(PC), "TAX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0xA8:	//Transfer A to Y
 			Y = A;
 			Z = !(Y);
 			N = Y & 0x80;
 			//debugImplied(opcode, RAM->readRAM(PC), "TAY");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0xBA:	//Transfer SP to X
 			X = SP & 0xFF;	//Puts the value within byte range
 			Z = !(X);
 			N = X & 0x80;
 			//debugImplied(opcode, RAM->readRAM(PC), "TSX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x8A:	//Transfer X to A
 			A = X;
 			Z = !(A);
 			N = A & 0x80;
 			//debugImplied(opcode, RAM->readRAM(PC), "TXA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x9A:	//Transfers X into SP
 			SP = X + 0x0100;	//Puts the value into the right range for the stack.
 			//debugImplied(opcode, RAM->readRAM(PC), "TXS");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x98:	//Transfers Y to A
 			A = Y;
 			Z = !(A);
 			N = A & 0x80;
 			//debugImplied(opcode, RAM->readRAM(PC), "TYA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		//Illegal opcodes-------------------------------------------------
 	#ifdef illegal
@@ -1597,7 +1595,7 @@ cpu::byte cpu::emulateCycle()
 			N = A & 0x80;
 			C = N;
 			//debugImm(opcode, RAM->readRAM(PC), "ANC");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x2B:	//Immediate ANC
@@ -1607,7 +1605,7 @@ cpu::byte cpu::emulateCycle()
 			N = A & 0x80;
 			C = N;
 			//debugImm(opcode, RAM->readRAM(PC), "ANC");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x87:	//Zeropage SAX
@@ -1615,7 +1613,7 @@ cpu::byte cpu::emulateCycle()
 			temp = RAM->readRAM(PC);
 			//debugZero(opcode, RAM->readRAM(PC), RAM->readRAM(temp), "*SAX");
 			RAM->writeRAM(temp, data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x97:	//Zeropage,Y SAX
@@ -1623,7 +1621,7 @@ cpu::byte cpu::emulateCycle()
 			temp = (RAM->readRAM(PC)+ Y) & 0xFF;
 			//debugZeroY(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "*SAX");
 			RAM->writeRAM(temp, data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x8F:	//Absolute SAX
@@ -1631,7 +1629,7 @@ cpu::byte cpu::emulateCycle()
 			temp = absolute();
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), RAM->readRAM(temp), "*SAX");
 			RAM->writeRAM(temp, data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x83:	//Indirect,X SAX
@@ -1639,7 +1637,7 @@ cpu::byte cpu::emulateCycle()
 			temp = indirectX();
 			//debugIndirectX(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "*SAX");
 			RAM->writeRAM(temp, data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x6B:	//Immediate ARR - Not working
@@ -1652,7 +1650,7 @@ cpu::byte cpu::emulateCycle()
 			C = A & 0x40;
 			V = (A & 0x40) ^ (A & 0x20);
 			//debugImm(opcode, RAM->readRAM(PC), "ARR");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x4B:	//Immediate ALR
@@ -1662,7 +1660,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugImm(opcode, RAM->readRAM(PC), "ALR");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xAB:	//Immediate ATX - Not working
@@ -1671,7 +1669,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugImm(opcode, RAM->readRAM(PC), "*ATX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x9F:	//Absolute,Y ATX
@@ -1679,7 +1677,7 @@ cpu::byte cpu::emulateCycle()
 			temp = absoluteY();
 			//debugAbsY(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), temp, RAM->readRAM(temp), "*ATX");
 			RAM->writeRAM(temp, data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x93:	//Indirect,Y
@@ -1687,7 +1685,7 @@ cpu::byte cpu::emulateCycle()
 			temp = indirectY();
 			//debugIndirectY(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "*ATX");
 			RAM->writeRAM(temp, data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xC7:	//Zeropage DCP
@@ -1697,7 +1695,7 @@ cpu::byte cpu::emulateCycle()
 			data--;
 			compareFlags(A, data);
 			RAM->writeRAM(temp, data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xD7:	//Zeropage,X DCP
@@ -1707,7 +1705,7 @@ cpu::byte cpu::emulateCycle()
 			data--;
 			compareFlags(A, data);
 			RAM->writeRAM(temp, data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xCF:	//Absolute DCP
@@ -1717,7 +1715,7 @@ cpu::byte cpu::emulateCycle()
 			data--;
 			compareFlags(A, data);
 			RAM->writeRAM(temp, data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xDF:	//Absolute,X DCP
@@ -1727,7 +1725,7 @@ cpu::byte cpu::emulateCycle()
 			data--;
 			compareFlags(A, data);
 			RAM->writeRAM(temp, data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xDB:	//Absolute,Y DCP
@@ -1737,7 +1735,7 @@ cpu::byte cpu::emulateCycle()
 			data--;
 			compareFlags(A, data);
 			RAM->writeRAM(temp, data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xC3:	//Indirect,X DCP
@@ -1747,7 +1745,7 @@ cpu::byte cpu::emulateCycle()
 			data--;
 			compareFlags(A, data);
 			RAM->writeRAM(temp, data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xD3:	//Indirect,Y DCP
@@ -1757,86 +1755,86 @@ cpu::byte cpu::emulateCycle()
 			data--;
 			compareFlags(A, data);
 			RAM->writeRAM(temp, data);
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x04:	//Zeropage DOP
 			temp = RAM->readRAM(PC);
 			//debugZero(opcode, RAM->readRAM(PC), RAM->readRAM(temp), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x44:	//Zeropage DOP
 			temp = RAM->readRAM(PC);
 			//debugZero(opcode, RAM->readRAM(PC), RAM->readRAM(temp), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x64:	//Zeropage DOP
 			temp = RAM->readRAM(PC);
 			//debugZero(opcode, RAM->readRAM(PC), RAM->readRAM(temp), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x14:	//Zeropage,X DOP
 			temp = zeroPageX();
 			//debugZeroX(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x34:	//Zeropage,X DOP
 			temp = zeroPageX();
 			//debugZeroX(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x54:	//Zeropage,X DOP
 			temp = zeroPageX();
 			//debugZeroX(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x74:	//Zeropage,X DOP
 			temp = zeroPageX();
 			//debugZeroX(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xD4:	//Zeropage,X DOP
 			temp = zeroPageX();
 			//debugZeroX(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xF4:	//Zeropage,X DOP
 			temp = zeroPageX();
 			//debugZeroX(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x80:	//Immediate DOP
 			//debugImm(opcode, RAM->readRAM(PC), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x82:	//Immediate DOP
 			//debugImm(opcode, RAM->readRAM(PC), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x89:	//Immediate DOP
 			//debugImm(opcode, RAM->readRAM(PC), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xC2:	//Immediate DOP
 			//debugImm(opcode, RAM->readRAM(PC), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xE2:	//Immediate DOP
 			//debugImm(opcode, RAM->readRAM(PC), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xE7:	//Zeropage ISC
@@ -1853,7 +1851,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xF7:	//Zeropage,X ISC
@@ -1870,7 +1868,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xEF:	//Absolute ISC
@@ -1887,7 +1885,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xFF:	//Absolute,X ISC
@@ -1904,7 +1902,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xFB:	//Absolute,Y ISC
@@ -1921,7 +1919,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xE3:	//Indirect,X ISC
@@ -1938,7 +1936,7 @@ cpu::byte cpu::emulateCycle()
 			C = (temp >> 8) & 1;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xF3:	//Indirect,Y SBC
@@ -1955,7 +1953,7 @@ cpu::byte cpu::emulateCycle()
 			C = (temp >> 8) & 1;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xBB:	//Absolute,Y LAR
@@ -1975,7 +1973,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugZero(opcode, RAM->readRAM(PC), RAM->readRAM(temp), "*LAX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xB7:	//Zeropage,Y LAX
@@ -1984,7 +1982,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugZeroY(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "*LAX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xAF:	//Absolute LAX
@@ -1993,7 +1991,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), RAM->readRAM(temp), "*LAX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xBF:	//Absolute,Y LAX
@@ -2011,7 +2009,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			N = A & 0x80;
 			//debugIndirectX(opcode, RAM->readRAM(PC), temp, RAM->readRAM(temp), "*LAX");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xB3:	//Indirect,Y LAX
@@ -2025,27 +2023,27 @@ cpu::byte cpu::emulateCycle()
 			break;
 		case 0x1A:	//Implied NOP
 			//debugImplied(opcode, RAM->readRAM(PC), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x3A:	//Implied NOP
 			//debugImplied(opcode, RAM->readRAM(PC), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x5A:	//Implied NOP
 			//debugImplied(opcode, RAM->readRAM(PC), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x7A:	//Implied NOP
 			//debugImplied(opcode, RAM->readRAM(PC), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0xDA:	//Implied NOP
 			//debugImplied(opcode, RAM->readRAM(PC), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0xFA:	//Implied NOP
 			//debugImplied(opcode, RAM->readRAM(PC), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			break;
 		case 0x67:	//Zeropage RRA
 			temp = RAM->readRAM(PC);
@@ -2062,7 +2060,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break; 
 		case 0x77:	//Zeropage,X RRA
@@ -2080,7 +2078,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x6F:	//Absolute RRA
@@ -2098,7 +2096,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x7F:	//Absolute,X RRA
@@ -2116,7 +2114,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x7B:	//Absolute,Y RRA
@@ -2134,7 +2132,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x63:	//Indirect,X RRA
@@ -2152,7 +2150,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x73:	//Indirect,Y RRA
@@ -2170,7 +2168,7 @@ cpu::byte cpu::emulateCycle()
 			Z = !(A);
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xEB:	//Immidiate SBC - same as legal opcode
@@ -2184,7 +2182,7 @@ cpu::byte cpu::emulateCycle()
 			V = (initialA ^ temp) & (data ^ temp) & 0x80;		//Checks the sign of the inputs and result
 			N = A & 0x80;
 			//debugImm(opcode, RAM->readRAM(PC), "*SBC");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break; 
 		case 0x07:	//Zeropage SLO
@@ -2197,7 +2195,7 @@ cpu::byte cpu::emulateCycle()
 			A |= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break; 
 		case 0x17:	//Zeropage,X SLO
@@ -2210,7 +2208,7 @@ cpu::byte cpu::emulateCycle()
 			A |= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x0F:	//Absolute SLO
@@ -2223,7 +2221,7 @@ cpu::byte cpu::emulateCycle()
 			A |= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x1F:	//Absolute,X SLO
@@ -2236,7 +2234,7 @@ cpu::byte cpu::emulateCycle()
 			A |= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x1B:	//Absolute,Y SLO
@@ -2249,7 +2247,7 @@ cpu::byte cpu::emulateCycle()
 			A |= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x03:	//Indirect,X SLO
@@ -2262,7 +2260,7 @@ cpu::byte cpu::emulateCycle()
 			A |= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x13:	//Indirect,Y SLO
@@ -2275,7 +2273,7 @@ cpu::byte cpu::emulateCycle()
 			A |= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x47:	//Zeropage SRE
@@ -2288,7 +2286,7 @@ cpu::byte cpu::emulateCycle()
 			A ^= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break; 
 		case 0x57:	//Zeropage,X SRE
@@ -2301,7 +2299,7 @@ cpu::byte cpu::emulateCycle()
 			A ^= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x4F:	//Absolute SRE
@@ -2314,7 +2312,7 @@ cpu::byte cpu::emulateCycle()
 			A ^= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x5F:	//Absolute,X SRE
@@ -2327,7 +2325,7 @@ cpu::byte cpu::emulateCycle()
 			A ^= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x5B:	//Absolute,Y SRE
@@ -2340,7 +2338,7 @@ cpu::byte cpu::emulateCycle()
 			A ^= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x43:	//Indirect,X SRE
@@ -2353,7 +2351,7 @@ cpu::byte cpu::emulateCycle()
 			A ^= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x53:	//Indirect,Y SRE
@@ -2366,7 +2364,7 @@ cpu::byte cpu::emulateCycle()
 			A ^= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x9E:	//Absolute,Y SXA - Not working
@@ -2375,7 +2373,7 @@ cpu::byte cpu::emulateCycle()
 			data = (X & data) + 1;
 			RAM->writeRAM(temp, data);
 			//debugAbsY(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), temp, data, "SXA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x9C:	//Absolute,X SYA - Not working
@@ -2384,13 +2382,13 @@ cpu::byte cpu::emulateCycle()
 			data = (Y & data) + 1;
 			RAM->writeRAM(temp, data);
 			//debugAbsX(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), temp, data, "SYA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x0C:	//Absolute TOP
 			temp = absolute();
 			//debugAbs(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), RAM->readRAM(temp), "*NOP");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x1C:	//Absolute,X TOP
@@ -2436,7 +2434,7 @@ cpu::byte cpu::emulateCycle()
 			break;
 		case 0x8B:	//Immediate XAA
 			//debugImm(opcode, RAM->readRAM(PC), "XAA");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x9B:	//Absolute,Y XAS
@@ -2446,7 +2444,7 @@ cpu::byte cpu::emulateCycle()
 			data = SP & (data + 1);
 			RAM->writeRAM(temp, data);
 			//debugAbsY(opcode, RAM->readRAM(PC + 1), RAM->readRAM(PC), temp, data, "XAS");
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x27:	//Zeropage RLA
@@ -2461,7 +2459,7 @@ cpu::byte cpu::emulateCycle()
 			A &= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x37:	//Zeropage,X RLA
@@ -2476,7 +2474,7 @@ cpu::byte cpu::emulateCycle()
 			A &= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x2F:	//Absolute RLA
@@ -2491,7 +2489,7 @@ cpu::byte cpu::emulateCycle()
 			A &= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x3F:	//Absolute,X RLA
@@ -2506,7 +2504,7 @@ cpu::byte cpu::emulateCycle()
 			A &= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x3B:	//Absolute,Y RLA
@@ -2521,7 +2519,7 @@ cpu::byte cpu::emulateCycle()
 			A &= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x23:	//Indirect,X RLA
@@ -2536,7 +2534,7 @@ cpu::byte cpu::emulateCycle()
 			A &= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0x33:	//Indirect,Y RLA
@@ -2551,7 +2549,7 @@ cpu::byte cpu::emulateCycle()
 			A &= data;
 			Z = !(A);
 			N = A & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 		case 0xCB:	//Immediate AXS	- Not working
@@ -2564,7 +2562,7 @@ cpu::byte cpu::emulateCycle()
 			X = temp & 0xFF;
 			Z = !(X);
 			N = X & 0x80;
-			cycles = cycleCount[opcode];
+			instruct_cycles = cycleCount[opcode];
 			PC += instr_lens[opcode] - 1;
 			break;
 	#endif
@@ -2574,8 +2572,9 @@ cpu::byte cpu::emulateCycle()
 		}
 	}
 	else NMI();
-		
-	return cycles;
+	
+	running_cycles = (running_cycles + instruct_cycles) & 0xFF;
+	return instruct_cycles;
 }
 
 
@@ -2648,14 +2647,14 @@ const void cpu::pageBoundry(word address1, word& address2)
 {
 	//If the high bytes are the same, then a page boundry has not been crossed.
 	//If they are different, one has been crossed, so add a cycle.
-	if( (address1 & 0xFF00) == (address2 & 0xFF00) )	cycles = cycleCount[opcode];
-	else	cycles = cycleCount[opcode] + 1;
+	if( (address1 & 0xFF00) == (address2 & 0xFF00) )	instruct_cycles = cycleCount[opcode];
+	else	instruct_cycles = cycleCount[opcode] + 1;
 }
 
 const void cpu::pageBranch(char& offset)
 {
-	//If the high bytes of the address do not match, then a page has been crossed.  Add two cycles
-	if( ((PC + offset) & 0xFF00) != (PC & 0xFF00) ) cycles += 1;
+	//If the high bytes of the address do not match, then a page has been crossed.  Add two instruct_cycles
+	if( ((PC + offset) & 0xFF00) != (PC & 0xFF00) ) instruct_cycles += 1;
 }
 
 const void cpu::NMI()
@@ -2676,7 +2675,7 @@ const void cpu::NMI()
 	pushStack(statusByte);				//byte	
 	PC = (RAM->readRAM(0xFFFB) << 8) | RAM->readRAM(0xFFFA);
 	I = true;
-	cycles = cycleCount[opcode];	//7 cycles to process interrupt handler
+	instruct_cycles = cycleCount[opcode];	//7 instruct_cycles to process interrupt handler
 }
 
 
@@ -2768,7 +2767,7 @@ cpu::byte const cpu::instr_lens[] = { // lengths including opcode
 	   2,2,1,2,2,2,2,2,1,3,1,3,3,3,3,3,// F
 	};
 
-cpu::byte const cpu::cycleCount[] = { // cycles including opcode
+cpu::byte const cpu::cycleCount[] = { // instruct_cycles including opcode
 	 //0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F
 	   7,6,1,8,3,3,5,5,3,2,2,2,4,4,6,6,// 0
 	   2,5,1,8,4,4,6,6,2,4,2,7,4,4,7,7,// 1
