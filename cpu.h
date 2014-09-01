@@ -25,7 +25,7 @@ public:
 	void setPCStart();					//Sets the PC to the reset vector
 	void printDebug();					//Prints opcode, PC, registers
 	byte emulateCycle();
-	void start_DMA();
+	void start_DMA(byte);
 
 	static byte const instr_lens[];
 	static byte const cycleCount[];
@@ -55,6 +55,12 @@ private:
 	const void decodeBits(bool (&bools)[8], byte input);
 	const void pageBoundry(word, word&);
 	const void pageBranch(char&);
+
+	const void DMA();
+	bool DMA_flag;
+	word DMA_address;
+	byte OAM_address;
+	word DMA_cycles;
 
 	//Get address functions
 	const word zeroPageX();

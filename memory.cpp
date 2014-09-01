@@ -165,12 +165,7 @@ void memory::writeRAM(word &address, byte &data)
 	else if(address == 0x4014)	//This is a DMA operation
 	{
 		RAM[address] = data;
-		int limit = data * 0x100 + 0x100;
-		int OAMCounter = 0;
-
-		//The 256 bytes after the address defined by data * 0x100 is copied into the sprite ram
-		for(int i = data * 0x100; i < limit; i++)
-			primaryOAM[OAMCounter++] = RAM[i];
+		core->start_DMA(data);
 	}	
 	else	*RAMPTR[address] = data;
 }

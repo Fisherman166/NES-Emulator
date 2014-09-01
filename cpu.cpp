@@ -2,7 +2,7 @@
 
 
 cpu::cpu():  RAM(NULL), video(NULL), SP(0x01FD), A(0), X(0), Y(0), C(false), Z(false), I(true), D(false),
-		V(false), N(false), instruct_cycles(0), running_cycles(0)
+		V(false), N(false), instruct_cycles(0), running_cycles(0), DMA_flag(0)
 {
 	//debugFile.open("//debug.txt");
 	//debugFile.setf(ios::hex, ios::basefield);
@@ -50,7 +50,7 @@ int cpu::setPointers(memory* memory, ppu* ppu)
 
 cpu::byte cpu::emulateCycle()
 {
-	if(!video->NMI)
+	if(!video->NMI && !DMA_flag)
 	{
 		word temp; 				//Used when reading from other addresses
 		byte data;				//Holds the data to write to memory
@@ -2571,12 +2571,20 @@ cpu::byte cpu::emulateCycle()
 			break;
 		}
 	}
+	else if(DMA_flag) DMA();
 	else NMI();
 	
 	running_cycles = (running_cycles + instruct_cycles) & 0xFF;
 	return instruct_cycles;
 }
 
+void cpu::start_DMA(byte starting_address) {
+	DMA_flag = 1;
+	DMA_address = starting_address * 0x100;
+	OAM_address = 0;
+	if(running_cycles & 1) DMA_cycles = 514; //Odd cpu cycles get extra idle cycle
+	else DMA_cycles = 513;	
+}
 
 //Private
 //This pushes a piece of data onto the stack and decrements SP
@@ -2655,6 +2663,19 @@ const void cpu::pageBranch(char& offset)
 {
 	//If the high bytes of the address do not match, then a page has been crossed.  Add two instruct_cycles
 	if( ((PC + offset) & 0xFF00) != (PC & 0xFF00) ) instruct_cycles += 1;
+}
+
+const void cpu::DMA() {
+	static byte OAM_data;
+	if(DMA_cycles < 513) { //513 and 514 are idle cycles
+		if(DMA_cycles & 1) //Write
+			RAM->primaryOAM[OAM_address++] = OAM_data;
+		else //Read
+			OAM_data = RAM->readRAM(DMA_address++);
+	}
+	DMA_cycles--;
+	if(!DMA_cycles) DMA_flag = 0;
+	instruct_cycles = 1;
 }
 
 const void cpu::NMI()
