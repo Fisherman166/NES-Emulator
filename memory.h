@@ -8,6 +8,7 @@
 #include <sstream>
 
 class ppu;						//Foward declaration
+class cpu;
 
 class memory
 {
@@ -37,7 +38,7 @@ public:
 	byte readRAM(word);				//Reads from RAM
 	void writeVRAM(word, byte&);			//Writes to VRAM
 	byte readVRAM(word&);				//Reads from VRAM
-	bool setPointer(ppu*);				//Sets video pointer
+	bool setPointers(ppu*, cpu*);			
 
 	bool loadMemory();				//Loads the game
 	void dumpRAM();				//Dumps $6000 to $7FFF
@@ -51,13 +52,13 @@ public:
 private:
 	//Variables
 	byte mapper;					//Holds the mapper number
-	char*	memBlock;				//Holds the temporary cartridge data
+	char* memBlock;					//Holds the temporary cartridge data
 	std::ifstream game;				//Loads the game
 	std::ofstream debug;				//For debug output
 	int gameSize;					//Size of the game
 	bool horizontalMirror;				//0 = vertical mirroring, 1 = horizontal mirroring
-	byte readBuffer;				//The intertal buffer for $2007 reads
 	ppu* video;					//Pointer to PPU
+	cpu* core;
 
 	//Mapper functions
 	const void NROM();				//Used for mapper 0x00

@@ -9,7 +9,6 @@
 
 using namespace std;
 bool run = true;
-bool flag = false;
 int textureHeight = 240;
 int textureWidth = 256;
 
@@ -49,7 +48,6 @@ int main(int argc, char *args[])
 
 	//Setup everything for SDL
 	initSDL();
-
 	int *pixels = &video->screenData[0][0];
 
 	for(;;)
@@ -172,7 +170,9 @@ bool checkInput()
 void quitEmu()
 {
 	//systemMemory->dumpVRAM();
-	delete video, systemMemory, core;
+	delete video;
+	delete systemMemory;
+	delete core;
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(screen);
@@ -186,7 +186,7 @@ bool setPointers()
 
 	//Setting the pointers
 	if( !video->setPointer(systemMemory) ) retval = false;
-	if( !systemMemory->setPointer(video) ) retval = false;
+	if( !systemMemory->setPointers(video,core) ) retval = false;
 	if( !core->setPointers(systemMemory, video) ) retval = false;
 	
 	return retval;

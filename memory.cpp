@@ -1,7 +1,8 @@
 #include "memory.h"
 #include "ppu.h"
+#include "cpu.h"
 
-memory::memory(): readBuffer(0x00), video(NULL)
+memory::memory(): video(NULL), core(NULL)
 {
 	for(int i = 0; i < 0x4000; i++)	//Clears ram
 		RAM[i] = 0x00;
@@ -57,6 +58,7 @@ bool memory::loadMemory()
 {
 	using namespace std;
 	bool retval;
+	
 
 	game.open("Donkey_Kong.nes", ios::binary);
 	if(game.is_open())
@@ -176,6 +178,7 @@ void memory::writeRAM(word &address, byte &data)
 memory::byte memory::readRAM(word address)
 {
 	byte retval;
+	static byte readBuffer;
 	
 	if(address >= 0x2000 && address <= 0x3FFF)
 	{
@@ -227,13 +230,12 @@ memory::byte memory::readVRAM(word &address)
 }
 
 //Sets the video pointer
-bool memory::setPointer(ppu* ppu)
+bool memory::setPointers(ppu* ppu, cpu* cpu)
 {
 	bool retval = true;
-
 	video = ppu;
-
-	if(video == NULL) retval = false;
+	core = cpu;
+	if(video == NULL || core == NULL) retval = false;
 
 	return retval;
 }
