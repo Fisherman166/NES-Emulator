@@ -1,8 +1,8 @@
 #include "cpu.h"
 
 
-cpu::cpu(): SP(0x01FD), A(0), X(0), Y(0), C(false), Z(false), I(true), D(false),
-		V(false), N(false), RAM(NULL), video(NULL), cycles(0)
+cpu::cpu():  RAM(NULL), video(NULL), SP(0x01FD), A(0), X(0), Y(0), C(false), Z(false), I(true), D(false),
+		V(false), N(false), cycles(0)
 {
 	//debugFile.open("//debug.txt");
 	//debugFile.setf(ios::hex, ios::basefield);
