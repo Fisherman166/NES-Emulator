@@ -2,17 +2,18 @@
 
 ppu::ppu() : ppuAddress(0), dotNumber(0), scanline(241), writeToggle(false), vblank(false),
 		bufferVblank(false), NMI(false), VRAM(NULL), oddFrame(false), ntFetch(true),
-		idleCounter(0), reloadDot(9), horizontalDot(8), reg2000(0x00), reg2001(0x00), 
-		reg2002(0x2002), vblankValue(0x80), pOAMAddress(0), sOAMAddress(0), spriteWrite(true)
+		idleCounter(0), reloadDot(9), horizontalDot(8), pOAMAddress(0), sOAMAddress(0), spriteWrite(true), sprite_number(0),
+		reg2000(0x00), reg2001(0x00), reg2002(0x2002), vblankValue(0x80)
 {	
-	ppuDebug.open("ppuDebug.txt");
 }
 
 ppu::~ppu()
 {
-	ppuDebug.close();
 }
 
+/******************************************************************************
+** RUNS A PPU CYCLE
+******************************************************************************/
 void ppu::emulateCycle()
 {
 	using namespace std;
@@ -93,61 +94,9 @@ void ppu::emulateCycle()
 }
 
 
-//Prints out debug info.
-void ppu::printDebug()
-{
-	using namespace std;
-
-	/*ppuDebug << hex << setfill('0') << "Name: 0x" << setw(4) << nameAddress;
-	ppuDebug << hex << setfill('0') << " Value: 0x" << setw(2) << (int)nameFetch;
-	ppuDebug << hex << setfill('0') << " Att: 0x" << setw(4) << attAddress;
-	ppuDebug << hex << setfill('0') << " Value: 0x" << setw(2) << (int)attFetch;
-	ppuDebug << hex << setfill('0') << " Low tile: 0x" << setw(4) << tileAddress;
-	ppuDebug << hex << setfill('0') << " Value: 0x" << setw(2) << (int)lowBGFetch;
-	ppuDebug << hex << setfill('0') << " High tile: 0x" << setw(4) << (int)tileAddress;
-	ppuDebug << hex << setfill('0') << " Value: 0x" << setw(2) << (int)highBGFetch;
-	ppuDebug << hex << setfill('0') << "PPU: 0x" << setw(4) << ppuAddress;
-	ppuDebug << hex << setfill('0') << " Palletteaddr: 0x" << setw(4) << palleteAddress;
-	ppuDebug << hex << setfill('0') << " Value: 0x" << setw(2) << (int)palleteData << endl;
-	ppuDebug << dec << "Scanline: " << setw(3) << scanline;
-	ppuDebug << dec << " Dot: " << setw(3) << dotNumber;
-	ppuDebug << dec << " Scanline: " << setw(3) << scanline << endl << endl;*/
-
-	ppuDebug << hex << setfill('0') << "Name: 0x" << setw(4) << nameAddress;
-	ppuDebug << hex << setfill('0') << " Value: 0x" << setw(2) << (int)nameFetch;
-	ppuDebug << hex << setfill('0') << " Att: 0x" << setw(4) << attAddress;
-	ppuDebug << hex << setfill('0') << " Value: 0x" << setw(2) << (int)attFetch;
-	ppuDebug << hex << setfill('0') << " Low tile: 0x" << setw(4) << tileAddress;
-	ppuDebug << hex << setfill('0') << " Value: 0x" << setw(2) << (int)lowBGFetch;
-	ppuDebug << hex << setfill('0') << " High tile: 0x" << setw(4) << (int)tileAddress << endl;
-	ppuDebug << hex << setfill('0') << " Value: 0x" << setw(2) << (int)highBGFetch;
-	ppuDebug << hex << setfill('0') << " PPU: 0x" << setw(4) << ppuAddress;
-	ppuDebug << hex << setfill('0') << " Palletteaddr: 0x" << setw(4) << palleteAddress;
-	ppuDebug << hex << setfill('0') << " Value: 0x" << setw(2) << (int)palleteData;
-	ppuDebug << dec << " Dot: " << setw(3) << dotNumber;
-	ppuDebug << dec << " Scanline: " << setw(3) << scanline << endl << endl;
-
-	/*ppuDebug << hex << setfill('0') << "Low att: 0x" << setw(4) << lowAttShift;
-	ppuDebug << hex << setfill('0') << " High Att: 0x" << setw(4) << highAttShift;
-	ppuDebug << hex << setfill('0') << " Low tile: 0x" << setw(4) << lowBGShift;
-	ppuDebug << hex << setfill('0') << " High tile: 0x" << setw(4) << highBGShift << endl;
-	ppuDebug << hex << setfill('0') << "PPU: 0x" << setw(4) << ppuAddress;
-	ppuDebug << hex << setfill('0') << " Palletteaddr: 0x" << setw(4) << palleteAddress;
-	ppuDebug << hex << setfill('0') << " Value: 0x" << setw(2) << (int)palleteData;
-	ppuDebug << dec << "Scanline: " << setw(3) << scanline;
-	ppuDebug << dec << " Dot: " << setw(3) << dotNumber << endl << endl;*/
-
-	/*for(int y = 0; y < 240; y++)
-		for(int x = 0; x < 256; x++)
-		{
-			ppuDebug << setfill('0') << hex << uppercase << setw(8) << screenData[y][x] << " ";
-
-			if( (x & 0xF) == 0xF ) ppuDebug << endl;
-		}	*/
-}
-
-
-//Sets the VRAM pointer
+/******************************************************************************
+** SETS THE PPU POINTER
+******************************************************************************/
 bool ppu::setPointer(memory* memory)
 {
 	bool retval = true;
@@ -222,18 +171,26 @@ const void ppu::checkDotNumber()
 	}
 }
 
+/******************************************************************************
+** SHIFTS ALL OF THE SHIFT REGISTERS
+******************************************************************************/
 const void ppu::shiftRegisters()
 {
 	//The registers only shift between dots 2-257 and 322-337 (inclusive)
 	lowBGShift <<= 1;
 	highBGShift <<= 1;
 	lowAttShift <<= 1;
+	lowAttShift |= (highAttShift & 0x80) >> 8;	//Move the high byte into the low byte;
 	highAttShift <<= 1;
 }
 
+/******************************************************************************
+** RENDERS A PIXEL TO THE SCREEN
+******************************************************************************/
 const void ppu::renderPixel()
 {	
 	using namespace std;
+	bool spriteActive;
 
 	//Decrement sprite X position counters
 	for(int i = 0; i < 8; i++)
@@ -243,19 +200,20 @@ const void ppu::renderPixel()
 			spriteCounter[i] = 7;
 	}
 
-	if(reg2001 & 0x18)
-        {	
-                if((reg2001 & 0x08) && (reg2001 & 0x10))	//Both background and sprite enabled
+	if(reg2001 & 0x18) 
+	{	
+      if((reg2001 & 0x08) && (reg2001 & 0x10))	//Both background and sprite enabled
 		{
 			int i = 0;	//Keeps track of the first sprite that is active
 
 			//If one counter is great than 0, at least one sprite is active.
-			for(;i < 8; i++)
+			for(;i < 8; i++) {
 				if(spriteCounter[i] > 0) 
 				{
 					spriteActive = true;
 					break;
 				}
+			}
 
 			if(!spriteActive)	//Only have to worry about background pixel
 			{
@@ -296,21 +254,21 @@ const void ppu::renderPixel()
 			//spritesAtt[i] >>= 1;
 		}
 		else if(reg2001 & 0x08)	//Only background enabled
-                {	
-                        palleteAddress = 0x3F00 | eightToOneMux(lowBGShift) | (eightToOneMux(highBGShift) << 1)
-                                                        | (eightToOneMux(lowAttShift) << 2) | (eightToOneMux(highAttShift) << 3);
-                }
-		//else if(reg2001 & 0x10)	//Only sprites enabled.
-        }
-        else	//No rendering enabled
-        {	
-                if(ppuAddress >= 0x3F00) palleteAddress = ppuAddress;
-                else palleteAddress = 0x3F00;
-        }
+		{	
+			palleteAddress = 0x3F00 | eightToOneMux(lowBGShift) | (eightToOneMux(highBGShift) << 1)
+									| (eightToOneMux(lowAttShift) << 2) | (eightToOneMux(highAttShift) << 3);
+		}
+	//else if(reg2001 & 0x10)	//Only sprites enabled.
+	}
+	else	//No rendering enabled
+  	{	
+		if(ppuAddress >= 0x3F00) palleteAddress = ppuAddress;
+		else palleteAddress = 0x3F00;
+  	}
 
 	//Always do this.  Renders
 	palleteData = VRAM->readVRAM(palleteAddress);
-        screenData[scanline][dotNumber] = RGB[palleteData];	//RGB data
+   screenData[scanline][dotNumber] = RGB[palleteData];	//RGB data
 }
 
 const void ppu::checkVblank()
@@ -335,77 +293,66 @@ const void ppu::checkVblank()
 
 const void ppu::spriteEval()
 {
-	if(dotNumber < 65)	//Clear secondary OAM
+	static word spriteLowLoad;
+	static word spriteHighLoad;
+	static byte readCounter;
+	static byte sprite_state;
+	static byte OAM_data;
+
+	if(dotNumber < 64)	//Clear secondary OAM
 	{
-		VRAM->secondaryOAM[sOAMAddress] = 0xFF;
+		VRAM->write_secondary_OAM(sOAMAddress,0xFF);
 		sOAMAddress = (sOAMAddress + 1) & 31;	//Cutoff at 32 byte mark
 	}
-	else if( dotNumber > 64 && dotNumber < 257)
+	else if(dotNumber < 257)
 	{
-		if(dotNumber == 65) 
+		if(dotNumber == 64) 
 		{
 			pOAMAddress = VRAM->readRAM(0x2003);	//Get the OAMAddress
 			sOAMAddress = 0;
 			spriteLowLoad = 261;
 			spriteHighLoad = 263;
-			spriteNum = 0;
 			readCounter = 0;
 			spriteWrite = true;		//Allow writing to secondary OAM again
+			sprite_state = 0;
 		}
-
-		//Odd cycle
-		if(dotNumber & 1) OAMData = VRAM->primaryOAM[pOAMAddress++]; 
-		else	//Even cycle
-		{
-			if(readCounter > 0)
-			{	
-				if(spriteWrite) VRAM->secondaryOAM[sOAMAddress++] = OAMData;
-				readCounter--;
-			}
-			//Check to see if in range of the next scanline
-			else if(OAMData <= scanline && scanline <= (OAMData + 7))
-			{
-				if(spriteWrite) //Only write if secondary OAM isn't full
-				{
-					VRAM->secondaryOAM[sOAMAddress++] = OAMData;
-					readCounter = 3;	//Read in the next three bytes for the sprite
+		
+		switch(sprite_state) {
+			case 0: //See if Y-cood is in range
+				if(dotNumber & 1) {
+					OAM_data = VRAM->read_primary_OAM(pOAMAddress);
+					if(scanline <= OAM_data && OAM_data < (scanline + 8)) {
+						if(spriteWrite) VRAM->write_secondary_OAM(sOAMAddress++, OAM_data);
+						sprite_number++;
+						sprite_state = 1;
+						}
+					}
+			case 1: //Copy remaining bits
+				if(dotNumber & 1) {
+					if(readCounter++ == 3) {
+					}
 				}
-			}
-			else 	//Sprite not in range of the next scanline, so skip to next sprite
-				pOAMAddress += 3;
-
-			//Checks to see if secondary OAM is full
-			if(pOAMAddress >= 256) 
-			{
-				spriteWrite = false;
-				pOAMAddress = 0;
-			}
-			else if(sOAMAddress == 0x20) 
-			{
-				spriteWrite = false;
-				spriteOverflow = true;
-				byte overflowValue = 0x20;	//Set sprite overflow
-				VRAM->writeRAM(reg2002, overflowValue);
-			}
+				break;
 		}
 	}
-	else if( dotNumber > 256 && dotNumber < 321 )	//Fetch stuff
+	else if(dotNumber < 321)	//Fetch stuff
 	{
-		if(dotNumber == 257) sOAMAddress = 1;	//Reset the address
+		if(dotNumber == 257) sOAMAddress = 1;	//Reset the address to first address
 
 		if(dotNumber == spriteLowLoad)
 		{
 			//Find the tile it's in
-			spriteAddress = (reg2002 & 0x8) | (VRAM->secondaryOAM[sOAMAddress] * 0x10);
-			spritesLow[spriteNum] = VRAM->readVRAM(spriteAddress);
-			spriteAtt[spriteNum] = VRAM->secondaryOAM[sOAMAddress + 2];
-			spriteXPos[spriteNum] = VRAM->secondaryOAM[sOAMAddress + 3];
+			spriteAddress = (reg2002 & 0x8) | (VRAM->read_secondary_OAM(sOAMAddress) * 0x10);
+			//TODO: FIX
+			//spritesLow[spriteNum] = VRAM->readVRAM(spriteAddress);
+			//spriteAtt[spriteNum] = VRAM->read_secondary_OAM(sOAMAddress + 2);
+			//spriteXPos[spriteNum] = VRAM->read_secondary_OAM(sOAMAddress + 3);
 			spriteLowLoad += 4;		//Wait 4 cycles to do this again
 		}
 		else if(dotNumber == spriteHighLoad)
 		{
 			spriteAddress += 8;
-			spritesHigh[spriteNum++] = VRAM->readVRAM(spriteAddress);
+			//spritesHigh[spriteNum++] = VRAM->readVRAM(spriteAddress);
 			sOAMAddress += 4;
 			spriteHighLoad += 4;
 		}
@@ -473,10 +420,13 @@ const void ppu::backgroundFetch()
 //Muxes
 const void ppu::fourToOneMux()				//Used to refill attribute shift registers
 {
+	//Select first bit of coarse X and Y for MUX select
+	const byte coarseX = 0x1;
+	const byte coarseY = 0x20;
 	bool xBit, yBit;				//Holds the coarse X and Y bits
 	bool attBit1, attBit2;				//Holds the two attrbute bits. 1 = low bit, 2 = high bit
-	xBit = ppuAddress & 0x1;
-	yBit = ppuAddress & 0x20;
+	xBit = ppuAddress & coarseX;
+	yBit = ppuAddress & coarseY;
 	
 	
 	//Bit 0 = xBit, Bit 1 = yBit

@@ -29,8 +29,6 @@ public:
 	byte nameTable2[0x400];				//$2400-$27FF in VRAM. Holds second nametable
 	byte pallete[0x20];				//$3F00-$3F1F in VRAM. Holds pallete for sprite and BG
 	byte *VRAMPTR[0x4000];				//Pointers for VRAM
-	byte primaryOAM[0x100];				//256 byte area for sprites
-	byte secondaryOAM[0x20];			//32 byte area for 8 current sprites
 	char header[16];				//Holds the iNES header
 
 	//Functions
@@ -38,6 +36,10 @@ public:
 	byte readRAM(word);				//Reads from RAM
 	void writeVRAM(word, byte&);			//Writes to VRAM
 	byte readVRAM(word&);				//Reads from VRAM
+	void write_primary_OAM(byte, byte);
+	byte read_primary_OAM(byte);
+	void write_secondary_OAM(byte, byte);
+	byte read_secondary_OAM(byte);
 	bool setPointers(ppu*, cpu*);			
 
 	bool loadMemory();				//Loads the game
@@ -59,6 +61,10 @@ private:
 	bool horizontalMirror;				//0 = vertical mirroring, 1 = horizontal mirroring
 	ppu* video;					//Pointer to PPU
 	cpu* core;
+
+	//Memory items
+	byte primaryOAM[0x100];				//256 byte area for sprites
+	byte secondaryOAM[0x20];			//32 byte area for 8 current sprites
 
 	//Mapper functions
 	const void NROM();				//Used for mapper 0x00

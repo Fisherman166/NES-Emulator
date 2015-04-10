@@ -183,11 +183,17 @@ void quitEmu()
 bool setPointers()
 {
 	bool retval = true;
-
 	//Setting the pointers
 	if( !video->setPointer(systemMemory) ) retval = false;
 	if( !systemMemory->setPointers(video,core) ) retval = false;
-	if( !core->setPointers(systemMemory, video) ) retval = false;
-	
+	int core_return = core->setPointers(systemMemory, video);
+	if(core_return == 1) {
+		std::cout << "RAM pointer not set in CPU\n";
+		retval = false;
+	}
+	if(core_return == 2) {
+		std::cout << "PPU pointer not set in CPU\n";
+		retval = false;
+	}
 	return retval;
 }

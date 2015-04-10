@@ -2669,9 +2669,9 @@ const void cpu::DMA() {
 	static byte OAM_data;
 	if(DMA_cycles < 513) { //513 and 514 are idle cycles
 		if(DMA_cycles & 1) //Write
-			RAM->primaryOAM[OAM_address++] = OAM_data;
+			RAM->write_primary_OAM(OAM_address++,OAM_data);
 		else //Read
-			OAM_data = RAM->readRAM(DMA_address++);
+			OAM_data = RAM->read_primary_OAM(DMA_address++);
 	}
 	DMA_cycles--;
 	if(!DMA_cycles) DMA_flag = 0;

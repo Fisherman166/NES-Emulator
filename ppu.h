@@ -61,19 +61,15 @@ private:
 	//Sprites
 	word pOAMAddress;			//Primary OAM adress
 	byte sOAMAddress;			//Secondary OAM address
+	byte sprite_number;
 	bool spriteWrite;			//Keeps track if secondary OAM full
 	bool spriteActive;			//Signals if a sprite is active
-	word spriteLowLoad;			//Cycle to read low byte
-	word spriteHighLoad;			//Cycle to read high byte
-	byte spriteNum;				//Sprite counter
 	byte spritesLow[8];			//Holds lower sprite data
 	byte spritesHigh[8];			//Holds upper sprite data
 	byte spriteAtt[8];			//Holds attribute bytes for the sprites
 	word spriteXPos[8];			//X position of the sprite
 	byte spriteCounter[8];			//How many pixels the sprite has left to render
 	word spriteAddress;			//Pattern table address of the tile
-	byte readCounter;			//Counts current byte from p to s OAM
-	byte OAMData;				//Hold read in OAM data on odd cycle
 	
 
 	//I/O register data 
@@ -85,7 +81,6 @@ private:
 	bool spriteOverflow;			//Set if > 8 sprites on scanline
 	bool zeroFlag;				//Sprite zero hit flag
 	byte vblankValue;			//Holds the vblank value
-
 
 	//Functions
 	const void checkDotNumber();		//Does different things on different dot numbers
@@ -100,9 +95,6 @@ private:
 	//Muxes
 	const void fourToOneMux();		//Used when loading attribute shift register
 	const bool eightToOneMux(word&);	//Used when picking four bits for a pixel.
-
-	//Debug stuff
-	std::ofstream ppuDebug;
 
 };
 

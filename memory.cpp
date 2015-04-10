@@ -224,6 +224,24 @@ memory::byte memory::readVRAM(word &address)
 	return *VRAMPTR[temp];
 }
 
+void memory::write_primary_OAM(byte address, byte data) {
+	primaryOAM[address] = data;
+}
+
+memory::byte memory::read_primary_OAM(byte address) {
+	byte retval = primaryOAM[address];
+	return retval;
+}
+
+void memory::write_secondary_OAM(byte address, byte data) {
+	secondaryOAM[address] = data;
+}
+
+memory::byte memory::read_secondary_OAM(byte address) {
+	byte retval = secondaryOAM[address];
+	return retval;
+}
+
 //Sets the video pointer
 bool memory::setPointers(ppu* ppu, cpu* cpu)
 {
