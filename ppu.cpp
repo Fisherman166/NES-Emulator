@@ -17,16 +17,13 @@ ppu::~ppu()
 void ppu::emulateCycle()
 {
 	using namespace std;
-	//Update the registers
 	reg2000 = VRAM->RAM[0x2000];
 	reg2001 = VRAM->RAM[0x2001];
+    byte render_cycle = (scanline < 240) && (dotNumber < 256);
 
 	if(!vblank)					//If vblank is going on, none of this happens
 	{
-		//These are the only pixels that make it onto the screen
-		//The top and bottom 8 scanlines are cut off
-		if(scanline < 240)
-			if(dotNumber < 256) renderPixel();
+		if(render_cycle) renderPixel();
 		
 		if(reg2001 & 0x18)				//Checks if rendering is enabled
 		{	
@@ -115,30 +112,7 @@ bool ppu::setPointer(memory* memory)
 //Rendering has to be enabled for this function to be called
 const void ppu::checkDotNumber()
 {
-	//Coarse Y increment
-	if(dotNumber == 256)
-	{
-		if((ppuAddress & 0x7000) != 0x7000)	ppuAddress += 0x1000;	//If fine Y < 7 increment it
-		else
-		{
-			ppuAddress &= ~0x7000;		//Fine Y = 0
-			int coarseY = (ppuAddress & 0x03E0) >> 5;	//Let y = coarse Y
-
-			if(coarseY == 29)
-			{
-				coarseY = 0;			//Coarse Y = 0
-				ppuAddress ^= 0x0800;		//Switch vertical nametable
-			}
-			else if(coarseY == 31) 
-				coarseY = 0;			//Coarse Y = 0, nametable not switched
-			else
-				coarseY++;							//Increment coarse 
-			
-			ppuAddress = (ppuAddress & ~0x03E0) | (coarseY << 5);		//Put coarse Y back into address		
-		}
-	}
-
-
+	if(dotNumber == 256) incrementY();
 	
 	if(dotNumber == 257)
 	{	
@@ -180,7 +154,6 @@ const void ppu::shiftRegisters()
 	lowBGShift <<= 1;
 	highBGShift <<= 1;
 	lowAttShift <<= 1;
-	lowAttShift |= (highAttShift & 0x80) >> 8;	//Move the high byte into the low byte;
 	highAttShift <<= 1;
 }
 
@@ -357,8 +330,28 @@ const void ppu::spriteEval()
 			spriteHighLoad += 4;
 		}
 	}
-}
 
+}
+const void ppu::incrementY() {
+    if((ppuAddress & 0x7000) != 0x7000)	ppuAddress += 0x1000;	//If fine Y < 7 increment it
+    else
+    {
+        ppuAddress &= ~0x7000;		//Fine Y = 0
+        int coarseY = (ppuAddress & 0x03E0) >> 5;	//Let y = coarse Y
+
+        if(coarseY == 29)
+        {
+            coarseY = 0;			//Coarse Y = 0
+            ppuAddress ^= 0x0800;		//Switch vertical nametable
+        }
+        else if(coarseY == 31) 
+            coarseY = 0;			//Coarse Y = 0, nametable not switched
+        else
+            coarseY++;							//Increment coarse 
+        
+        ppuAddress = (ppuAddress & ~0x03E0) | (coarseY << 5);		//Put coarse Y back into address		
+    }
+}
 
 //----------------------------------------------------------------------------------------------------------------------------------------
 //Scanline functions	
@@ -428,7 +421,6 @@ const void ppu::fourToOneMux()				//Used to refill attribute shift registers
 	xBit = ppuAddress & coarseX;
 	yBit = ppuAddress & coarseY;
 	
-	
 	//Bit 0 = xBit, Bit 1 = yBit
 	if(xBit == true && yBit == true)		//Choose bits 6 and 7
 	{
@@ -457,6 +449,10 @@ const void ppu::fourToOneMux()				//Used to refill attribute shift registers
 	
 	if(attBit1) lowAttShift |= 0xFF;		//Low byte 1s
 	else lowAttShift &= ~0xFF;			//Low byte 0s
+	
+//	printf("Scanline = %u, dot = %u\n", scanline, dotNumber);
+//   printf("PPU address = %X, xBit = %X, yBit = %X\n", ppuAddress, xBit, yBit);
+//   printf("Attbyte = %02X, high shift = %X, low shift = %X\n\n", attFetch, highAttShift, lowAttShift);
 }
 
 

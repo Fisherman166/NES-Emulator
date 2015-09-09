@@ -17,19 +17,18 @@ public:
 
 	//Functions
 	void emulateCycle();			//Render one pixel per cycle
-	void simpleRender();			//Render a nametable all at once
-	void printDebug();			//Outputs addresses and values.
+	void printDebug();			    //Outputs addresses and values.
 	bool setPointer(memory*);
 
 	int screenData[240][256];		//Holds RGB data for the screen
 	word ppuAddress, ppuTempAddress;	//Holds the addresses
-	byte fineXScroll;			//For scrolling
-	word dotNumber;				//What the current dot the PPU is running
-	word scanline;				//Current scanline
+	byte fineXScroll;			    //For scrolling
+	word dotNumber;				    //What the current dot the PPU is running
+	word scanline;				    //Current scanline
 
 	bool writeToggle;			//For $2005 and $2006
-	bool vblank,bufferVblank;		//Buffervblank is for rendering a frame
-	bool NMI;				//Used to signal a NMI
+	bool vblank,bufferVblank;	//Buffervblank is for rendering a frame
+	bool NMI;				    //Used to signal a NMI
 
 	//Pallete colors
 	static int const RGB[];
@@ -83,11 +82,12 @@ private:
 	byte vblankValue;			//Holds the vblank value
 
 	//Functions
-	const void checkDotNumber();		//Does different things on different dot numbers
-	const void shiftRegisters();		//Shifts the shifting registers
+	const void checkDotNumber();	//Does different things on different dot numbers
+	const void shiftRegisters();	//Shifts the shifting registers
 	const void renderPixel();		//Puts pixel data into 
 	const void checkVblank();		//Checks if vblank is occuring
 	const void spriteEval();		//Used for sprite evaluation
+    const void incrementY();        //Used to increment the y cord
 	
 	//Used for different scanlines
 	const void backgroundFetch();
