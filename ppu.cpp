@@ -19,14 +19,21 @@ void ppu::emulateCycle()
 	using namespace std;
 	reg2000 = VRAM->RAM[0x2000];
 	reg2001 = VRAM->RAM[0x2001];
-    byte render_cycle = (scanline < 240) && (dotNumber < 256);
+
+    byte rendering_enabled = reg2001 & 0x18;
+    byte pre_render_line = (scanline == 261);
+    byte visable_line = (scanline < 240);
+    byte render_line = pre_render_line || visable_line;
+    byte fetch_next_screen = (dotNumber >= 321) && (dotNumber <= 336);
+    byte visable_cycle = (dotNumber >= 1) && (dotNumber <= 256);
+    byte fetch_cycle = (fetch_next_screen || visable_cycle);
 
 	if(!vblank)					//If vblank is going on, none of this happens
 	{
-		if(render_cycle) renderPixel();
-		
-		if(reg2001 & 0x18)				//Checks if rendering is enabled
+		if(rendering_enabled)				//Checks if rendering is enabled
 		{	
+		    if(visable_line && visable_cycle) renderPixel();
+
 			spriteEval();
 
 			if(idleCounter > 0) idleCounter--;
@@ -54,6 +61,12 @@ void ppu::emulateCycle()
 			//The registers only shift between dots 2-257 and 322-337 (inclusive)
 			if((dotNumber > 1 && dotNumber < 258) || (dotNumber > 321 && dotNumber < 338)) shiftRegisters();
 
+            if(render_line) {
+	            if(dotNumber == 256) incrementY();
+                if(fetch_cycle && ((dotNumber % 8) == 0)) incrementX();
+		        if(dotNumber == 337) reloadDot = 9; //FIXME
+            }
+            
 			checkDotNumber();				//Does stuff depending on the dot number
 		}
 	}
@@ -112,31 +125,12 @@ bool ppu::setPointer(memory* memory)
 //Rendering has to be enabled for this function to be called
 const void ppu::checkDotNumber()
 {
-	if(dotNumber == 256) incrementY();
-	
 	if(dotNumber == 257)
 	{	
 		ppuAddress &= ~0x41F;						//Clears the bits for horizontal position
 		ppuAddress |= ppuTempAddress & 0x41F;				//Keeps the bits that were cleared above
 		horizontalDot = 328;						//Next time this is needed
 		reloadDot = 329;						//Next time the registers are reloaded
-	}
-	else if(dotNumber < 257 || dotNumber > 327)
-	{
-		if(dotNumber == horizontalDot)
-		{
-			if((ppuAddress & 0x001F) == 31) 	// if coarse X == 31
-			{
-				ppuAddress &= ~0x001F;         	// coarse X = 0
-				ppuAddress ^= 0x0400;           // switch horizontal nametable
-			}
-			else ppuAddress++;                	// increment coarse X
-
-			horizontalDot += 8;
-		}
-	
-		if(dotNumber == 336) horizontalDot = 8;				//Next dot to increment horizontal position
-		else if(dotNumber == 337) reloadDot = 9;			//Next dot to reload registers
 	}
 	else if(scanline == 261 && (dotNumber > 279 && dotNumber < 305))
 	{
@@ -353,6 +347,16 @@ const void ppu::incrementY() {
     }
 }
 
+const void ppu::incrementX() {
+    if((ppuAddress & 0x001F) == 31) 	// if coarse X == 31
+    {
+        ppuAddress &= ~0x001F;         	// coarse X = 0
+        ppuAddress ^= 0x0400;           // switch horizontal nametable
+    }
+    else ppuAddress++;                	// increment coarse X
+}
+    
+
 //----------------------------------------------------------------------------------------------------------------------------------------
 //Scanline functions	
 
@@ -486,5 +490,6 @@ int const ppu::RGB[] =
    0x00FFFFFF, 0x00A6FCFF, 0x00B3ECFF, 0x00DAABEB, 0x00FFA8F9, 0x00FFABB3, 0x00FFD2B0, 0x00FFEFA6, //3
    0x00FFF79C, 0x00D7E895, 0x00A6EDAF, 0x00A2F2DA, 0x0099FFFC, 0x00DDDDDD, 0x00111111, 0x00111111
 };
+
 
 
