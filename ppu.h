@@ -42,8 +42,6 @@ private:
 	bool atFetch;				//Next operation will be attribute fetch
 	bool bgLowFetch;			//Next operation will be low or high tile fetch
 	word idleCounter;			//Current idle cycles to wait
-	word reloadDot;				//Allows PPU to keep track of when registers need to be reloaded
-	word horizontalDot;			//Allows PPU to check when coarse X needs to be incremented
 
 	//For background rendering
 	word 	highBGShift, lowBGShift;	//Hold the higher and lower background tiles
@@ -82,8 +80,8 @@ private:
 	byte vblankValue;			//Holds the vblank value
 
 	//Functions
-	const void checkDotNumber();	//Does different things on different dot numbers
 	const void shiftRegisters();	//Shifts the shifting registers
+    const void reload_registers();  //Reloads the shift registers
 	const void renderPixel();		//Puts pixel data into 
 	const void checkVblank();		//Checks if vblank is occuring
 	const void spriteEval();		//Used for sprite evaluation
