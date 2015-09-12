@@ -2,7 +2,7 @@
 
 ppu::ppu() : ppuAddress(0), dotNumber(0), scanline(241), writeToggle(false), vblank(false),
 		bufferVblank(false), NMI(false), VRAM(NULL), oddFrame(false),
-		idleCounter(0), pOAMAddress(0), sOAMAddress(0), spriteWrite(true), sprite_number(0),
+		pOAMAddress(0), sOAMAddress(0), spriteWrite(true), sprite_number(0),
 		reg2000(0x00), reg2001(0x00), reg2002(0x2002), vblankValue(0x80)
 {	
 }
@@ -37,14 +37,6 @@ void ppu::emulateCycle()
 
         if(render_line && shift_reload_dots && ((dotNumber % 8) == 1)) reload_registers();
 
-        if(idleCounter > 0) idleCounter--;
-        else
-        {
-            //For getting the background data.
-            if(scanline == 240) 
-                idleCounter += 340;		//Idles for a scanline + 1 dot
-        }
-
         if(render_line && visable_cycle) {
             switch( dotNumber % 8 ) {
                 case 1:
@@ -73,35 +65,8 @@ void ppu::emulateCycle()
         }
     }
 
-	dotNumber++;
-	
-	if(dotNumber == 341) 
-	{
-		scanline++;		//262 scanlines in a frame
-		dotNumber = 0;
-		sOAMAddress = 0;	//Reset OAM address
-
-		/*This may need to be changed.  On startup, the first run of scanline 261
-		**starts at dot 2.*/
-		if(scanline == 261) idleCounter = 0;	//No idle on 261 because it turns back on on the second dot
-		else idleCounter = 1;			//Make sure idle counter is always set 1 to idle first dot
-		
-		if(scanline == 262)
-		{
-			scanline = 0;
-			if(reg2001 & 0x18)			//Checks if rendering is enabled
-			{
-				if(oddFrame == false)
-				{	
-					oddFrame = true;
-					dotNumber = 1;		//Dot 0 is skipped on odd frame
-					idleCounter = 0;	//Odd frame, so no idle on first dot
-				}
-				else oddFrame = false;
-			}
-		}
-	}
-
+    tick(rendering_enabled);
+    
 	checkVblank();					//Checks if vblank is happening
 }
 
@@ -123,6 +88,27 @@ bool ppu::setPointer(memory* memory)
 
 //----------------------------------------------------------------------------------------------------------------------------------------
 //Private functions
+const void ppu::tick(ppu::byte& rendering_enabled) {
+    if(rendering_enabled) {
+        if(oddFrame && scanline == 261 && dotNumber == 339) {
+            scanline = 0;
+            dotNumber = 0;
+            oddFrame ^= 1;
+            return;
+        }
+    }       
+    dotNumber++;
+    if(dotNumber > 340) {
+        dotNumber = 0;
+        scanline++;
+
+        if(scanline > 261) {
+            scanline = 0;
+            oddFrame ^= 1;
+        }
+    }
+}
+
 /******************************************************************************
 ** SHIFTS ALL OF THE SHIFT REGISTERS
 ******************************************************************************/

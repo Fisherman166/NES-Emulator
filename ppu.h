@@ -38,7 +38,6 @@ private:
 
 	//PPU status
 	bool oddFrame;				//Used to keep track of even and odd frame
-	word idleCounter;			//Current idle cycles to wait
 
 	//For background rendering
 	word 	highBGShift, lowBGShift;	//Hold the higher and lower background tiles
@@ -75,6 +74,7 @@ private:
 	byte vblankValue;			//Holds the vblank value
 
 	//Functions
+    const void tick(byte&);              
 	const void shiftRegisters();	//Shifts the shifting registers
     const void reload_registers();  //Reloads the shift registers
 	const void renderPixel();		//Puts pixel data into 
