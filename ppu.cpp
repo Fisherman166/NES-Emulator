@@ -1,9 +1,9 @@
 #include "ppu.h"
 
-ppu::ppu() : ppuAddress(0), dotNumber(0), scanline(241), writeToggle(false), vblank(false),
-		bufferVblank(false), NMI(false), VRAM(NULL), oddFrame(false),
-		pOAMAddress(0), sOAMAddress(0), spriteWrite(true), sprite_number(0),
-		reg2000(0x00), reg2001(0x00), reg2002(0x2002), vblankValue(0x80)
+ppu::ppu() : ppuAddress(0), dotNumber(0), scanline(241), writeToggle(false), 
+		vblank(false), NMI(false), VRAM(NULL), oddFrame(false),
+		pOAMAddress(0), sOAMAddress(0), sprite_number(0), spriteWrite(true), 
+		reg2000(0x00), reg2001(0x00), reg2002(0x2002)
 {	
 }
 
@@ -67,7 +67,7 @@ void ppu::emulateCycle()
 
     tick(rendering_enabled);
     
-	checkVblank();					//Checks if vblank is happening
+	checkVblank();
 }
 
 
@@ -216,11 +216,12 @@ const void ppu::renderPixel()
 
 const void ppu::checkVblank()
 {
+    byte vblank_value = 0x80;
+
 	if(scanline == 241 && dotNumber == 1) 
 	{
-		VRAM->writeRAM(reg2002, vblankValue);
+		VRAM->writeRAM(reg2002, vblank_value);
 		vblank = true;
-		bufferVblank = true;
 		if(reg2000 & 0x80) NMI = true;				//NMI bit set
 	}
 	else if(scanline == 261 && dotNumber == 1)
@@ -228,7 +229,6 @@ const void ppu::checkVblank()
 		unsigned char clearData = 0x9F;				//Value that clears the flags
 		zeroFlag = false;
 		spriteOverflow = false;
-		vblank = false;
 		VRAM->writeRAM(reg2002, clearData);		//Clears sprite 0 hit and overflow bit
 	}
 }

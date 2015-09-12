@@ -27,7 +27,7 @@ public:
 	word scanline;				    //Current scanline
 
 	bool writeToggle;			//For $2005 and $2006
-	bool vblank,bufferVblank;	//Buffervblank is for rendering a frame
+	bool vblank;	
 	bool NMI;				    //Used to signal a NMI
 
 	//Pallete colors

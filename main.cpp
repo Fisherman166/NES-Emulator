@@ -65,7 +65,7 @@ int main(int argc, char *args[])
 		if(checkInput()) break;
 
 		
-		if(video->bufferVblank)	//Time to render a frame!
+		if(video->vblank)	//Time to render a frame!
 		{
 			//video->simpleRender();
 			//Update the texture from screen data
@@ -76,7 +76,7 @@ int main(int argc, char *args[])
 			SDL_RenderCopy(renderer, texture, NULL, NULL);
 			SDL_RenderPresent(renderer);
 
-			video->bufferVblank = false;
+			video->vblank = false;
 		}
 	}
 
