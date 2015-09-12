@@ -43,8 +43,6 @@ void ppu::emulateCycle()
             //For getting the background data.
             if(scanline == 240) 
                 idleCounter += 340;		//Idles for a scanline + 1 dot
-            else
-                backgroundFetch();		//Fetch name, att, tiles
         }
 
         if(render_line && visable_cycle) {
@@ -57,6 +55,9 @@ void ppu::emulateCycle()
                     break;
                 case 5:
                     low_background_fetch();
+                    break;
+                case 7:
+                    high_background_fetch();
                     break;
             }
         }
@@ -357,30 +358,6 @@ const void ppu::copyX() {
 
 //----------------------------------------------------------------------------------------------------------------------------------------
 //Scanline functions	
-
-const void ppu::backgroundFetch()
-{	
-	if(dotNumber != 257)
-	{
-		if((dotNumber > 0 && dotNumber < 257) || (dotNumber > 320 && dotNumber < 337))
-        {
-			if (bgHighFetch)		//End of cycle.  Do nametable fetch next.
-			{	
-                word tileAddress;
-
-                if(reg2000 & 0x10) tileAddress = 0x1000 | (nametable_byte << 4) | ((ppuAddress & 0x7000) >> 12);
-                else tileAddress = 0x0000 | (nametable_byte << 4) | ((ppuAddress & 0x7000) >> 12);
-				tileAddress += 8;				//8 bytes ahead
-				high_tile_byte = VRAM->readVRAM(tileAddress);
-				bgHighFetch = false;
-				idleCounter++;
-			}	
-		}
-	}
-	else
-		idleCounter += 63;		//Idle between cycles 258-320
-}
-
 const void ppu::nametable_fetch() {
     word nameAddress;
 
@@ -395,11 +372,27 @@ const void ppu::attribute_fetch() {
 
 const void ppu::low_background_fetch() {
     word tileAddress;
+    
+    tileAddress = calc_tile_address();
+    low_tile_byte = VRAM->readVRAM(tileAddress);
+}
+
+const void ppu::high_background_fetch() {
+    const byte high_tile_offset = 8;
+    word tileAddress;
+
+    tileAddress = calc_tile_address();
+    tileAddress += high_tile_offset;
+    high_tile_byte = VRAM->readVRAM(tileAddress);
+}
+
+const ppu::word ppu::calc_tile_address() {
+    word tileAddress; 
 
     if(reg2000 & 0x10) tileAddress = 0x1000 | (nametable_byte << 4) | ((ppuAddress & 0x7000) >> 12);
     else tileAddress = 0x0000 | (nametable_byte << 4) | ((ppuAddress & 0x7000) >> 12);
-    low_tile_byte = VRAM->readVRAM(tileAddress);
-    bgHighFetch = true;
+
+    return tileAddress;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------

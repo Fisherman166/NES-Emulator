@@ -38,7 +38,6 @@ private:
 
 	//PPU status
 	bool oddFrame;				//Used to keep track of even and odd frame
-	bool bgHighFetch;			//Next operation will be low or high tile fetch
 	word idleCounter;			//Current idle cycles to wait
 
 	//For background rendering
@@ -46,8 +45,6 @@ private:
 	byte	high_tile_byte,low_tile_byte;		//Holds the two fetches for the shifter
 	word 	highAttShift, lowAttShift;	//Shift registers for attribute bytes that apply to the BG tiles
 	byte	attribute_byte, nametable_byte;		//Used in attrtibute fetch and nametable fetch
-	word 	tileAddress, attAddress;	//Addresses for these two things
-	word 	nameAddress;	
 	
 	//For Pixel Rendering
 	word palleteAddress;			//Holds the pallete address for the pixel
@@ -89,10 +86,11 @@ private:
     const void copyY();             //Copies temp Y to ppuAddress Y
 	
     //Functions that fetch data
-	const void backgroundFetch();
     const void nametable_fetch();
     const void attribute_fetch();
     const void low_background_fetch();
+    const void high_background_fetch();
+    const word calc_tile_address();
 	
 	//Muxes
 	const void fourToOneMux();		//Used when loading attribute shift register
