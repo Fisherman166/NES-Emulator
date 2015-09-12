@@ -88,6 +88,9 @@ private:
 	const void checkVblank();		//Checks if vblank is occuring
 	const void spriteEval();		//Used for sprite evaluation
     const void incrementY();        //Used to increment the y cord
+    const void incrementX();        //Used to increment the x cord
+    const void copyX();             //Copies temp X to ppuAddress X
+    const void copyY();             //Copies temp Y to ppuAddress Y
 	
 	//Used for different scanlines
 	const void backgroundFetch();
@@ -99,3 +102,4 @@ private:
 };
 
 #endif
+

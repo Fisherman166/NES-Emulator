@@ -28,48 +28,45 @@ void ppu::emulateCycle()
     byte visable_cycle = (dotNumber >= 1) && (dotNumber <= 256);
     byte fetch_cycle = (fetch_next_screen || visable_cycle);
 
-	if(!vblank)					//If vblank is going on, none of this happens
-	{
-		if(rendering_enabled)				//Checks if rendering is enabled
-		{	
-		    if(visable_line && visable_cycle) renderPixel();
+    if(rendering_enabled)				//Checks if rendering is enabled
+    {	
+        if(visable_line && visable_cycle) renderPixel();
 
-			spriteEval();
+        spriteEval();
 
-			if(idleCounter > 0) idleCounter--;
-			else
-			{
-				//Reload the registers
-				if(dotNumber == reloadDot)
-				{
-					//Fills the upper 8 bits with next tiles
-					highBGShift |= highBGFetch; 
-					lowBGShift |= lowBGFetch; 
-					fourToOneMux();		//Fills the attribute registers
-	
-					reloadDot += 8;				//Reload up to 257
-				}
+        if(idleCounter > 0) idleCounter--;
+        else
+        {
+            //Reload the registers
+            if(dotNumber == reloadDot)
+            {
+                //Fills the upper 8 bits with next tiles
+                highBGShift |= highBGFetch; 
+                lowBGShift |= lowBGFetch; 
+                fourToOneMux();		//Fills the attribute registers
 
-				//For getting the background data.
-				if(scanline == 240) 
-					idleCounter += 340;		//Idles for a scanline + 1 dot
-				else
-					backgroundFetch();		//Fetch name, att, tiles
-			}
-
-			
-			//The registers only shift between dots 2-257 and 322-337 (inclusive)
-			if((dotNumber > 1 && dotNumber < 258) || (dotNumber > 321 && dotNumber < 338)) shiftRegisters();
-
-            if(render_line) {
-	            if(dotNumber == 256) incrementY();
-                if(fetch_cycle && ((dotNumber % 8) == 0)) incrementX();
-		        if(dotNumber == 337) reloadDot = 9; //FIXME
+                reloadDot += 8;				//Reload up to 257
             }
-            
-			checkDotNumber();				//Does stuff depending on the dot number
-		}
-	}
+
+            //For getting the background data.
+            if(scanline == 240) 
+                idleCounter += 340;		//Idles for a scanline + 1 dot
+            else
+                backgroundFetch();		//Fetch name, att, tiles
+        }
+
+        
+        //The registers only shift between dots 2-257 and 322-337 (inclusive)
+        if((dotNumber > 1 && dotNumber < 258) || (dotNumber > 321 && dotNumber < 338)) shiftRegisters();
+
+        if(render_line) {
+            if(dotNumber == 256) incrementY();
+            if(fetch_cycle && ((dotNumber % 8) == 0)) incrementX();
+            if(dotNumber == 257) copyX();
+            if(pre_render_line && (dotNumber >= 280) && (dotNumber <= 304)) copyY();
+            if(dotNumber == 337) reloadDot = 9; //FIXME
+        }
+    }
 
 	dotNumber++;
 	
@@ -121,24 +118,6 @@ bool ppu::setPointer(memory* memory)
 
 //----------------------------------------------------------------------------------------------------------------------------------------
 //Private functions
-
-//Rendering has to be enabled for this function to be called
-const void ppu::checkDotNumber()
-{
-	if(dotNumber == 257)
-	{	
-		ppuAddress &= ~0x41F;						//Clears the bits for horizontal position
-		ppuAddress |= ppuTempAddress & 0x41F;				//Keeps the bits that were cleared above
-		horizontalDot = 328;						//Next time this is needed
-		reloadDot = 329;						//Next time the registers are reloaded
-	}
-	else if(scanline == 261 && (dotNumber > 279 && dotNumber < 305))
-	{
-		ppuAddress &= ~0x7BE0;				//Clears the vertical bits
-		ppuAddress |= ppuTempAddress & 0x7BE0;		//Puts the vertical bits in
-	}
-}
-
 /******************************************************************************
 ** SHIFTS ALL OF THE SHIFT REGISTERS
 ******************************************************************************/
@@ -355,7 +334,17 @@ const void ppu::incrementX() {
     }
     else ppuAddress++;                	// increment coarse X
 }
-    
+
+const void ppu::copyX() {
+   	ppuAddress &= ~0x41F;						//Clears the bits for horizontal position
+	ppuAddress |= ppuTempAddress & 0x41F;				//Keeps the bits that were cleared above
+	reloadDot = 329;						//FIXME
+ }
+
+ const void ppu::copyY() {
+    ppuAddress &= ~0x7BE0;				//Clears the vertical bits
+	ppuAddress |= ppuTempAddress & 0x7BE0;		//Puts the vertical bits in
+}
 
 //----------------------------------------------------------------------------------------------------------------------------------------
 //Scanline functions	
