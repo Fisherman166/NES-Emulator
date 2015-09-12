@@ -1,7 +1,7 @@
 #include "ppu.h"
 
 ppu::ppu() : ppuAddress(0), dotNumber(0), scanline(241), writeToggle(false), vblank(false),
-		bufferVblank(false), NMI(false), VRAM(NULL), oddFrame(false), ntFetch(true),
+		bufferVblank(false), NMI(false), VRAM(NULL), oddFrame(false),
 		idleCounter(0), pOAMAddress(0), sOAMAddress(0), spriteWrite(true), sprite_number(0),
 		reg2000(0x00), reg2001(0x00), reg2002(0x2002), vblankValue(0x80)
 {	
@@ -51,6 +51,9 @@ void ppu::emulateCycle()
             switch( dotNumber % 8 ) {
                 case 1:
                     nametable_fetch();
+                    break;
+                case 3:
+                    attribute_fetch();
                     break;
             }
         }
@@ -358,15 +361,7 @@ const void ppu::backgroundFetch()
 	{
 		if((dotNumber > 0 && dotNumber < 257) || (dotNumber > 320 && dotNumber < 337))
         {
-		    if(atFetch)
-			{	
-				attAddress = 0x23C0 | (ppuAddress & 0x0C00) | ((ppuAddress >> 4) & 0x38) | ((ppuAddress >> 2) & 0x07);
-				attFetch = VRAM->readVRAM(attAddress);
-				atFetch = false;
-				bgLowFetch = true;
-				idleCounter++;
-			}
-			else if(bgLowFetch)
+			if(bgLowFetch)
 			{	
 				//Finds the bg tile address
 				if(reg2000 & 0x10) tileAddress = 0x1000 | (nametable_byte << 4) | ((ppuAddress & 0x7000) >> 12);
@@ -394,7 +389,12 @@ const void ppu::nametable_fetch() {
 
     nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
     nametable_byte = VRAM->readVRAM(nameAddress);
-    atFetch = true; //FIXME
+}
+
+const void ppu::attribute_fetch() {
+    word attAddress = 0x23C0 | (ppuAddress & 0x0C00) | ((ppuAddress >> 4) & 0x38) | ((ppuAddress >> 2) & 0x07);
+    attribute_byte = VRAM->readVRAM(attAddress);
+    bgLowFetch = true;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -412,23 +412,23 @@ const void ppu::fourToOneMux()				//Used to refill attribute shift registers
 	//Bit 0 = xBit, Bit 1 = yBit
 	if(xBit == true && yBit == true)		//Choose bits 6 and 7
 	{
-		attBit1 = attFetch & 0x40;
-		attBit2 = attFetch & 0x80;
+		attBit1 = attribute_byte & 0x40;
+		attBit2 = attribute_byte & 0x80;
 	}
 	else if(xBit)					//Choose bits 4 and 5
 	{
-		attBit1 = attFetch & 0x10;
-		attBit2 = attFetch & 0x20;
+		attBit1 = attribute_byte & 0x10;
+		attBit2 = attribute_byte & 0x20;
 	}
 	else if(yBit)					//Choose bits 2 and 3
 	{
-		attBit1 = attFetch & 0x04;
-		attBit2 = attFetch & 0x08;
+		attBit1 = attribute_byte & 0x04;
+		attBit2 = attribute_byte & 0x08;
 	}
 	else						//Choose bits 0 and 1
 	{
-		attBit1 = attFetch & 0x01;
-		attBit2 = attFetch & 0x02;
+		attBit1 = attribute_byte & 0x01;
+		attBit2 = attribute_byte & 0x02;
 	}
 	
 	//Sets all the bits the same
@@ -437,10 +437,6 @@ const void ppu::fourToOneMux()				//Used to refill attribute shift registers
 	
 	if(attBit1) lowAttShift |= 0xFF;		//Low byte 1s
 	else lowAttShift &= ~0xFF;			//Low byte 0s
-	
-//	printf("Scanline = %u, dot = %u\n", scanline, dotNumber);
-//   printf("PPU address = %X, xBit = %X, yBit = %X\n", ppuAddress, xBit, yBit);
-//   printf("Attbyte = %02X, high shift = %X, low shift = %X\n\n", attFetch, highAttShift, lowAttShift);
 }
 
 

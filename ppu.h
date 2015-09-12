@@ -48,7 +48,7 @@ private:
 	word 	highBGShift, lowBGShift;	//Hold the higher and lower background tiles
 	byte	highBGFetch,lowBGFetch;		//Holds the two fetches for the shifter
 	word 	highAttShift, lowAttShift;	//Shift registers for attribute bytes that apply to the BG tiles
-	byte	attFetch, nametable_byte;		//Used in attrtibute fetch and nametable fetch
+	byte	attribute_byte, nametable_byte;		//Used in attrtibute fetch and nametable fetch
 	word 	tileAddress, attAddress;	//Addresses for these two things
 	word 	nameAddress;	
 	
@@ -94,6 +94,7 @@ private:
     //Functions that fetch data
 	const void backgroundFetch();
     const void nametable_fetch();
+    const void attribute_fetch();
 	
 	//Muxes
 	const void fourToOneMux();		//Used when loading attribute shift register
