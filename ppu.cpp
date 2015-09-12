@@ -46,6 +46,14 @@ void ppu::emulateCycle()
             else
                 backgroundFetch();		//Fetch name, att, tiles
         }
+
+        if(render_line && visable_cycle) {
+            switch( dotNumber % 8 ) {
+                case 1:
+                    nametable_fetch();
+                    break;
+            }
+        }
         
         //The registers only shift between dots 2-257 and 322-337 (inclusive)
         if((dotNumber > 1 && dotNumber < 258) || (dotNumber > 321 && dotNumber < 338)) shiftRegisters();
@@ -349,16 +357,8 @@ const void ppu::backgroundFetch()
 	if(dotNumber != 257)
 	{
 		if((dotNumber > 0 && dotNumber < 257) || (dotNumber > 320 && dotNumber < 337))
-		{
-			if(ntFetch)	//First in the order
-			{
-				nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
-				nameFetch = VRAM->readVRAM(nameAddress);
-				ntFetch = false;
-				atFetch = true;
-				idleCounter++;
-			}
-			else if(atFetch)
+        {
+		    if(atFetch)
 			{	
 				attAddress = 0x23C0 | (ppuAddress & 0x0C00) | ((ppuAddress >> 4) & 0x38) | ((ppuAddress >> 2) & 0x07);
 				attFetch = VRAM->readVRAM(attAddress);
@@ -369,33 +369,33 @@ const void ppu::backgroundFetch()
 			else if(bgLowFetch)
 			{	
 				//Finds the bg tile address
-				if(reg2000 & 0x10) tileAddress = 0x1000 | (nameFetch << 4) | ((ppuAddress & 0x7000) >> 12);
-				else tileAddress = 0x0000 | (nameFetch << 4) | ((ppuAddress & 0x7000) >> 12);
+				if(reg2000 & 0x10) tileAddress = 0x1000 | (nametable_byte << 4) | ((ppuAddress & 0x7000) >> 12);
+				else tileAddress = 0x0000 | (nametable_byte << 4) | ((ppuAddress & 0x7000) >> 12);
 				lowBGFetch = VRAM->readVRAM(tileAddress);
 				bgLowFetch = false;
+				bgHighFetch = true;
 				idleCounter++;
 			}
-			else		//End of cycle.  Do nametable fetch next.
+			else if (bgHighFetch)		//End of cycle.  Do nametable fetch next.
 			{	
 				tileAddress += 8;				//8 bytes ahead
 				highBGFetch = VRAM->readVRAM(tileAddress);
-				ntFetch = true;
+				bgHighFetch = false;
 				idleCounter++;
 			}	
-		}
-		else
-		{	
-			ntFetch = true;			
-			nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
-			nameFetch = VRAM->readVRAM(nameAddress);
-			idleCounter++;
-			
 		}
 	}
 	else
 		idleCounter += 63;		//Idle between cycles 258-320
 }
 
+const void ppu::nametable_fetch() {
+    word nameAddress;
+
+    nameAddress = 0x2000 | (ppuAddress & 0x0FFF);
+    nametable_byte = VRAM->readVRAM(nameAddress);
+    atFetch = true; //FIXME
+}
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 //Muxes

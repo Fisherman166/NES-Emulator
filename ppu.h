@@ -41,13 +41,14 @@ private:
 	bool ntFetch;				//Next operation will be nametable fetch
 	bool atFetch;				//Next operation will be attribute fetch
 	bool bgLowFetch;			//Next operation will be low or high tile fetch
+	bool bgHighFetch;			//Next operation will be low or high tile fetch
 	word idleCounter;			//Current idle cycles to wait
 
 	//For background rendering
 	word 	highBGShift, lowBGShift;	//Hold the higher and lower background tiles
 	byte	highBGFetch,lowBGFetch;		//Holds the two fetches for the shifter
 	word 	highAttShift, lowAttShift;	//Shift registers for attribute bytes that apply to the BG tiles
-	byte	attFetch, nameFetch;		//Used in attrtibute fetch and nametable fetch
+	byte	attFetch, nametable_byte;		//Used in attrtibute fetch and nametable fetch
 	word 	tileAddress, attAddress;	//Addresses for these two things
 	word 	nameAddress;	
 	
@@ -90,8 +91,9 @@ private:
     const void copyX();             //Copies temp X to ppuAddress X
     const void copyY();             //Copies temp Y to ppuAddress Y
 	
-	//Used for different scanlines
+    //Functions that fetch data
 	const void backgroundFetch();
+    const void nametable_fetch();
 	
 	//Muxes
 	const void fourToOneMux();		//Used when loading attribute shift register
