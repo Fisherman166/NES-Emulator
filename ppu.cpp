@@ -55,6 +55,9 @@ void ppu::emulateCycle()
                 case 3:
                     attribute_fetch();
                     break;
+                case 5:
+                    low_background_fetch();
+                    break;
             }
         }
         
@@ -132,8 +135,8 @@ const void ppu::shiftRegisters()
 }
 
 const void ppu::reload_registers() {
-    highBGShift |= highBGFetch; 
-    lowBGShift |= lowBGFetch; 
+    highBGShift |= high_tile_byte; 
+    lowBGShift |= low_tile_byte; 
     fourToOneMux();		//Fills the attribute registers 
 }
 
@@ -361,20 +364,14 @@ const void ppu::backgroundFetch()
 	{
 		if((dotNumber > 0 && dotNumber < 257) || (dotNumber > 320 && dotNumber < 337))
         {
-			if(bgLowFetch)
+			if (bgHighFetch)		//End of cycle.  Do nametable fetch next.
 			{	
-				//Finds the bg tile address
-				if(reg2000 & 0x10) tileAddress = 0x1000 | (nametable_byte << 4) | ((ppuAddress & 0x7000) >> 12);
-				else tileAddress = 0x0000 | (nametable_byte << 4) | ((ppuAddress & 0x7000) >> 12);
-				lowBGFetch = VRAM->readVRAM(tileAddress);
-				bgLowFetch = false;
-				bgHighFetch = true;
-				idleCounter++;
-			}
-			else if (bgHighFetch)		//End of cycle.  Do nametable fetch next.
-			{	
+                word tileAddress;
+
+                if(reg2000 & 0x10) tileAddress = 0x1000 | (nametable_byte << 4) | ((ppuAddress & 0x7000) >> 12);
+                else tileAddress = 0x0000 | (nametable_byte << 4) | ((ppuAddress & 0x7000) >> 12);
 				tileAddress += 8;				//8 bytes ahead
-				highBGFetch = VRAM->readVRAM(tileAddress);
+				high_tile_byte = VRAM->readVRAM(tileAddress);
 				bgHighFetch = false;
 				idleCounter++;
 			}	
@@ -394,7 +391,15 @@ const void ppu::nametable_fetch() {
 const void ppu::attribute_fetch() {
     word attAddress = 0x23C0 | (ppuAddress & 0x0C00) | ((ppuAddress >> 4) & 0x38) | ((ppuAddress >> 2) & 0x07);
     attribute_byte = VRAM->readVRAM(attAddress);
-    bgLowFetch = true;
+}
+
+const void ppu::low_background_fetch() {
+    word tileAddress;
+
+    if(reg2000 & 0x10) tileAddress = 0x1000 | (nametable_byte << 4) | ((ppuAddress & 0x7000) >> 12);
+    else tileAddress = 0x0000 | (nametable_byte << 4) | ((ppuAddress & 0x7000) >> 12);
+    low_tile_byte = VRAM->readVRAM(tileAddress);
+    bgHighFetch = true;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------

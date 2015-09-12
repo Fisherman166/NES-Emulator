@@ -38,15 +38,12 @@ private:
 
 	//PPU status
 	bool oddFrame;				//Used to keep track of even and odd frame
-	bool ntFetch;				//Next operation will be nametable fetch
-	bool atFetch;				//Next operation will be attribute fetch
-	bool bgLowFetch;			//Next operation will be low or high tile fetch
 	bool bgHighFetch;			//Next operation will be low or high tile fetch
 	word idleCounter;			//Current idle cycles to wait
 
 	//For background rendering
 	word 	highBGShift, lowBGShift;	//Hold the higher and lower background tiles
-	byte	highBGFetch,lowBGFetch;		//Holds the two fetches for the shifter
+	byte	high_tile_byte,low_tile_byte;		//Holds the two fetches for the shifter
 	word 	highAttShift, lowAttShift;	//Shift registers for attribute bytes that apply to the BG tiles
 	byte	attribute_byte, nametable_byte;		//Used in attrtibute fetch and nametable fetch
 	word 	tileAddress, attAddress;	//Addresses for these two things
@@ -95,6 +92,7 @@ private:
 	const void backgroundFetch();
     const void nametable_fetch();
     const void attribute_fetch();
+    const void low_background_fetch();
 	
 	//Muxes
 	const void fourToOneMux();		//Used when loading attribute shift register
