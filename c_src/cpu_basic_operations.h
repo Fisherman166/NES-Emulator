@@ -16,8 +16,20 @@
 //*****************************************************************************
 // Status flag functions
 //*****************************************************************************
+#define CARRY_BIT       0x01
+#define ZERO_BIT        0x02
+#define INTERRUPT_BIT   0x04
+#define DECIMAL_BIT     0x08
+#define B1_BIT          0x10
+#define B2_BIT          0x20
+#define OVERFLOW_BIT    0x40
+#define NEGATIVE_BIT    0x80
+
+void init_cpu_registers(cpu_registers*, uint8_t, uint8_t, uint8_t, uint16_t,
+                        uint8_t, uint8_t);
 void set_cpu_flag(cpu_registers*, uint8_t);
 void clear_cpu_flag(cpu_registers*, uint8_t);
+bool get_cpu_flag(cpu_registers*, uint8_t);
 
 #endif
 
