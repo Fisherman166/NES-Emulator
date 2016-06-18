@@ -9,7 +9,9 @@
 
 #include "cpu_basic_operations.h"
 
-
+//*****************************************************************************
+// General functions
+//*****************************************************************************
 void init_cpu_registers(cpu_registers* registers, uint8_t A, uint8_t X,
                         uint8_t Y, uint16_t PC, uint8_t S, uint8_t flags)
 {
@@ -35,3 +37,9 @@ void clear_cpu_flag(cpu_registers* registers, uint8_t flag_to_clear) {
 bool get_cpu_flag(cpu_registers* registers, uint8_t flag_to_get) {
     return registers->flags & flag_to_get;
 }
+
+void check_value_for_zero_flag(cpu_registers* registers, uint8_t value) {
+    if(!value) set_cpu_flag(registers, ZERO_BIT);
+    else clear_cpu_flag(registers, ZERO_BIT);
+}
+    
