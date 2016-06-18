@@ -34,13 +34,14 @@ void init_cpu_registers(cpu_registers*, uint8_t, uint8_t, uint8_t, uint16_t,
 void set_cpu_flag(cpu_registers*, uint8_t);
 void clear_cpu_flag(cpu_registers*, uint8_t);
 bool get_cpu_flag(cpu_registers*, uint8_t);
-void check_value_for_zero_flag(cpu_registers*, uint8_t);
-void check_value_for_negative_flag(cpu_registers*, uint8_t);
+void determine_zero_flag(cpu_registers*, uint8_t);
+void determine_negative_flag(cpu_registers*, uint8_t);
 
 //*****************************************************************************
 // Basic opcode operations
 //*****************************************************************************
 void base_add(cpu_registers*, uint8_t);
+void base_and(cpu_registers*, uint8_t);
 
 #endif
 

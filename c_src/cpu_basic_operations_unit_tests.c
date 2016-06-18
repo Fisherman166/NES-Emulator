@@ -50,23 +50,23 @@ static void test_get_cpu_flag() {
     assert(registers.flags == CARRY_FLAG);
 }
 
-static void test_check_value_for_zero_flag() {
+static void test_determine_zero_flag() {
     cpu_registers registers;
     init_cpu_registers(&registers, 20, 0, 0, 0, 0, 0);
 
-    check_value_for_zero_flag(&registers, registers.A);
+    determine_zero_flag(&registers, registers.A);
     assert(registers.flags != ZERO_FLAG);
-    check_value_for_zero_flag(&registers, 0);
+    determine_zero_flag(&registers, 0);
     assert(registers.flags == ZERO_FLAG);
 }
 
-static void test_check_value_for_negative_flag() {
+static void test_determine_negative_flag() {
     cpu_registers registers;
     init_cpu_registers(&registers, 0, 0, 0, 0, 0, 0);
 
-    check_value_for_negative_flag(&registers, 0);
+    determine_negative_flag(&registers, 0);
     assert(registers.flags != NEGATIVE_FLAG);
-    check_value_for_negative_flag(&registers, 0x80);
+    determine_negative_flag(&registers, 0x80);
     assert(registers.flags == NEGATIVE_FLAG);
 }
 
@@ -80,19 +80,34 @@ static void test_base_add() {
     assert(compare_registers(&registers, 1, 0, 0, 0, 0, 0) == 1);
     base_add(&registers, 0xFF);
     assert(compare_registers(&registers, 0, 0, 0, 0, 0, CARRY_FLAG | ZERO_FLAG) == 1);
-    base_add(&registers, 63);
+    base_add(&registers, 63); // The carry makes it 64
     assert(compare_registers(&registers, 64, 0, 0, 0, 0, 0) == 1);
     base_add(&registers, 64);
     assert(compare_registers(&registers, 0x80, 0, 0, 0, 0, NEGATIVE_FLAG | OVERFLOW_FLAG) == 1);
+}
+
+static void test_base_and() {
+    cpu_registers registers;
+    init_cpu_registers(&registers, 0xFF, 0, 0, 0, 0, 0);
+
+    base_and(&registers, 0xFF);
+    assert(compare_registers(&registers, 0xFF, 0, 0, 0, 0, NEGATIVE_FLAG));
+    base_and(&registers, 0xA3);
+    assert(compare_registers(&registers, 0xA3, 0, 0, 0, 0, NEGATIVE_FLAG));
+    base_and(&registers, 0x03);
+    assert(compare_registers(&registers, 0x03, 0, 0, 0, 0, 0));
+    base_and(&registers, 0x0);
+    assert(compare_registers(&registers, 0, 0, 0, 0, 0, ZERO_FLAG));
 }
 
 void run_all_basic_cpu_operations_tests() {
     my_print("Running all basic cpu operation unit tests\n");
     test_set_cpu_flag();
     test_get_cpu_flag();
-    test_check_value_for_zero_flag();
-    test_check_value_for_negative_flag();
+    test_determine_zero_flag();
+    test_determine_negative_flag();
     test_base_add();
+    test_base_and();
     my_print("Done testing all basic cpu operation unit tests\n");
 }
 

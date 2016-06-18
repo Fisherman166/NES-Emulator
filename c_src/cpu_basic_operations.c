@@ -40,12 +40,12 @@ bool get_cpu_flag(cpu_registers* registers, uint8_t flag_to_get) {
     return registers->flags & flag_to_get;
 }
 
-void check_value_for_zero_flag(cpu_registers* registers, uint8_t value) {
+void determine_zero_flag(cpu_registers* registers, uint8_t value) {
     if(!value) set_cpu_flag(registers, ZERO_FLAG);
     else clear_cpu_flag(registers, ZERO_FLAG);
 }
 
-void check_value_for_negative_flag(cpu_registers* registers, uint8_t value) {
+void determine_negative_flag(cpu_registers* registers, uint8_t value) {
     const uint8_t negative_bit_position = 0x80;
     if(value & negative_bit_position) set_cpu_flag(registers, NEGATIVE_FLAG);
     else clear_cpu_flag(registers, NEGATIVE_FLAG);
@@ -65,7 +65,13 @@ void base_add(cpu_registers* registers, uint8_t operand) {
     else clear_cpu_flag(registers, CARRY_FLAG);
 
     registers->A = result & BYTE_MASK;
-    check_value_for_zero_flag(registers, registers->A);
-    check_value_for_negative_flag(registers, registers->A);
+    determine_zero_flag(registers, registers->A);
+    determine_negative_flag(registers, registers->A);
+}
+
+void base_and(cpu_registers* registers, uint8_t operand) {
+    registers->A = registers->A & operand;
+    determine_zero_flag(registers, registers->A);
+    determine_negative_flag(registers, registers->A);
 }
     
