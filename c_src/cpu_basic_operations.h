@@ -22,20 +22,25 @@ void init_cpu_registers(cpu_registers*, uint8_t, uint8_t, uint8_t, uint16_t,
 //*****************************************************************************
 // Status flag functions
 //*****************************************************************************
-#define CARRY_BIT       0x01
-#define ZERO_BIT        0x02
-#define INTERRUPT_BIT   0x04
-#define DECIMAL_BIT     0x08
-#define B1_BIT          0x10
-#define B2_BIT          0x20
-#define OVERFLOW_BIT    0x40
-#define NEGATIVE_BIT    0x80
+#define CARRY_FLAG       0x01
+#define ZERO_FLAG        0x02
+#define INTERRUPT_FLAG   0x04
+#define DECIMAL_FLAG     0x08
+#define B1_FLAG          0x10
+#define B2_FLAG          0x20
+#define OVERFLOW_FLAG    0x40
+#define NEGATIVE_FLAG    0x80
 
 void set_cpu_flag(cpu_registers*, uint8_t);
 void clear_cpu_flag(cpu_registers*, uint8_t);
 bool get_cpu_flag(cpu_registers*, uint8_t);
 void check_value_for_zero_flag(cpu_registers*, uint8_t);
 void check_value_for_negative_flag(cpu_registers*, uint8_t);
+
+//*****************************************************************************
+// Basic opcode operations
+//*****************************************************************************
+void base_add(cpu_registers*, uint8_t);
 
 #endif
 
