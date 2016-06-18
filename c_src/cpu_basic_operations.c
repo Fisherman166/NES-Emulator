@@ -42,4 +42,10 @@ void check_value_for_zero_flag(cpu_registers* registers, uint8_t value) {
     if(!value) set_cpu_flag(registers, ZERO_BIT);
     else clear_cpu_flag(registers, ZERO_BIT);
 }
+
+void check_value_for_negative_flag(cpu_registers* registers, uint8_t value) {
+    const uint8_t negative_bit_position = 0x80;
+    if(value & negative_bit_position) set_cpu_flag(registers, NEGATIVE_BIT);
+    else clear_cpu_flag(registers, NEGATIVE_BIT);
+}
     

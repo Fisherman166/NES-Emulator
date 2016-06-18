@@ -35,6 +35,7 @@ void set_cpu_flag(cpu_registers*, uint8_t);
 void clear_cpu_flag(cpu_registers*, uint8_t);
 bool get_cpu_flag(cpu_registers*, uint8_t);
 void check_value_for_zero_flag(cpu_registers*, uint8_t);
+void check_value_for_negative_flag(cpu_registers*, uint8_t);
 
 #endif
 
