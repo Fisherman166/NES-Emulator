@@ -128,11 +128,11 @@ static void test_base_compare() {
     cpu_registers registers;
     init_cpu_registers(&registers, 0x2, 0, 0, 0, 0, 0);
 
-    base_compare(&registers, 0x2);
+    base_compare(&registers, registers.A, 0x2);
     assert(compare_registers(&registers, 0x2, 0, 0, 0, 0, CARRY_FLAG | ZERO_FLAG) == 1);
-    base_compare(&registers, 0x1);
+    base_compare(&registers, registers.A, 0x1);
     assert(compare_registers(&registers, 0x2, 0, 0, 0, 0, CARRY_FLAG) == 1);
-    base_compare(&registers, 0x7F);
+    base_compare(&registers, registers.A, 0x7F);
     assert(compare_registers(&registers, 0x2, 0, 0, 0, 0, NEGATIVE_FLAG) == 1);
 }
 
