@@ -124,6 +124,18 @@ static void test_base_bit_test() {
     assert(compare_registers(&registers, 0x20, 0, 0, 0, 0, OVERFLOW_FLAG | NEGATIVE_FLAG) == 1);
 }
 
+static void test_base_compare() {
+    cpu_registers registers;
+    init_cpu_registers(&registers, 0x2, 0, 0, 0, 0, 0);
+
+    base_compare(&registers, 0x2);
+    assert(compare_registers(&registers, 0x2, 0, 0, 0, 0, CARRY_FLAG | ZERO_FLAG) == 1);
+    base_compare(&registers, 0x1);
+    assert(compare_registers(&registers, 0x2, 0, 0, 0, 0, CARRY_FLAG) == 1);
+    base_compare(&registers, 0x7F);
+    assert(compare_registers(&registers, 0x2, 0, 0, 0, 0, NEGATIVE_FLAG) == 1);
+}
+
 void run_all_basic_cpu_operations_tests() {
     my_print("Running all basic cpu operation unit tests\n");
     test_set_cpu_flag();
@@ -134,6 +146,7 @@ void run_all_basic_cpu_operations_tests() {
     test_base_and();
     test_base_shift_left();
     test_base_bit_test();
+    test_base_compare();
     my_print("Done testing all basic cpu operation unit tests\n");
 }
 
