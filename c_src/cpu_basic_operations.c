@@ -11,6 +11,15 @@
 
 #define BYTE_MASK 0xFF
 
+#define BIT0_BITMASK 0x1
+#define BIT1_BITMASK 0x2
+#define BIT2_BITMASK 0x4
+#define BIT3_BITMASK 0x8
+#define BIT4_BITMASK 0x10
+#define BIT5_BITMASK 0x20
+#define BIT6_BITMASK 0x40
+#define BIT7_BITMASK 0x80
+
 //*****************************************************************************
 // General functions
 //*****************************************************************************
@@ -88,3 +97,12 @@ void base_shift_left(cpu_registers* registers, uint8_t* value_to_shift) {
     determine_negative_flag(registers, *value_to_shift);
 }
     
+void base_bit_test(cpu_registers* registers, uint8_t memory_value) {
+    uint8_t and_result = registers->A & memory_value;
+    determine_zero_flag(registers, and_result);
+    if(memory_value & BIT6_BITMASK) set_cpu_flag(registers, OVERFLOW_FLAG);
+    else clear_cpu_flag(registers, OVERFLOW_FLAG);
+    if(memory_value & BIT7_BITMASK) set_cpu_flag(registers, NEGATIVE_FLAG);
+    else clear_cpu_flag(registers, NEGATIVE_FLAG);
+}
+
