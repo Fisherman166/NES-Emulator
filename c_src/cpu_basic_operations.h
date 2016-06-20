@@ -42,7 +42,7 @@ void determine_negative_flag(cpu_registers*, uint8_t);
 //*****************************************************************************
 void base_add(cpu_registers*, uint8_t);
 void base_and(cpu_registers*, uint8_t);
-uint8_t base_shift_left(cpu_registers*, uint8_t);
+void base_shift_left(cpu_registers*, uint8_t*);
 
 #endif
 

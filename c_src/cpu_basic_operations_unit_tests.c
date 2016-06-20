@@ -104,11 +104,11 @@ static void test_base_shift_left() {
     cpu_registers registers;
     init_cpu_registers(&registers, 0x20, 0, 0, 0, 0, 0);
 
-    registers.A = base_shift_left(&registers, registers.A);
+    base_shift_left(&registers, &(registers.A));
     assert(compare_registers(&registers, 0x40, 0, 0, 0, 0, 0) == 1);
-    registers.A = base_shift_left(&registers, registers.A);
+    base_shift_left(&registers, &(registers.A));
     assert(compare_registers(&registers, 0x80, 0, 0, 0, 0, NEGATIVE_FLAG) == 1);
-    registers.A = base_shift_left(&registers, registers.A);
+    base_shift_left(&registers, &(registers.A));
     assert(compare_registers(&registers, 0x00, 0, 0, 0, 0, CARRY_FLAG | ZERO_FLAG) == 1);
 }
 

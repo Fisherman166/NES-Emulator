@@ -77,16 +77,14 @@ void base_and(cpu_registers* registers, uint8_t operand) {
 
 // This function has to be able to shift both the A register and
 // memory values.
-uint8_t base_shift_left(cpu_registers* registers, uint8_t value_to_shift) {
+void base_shift_left(cpu_registers* registers, uint8_t* value_to_shift) {
     const uint16_t carry_bit_position = 0x100;
-
-    uint16_t result = value_to_shift << 1;
-    uint8_t retval = result & BYTE_MASK;
+    uint16_t result = *value_to_shift << 1;
+    *value_to_shift = result & BYTE_MASK;
 
     if(result & carry_bit_position) set_cpu_flag(registers, CARRY_FLAG);
     else clear_cpu_flag(registers, CARRY_FLAG);
-    determine_zero_flag(registers, retval);
-    determine_negative_flag(registers, retval);
-    return retval;
+    determine_zero_flag(registers, *value_to_shift);
+    determine_negative_flag(registers, *value_to_shift);
 }
     
