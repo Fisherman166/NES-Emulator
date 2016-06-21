@@ -115,3 +115,9 @@ void base_compare(cpu_registers* registers, uint8_t register_value,
     if(compare_result >= 0) set_cpu_flag(registers, CARRY_FLAG);
     else clear_cpu_flag(registers, CARRY_FLAG);
 }
+
+void base_decrement(cpu_registers* registers, uint8_t* value_to_decrement) {
+    *value_to_decrement = *value_to_decrement - 1;
+    determine_zero_flag(registers, *value_to_decrement);
+    determine_negative_flag(registers, *value_to_decrement);
+}

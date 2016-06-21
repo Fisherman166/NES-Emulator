@@ -136,6 +136,18 @@ static void test_base_compare() {
     assert(compare_registers(&registers, 0x2, 0, 0, 0, 0, NEGATIVE_FLAG) == 1);
 }
 
+static void test_base_decrement() {
+    cpu_registers registers;
+    init_cpu_registers(&registers, 0x2, 0, 0, 0, 0, 0);
+
+    base_decrement(&registers, &(registers.A));
+    assert(compare_registers(&registers, 0x1, 0, 0, 0, 0, 0) == 1);
+    base_decrement(&registers, &(registers.A));
+    assert(compare_registers(&registers, 0x0, 0, 0, 0, 0, ZERO_FLAG) == 1);
+    base_decrement(&registers, &(registers.A));
+    assert(compare_registers(&registers, 0xFF, 0, 0, 0, 0, NEGATIVE_FLAG) == 1);
+}
+
 void run_all_basic_cpu_operations_tests() {
     my_print("Running all basic cpu operation unit tests\n");
     test_set_cpu_flag();
@@ -147,6 +159,7 @@ void run_all_basic_cpu_operations_tests() {
     test_base_shift_left();
     test_base_bit_test();
     test_base_compare();
+    test_base_decrement();
     my_print("Done testing all basic cpu operation unit tests\n");
 }
 
