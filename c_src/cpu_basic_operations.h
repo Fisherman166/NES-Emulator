@@ -47,6 +47,8 @@ void base_shift_left(cpu_registers*, uint8_t*);
 void base_bit_test(cpu_registers*, uint8_t);
 void base_compare(cpu_registers*, uint8_t, uint8_t);
 void base_decrement(cpu_registers*, uint8_t*);
+void base_increment(cpu_registers*, uint8_t*);
+void base_load_register(cpu_registers*, uint8_t*, uint8_t);
 
 #endif
 

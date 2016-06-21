@@ -127,3 +127,17 @@ void base_decrement(cpu_registers* registers, uint8_t* value_to_decrement) {
     determine_zero_flag(registers, *value_to_decrement);
     determine_negative_flag(registers, *value_to_decrement);
 }
+
+void base_increment(cpu_registers* registers, uint8_t* value_to_increment) {
+    *value_to_increment = *value_to_increment + 1;
+    determine_zero_flag(registers, *value_to_increment);
+    determine_negative_flag(registers, *value_to_increment);
+}
+
+void base_load_register(cpu_registers* registers, uint8_t* register_to_load,
+                        uint8_t memory_value)
+{
+    *register_to_load = memory_value;
+    determine_zero_flag(registers, *register_to_load);
+    determine_negative_flag(registers, *register_to_load);
+}
