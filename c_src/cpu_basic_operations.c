@@ -84,6 +84,12 @@ void base_and(cpu_registers* registers, uint8_t operand) {
     determine_negative_flag(registers, registers->A);
 }
 
+void base_xor(cpu_registers* registers, uint8_t memory_value) {
+    registers->A = registers->A ^ memory_value;
+    determine_zero_flag(registers, registers->A);
+    determine_negative_flag(registers, registers->A);
+}
+
 // This function has to be able to shift both the A register and
 // memory values.
 void base_shift_left(cpu_registers* registers, uint8_t* value_to_shift) {
