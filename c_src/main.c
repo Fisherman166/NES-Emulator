@@ -11,6 +11,7 @@
 #include "common.h"
 #include "common_cpu.h"
 #include "cpu_basic_operations_unit_tests.h"
+#include "cpu_decode_logic_unit_tests.h"
 
 bool parse_cmdline(int, char **);
 
@@ -18,6 +19,7 @@ int main(int argc, char *argv[]) {
     bool run_unit_tests = parse_cmdline(argc, argv);
     if(run_unit_tests) {
         run_all_basic_cpu_operations_tests();
+        run_all_cpu_decode_logic_tests();
         exit(EXIT_SUCCESS);
     }
 
