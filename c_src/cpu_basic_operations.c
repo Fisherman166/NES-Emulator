@@ -102,6 +102,18 @@ void base_shift_left(cpu_registers* registers, uint8_t* value_to_shift) {
     determine_zero_flag(registers, *value_to_shift);
     determine_negative_flag(registers, *value_to_shift);
 }
+
+void base_shift_right(cpu_registers* registers, uint8_t* value_to_shift) {
+    const uint16_t carry_bit_position = 0x1;
+    uint8_t result = *value_to_shift >> 1;
+
+    if(*value_to_shift & carry_bit_position) set_cpu_flag(registers, CARRY_FLAG);
+    else clear_cpu_flag(registers, CARRY_FLAG);
+    *value_to_shift = result;
+    determine_zero_flag(registers, *value_to_shift);
+    determine_negative_flag(registers, *value_to_shift);
+}
+
     
 void base_bit_test(cpu_registers* registers, uint8_t memory_value) {
     uint8_t and_result = registers->A & memory_value;
