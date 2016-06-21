@@ -8,6 +8,7 @@
 
 #include "cpu_basic_operations_unit_tests.h"
 #include "cpu_basic_operations.h"
+#include "memory_operations.h"
 
 //*****************************************************************************
 // Helper function
@@ -239,6 +240,17 @@ static void test_base_rotate_right() {
     assert(compare_registers(&registers, 0x39, 0, 0, 0, 0, 0) == 1);
 }
 
+static void test_base_store() {
+    cpu_registers registers;
+    init_cpu_registers(&registers, 0x23, 0, 0, 0, 0, 0);
+
+    base_store(0x100, &(registers.A));
+    assert(read_RAM(0x100) == 0x23);
+    registers.A = 0xFC;
+    base_store(0x100, &(registers.A));
+    assert(read_RAM(0x100) == 0xFC);
+}
+
 void run_all_basic_cpu_operations_tests() {
     my_print("Running all basic cpu operation unit tests\n");
     test_set_cpu_flag();
@@ -258,6 +270,7 @@ void run_all_basic_cpu_operations_tests() {
     test_base_load_registers();
     test_base_rotate_left();
     test_base_rotate_right();
+    test_base_store();
     my_print("Done testing all basic cpu operation unit tests\n");
 }
 

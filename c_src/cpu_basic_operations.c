@@ -8,6 +8,7 @@
 //*****************************************************************************
 
 #include "cpu_basic_operations.h"
+#include "memory_operations.h"
 
 #define BYTE_MASK 0xFF
 
@@ -176,4 +177,14 @@ void base_rotate_right(cpu_registers* registers, uint8_t* value_to_rotate) {
     *value_to_rotate = result & BYTE_MASK;
     determine_zero_flag(registers, *value_to_rotate);
     determine_negative_flag(registers, *value_to_rotate);
+}
+
+void base_subtract(cpu_registers* registers, uint8_t memory_value) {
+    // Subtract is the same as add but with the memory_value inverted
+    uint8_t inverted_memory_value = memory_value ^ 0xFF;
+    base_add(registers, inverted_memory_value);
+}
+
+void base_store(uint16_t address_to_store_in, uint8_t* register_to_store) {
+    write_RAM(address_to_store_in, *register_to_store);
 }

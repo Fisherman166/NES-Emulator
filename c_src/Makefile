@@ -1,6 +1,6 @@
 CC = gcc
 LIBS = 
-CFLAGS = -Wall
+CFLAGS = -Wall -std=c99
 TARGET = nes_emu
 
 .PHONY: default all clean
