@@ -168,3 +168,12 @@ void base_rotate_left(cpu_registers* registers, uint8_t* value_to_rotate) {
     determine_zero_flag(registers, *value_to_rotate);
     determine_negative_flag(registers, *value_to_rotate);
 }
+
+void base_rotate_right(cpu_registers* registers, uint8_t* value_to_rotate) {
+    uint16_t result = *value_to_rotate >> 1;
+    if(*value_to_rotate & BIT0_BITMASK) set_cpu_flag(registers, CARRY_FLAG);
+    else clear_cpu_flag(registers, CARRY_FLAG);
+    *value_to_rotate = result & BYTE_MASK;
+    determine_zero_flag(registers, *value_to_rotate);
+    determine_negative_flag(registers, *value_to_rotate);
+}

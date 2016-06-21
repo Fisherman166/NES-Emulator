@@ -225,6 +225,19 @@ static void test_base_rotate_left() {
     assert(compare_registers(&registers, 0xE6, 0, 0, 0, 0, CARRY_FLAG | NEGATIVE_FLAG) == 1);
 }
 
+static void test_base_rotate_right() {
+    cpu_registers registers;
+    init_cpu_registers(&registers, 0x0, 0, 0, 0, 0, 0);
+
+    base_rotate_right(&registers, &(registers.A));
+    assert(compare_registers(&registers, 0x00, 0, 0, 0, 0, ZERO_FLAG) == 1);
+    registers.A = 0x01;
+    base_rotate_right(&registers, &(registers.A));
+    assert(compare_registers(&registers, 0x00, 0, 0, 0, 0, CARRY_FLAG | ZERO_FLAG) == 1);
+    registers.A = 0x72;
+    base_rotate_right(&registers, &(registers.A));
+    assert(compare_registers(&registers, 0x39, 0, 0, 0, 0, 0) == 1);
+}
 
 void run_all_basic_cpu_operations_tests() {
     my_print("Running all basic cpu operation unit tests\n");
@@ -244,6 +257,7 @@ void run_all_basic_cpu_operations_tests() {
     test_base_increment();
     test_base_load_registers();
     test_base_rotate_left();
+    test_base_rotate_right();
     my_print("Done testing all basic cpu operation unit tests\n");
 }
 

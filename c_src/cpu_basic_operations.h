@@ -52,6 +52,7 @@ void base_decrement(cpu_registers*, uint8_t*);
 void base_increment(cpu_registers*, uint8_t*);
 void base_load_register(cpu_registers*, uint8_t*, uint8_t);
 void base_rotate_left(cpu_registers*, uint8_t*);
+void base_rotate_right(cpu_registers*, uint8_t*);
 
 #endif
 
