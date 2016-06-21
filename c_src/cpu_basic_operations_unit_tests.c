@@ -214,13 +214,13 @@ static void test_base_rotate_left() {
 
     base_rotate_left(&registers, &(registers.A));
     assert(compare_registers(&registers, 0x00, 0, 0, 0, 0, ZERO_FLAG) == 1);
-    registers.A = 0x1;
+    registers.A = 0x80;
     base_rotate_left(&registers, &(registers.A));
-    assert(compare_registers(&registers, 0x02, 0, 0, 0, 0, CARRY_FLAG) == 1);
+    assert(compare_registers(&registers, 0x00, 0, 0, 0, 0, CARRY_FLAG | ZERO_FLAG) == 1);
     registers.A = 0x72;
     base_rotate_left(&registers, &(registers.A));
     assert(compare_registers(&registers, 0xE4, 0, 0, 0, 0, NEGATIVE_FLAG) == 1);
-    registers.A = 0x73;
+    registers.A = 0xF3;
     base_rotate_left(&registers, &(registers.A));
     assert(compare_registers(&registers, 0xE6, 0, 0, 0, 0, CARRY_FLAG | NEGATIVE_FLAG) == 1);
 }

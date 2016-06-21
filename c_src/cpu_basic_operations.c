@@ -161,9 +161,8 @@ void base_load_register(cpu_registers* registers, uint8_t* register_to_load,
 }
 
 void base_rotate_left(cpu_registers* registers, uint8_t* value_to_rotate) {
-    const uint8_t carry_bit_position = 0x1;
     uint16_t result = *value_to_rotate << 1;
-    if(*value_to_rotate & carry_bit_position) set_cpu_flag(registers, CARRY_FLAG);
+    if(*value_to_rotate & BIT7_BITMASK) set_cpu_flag(registers, CARRY_FLAG);
     else clear_cpu_flag(registers, CARRY_FLAG);
     *value_to_rotate = result & BYTE_MASK;
     determine_zero_flag(registers, *value_to_rotate);
