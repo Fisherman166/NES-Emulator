@@ -12,7 +12,14 @@ uint8_t fetch_immediate(cpu_registers* registers) {
     return read_RAM(registers->PC);
 }
 
+
 uint8_t fetch_zeropage(cpu_registers* registers) {
     uint8_t zeropage_address = fetch_immediate(registers);
+    return read_RAM(zeropage_address);
+}
+
+
+uint8_t fetch_zeropageX(cpu_registers* registers) {
+    uint8_t zeropage_address = (fetch_immediate(registers) + registers->X) & BYTE_MASK;
     return read_RAM(zeropage_address);
 }

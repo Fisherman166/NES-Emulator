@@ -13,5 +13,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#define BYTE_MASK 0xFF
+
 #endif
 

@@ -10,8 +10,6 @@
 #include "cpu_basic_operations.h"
 #include "memory_operations.h"
 
-#define BYTE_MASK 0xFF
-
 #define BIT0_BITMASK 0x1
 #define BIT1_BITMASK 0x2
 #define BIT2_BITMASK 0x4
