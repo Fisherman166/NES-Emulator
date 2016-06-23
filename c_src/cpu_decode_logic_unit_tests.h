@@ -12,6 +12,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include "common.h"
+#include "common_cpu.h"
+#include "common_unit_test.h"
 
 void run_all_cpu_decode_logic_tests();
 

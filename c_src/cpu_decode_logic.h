@@ -11,5 +11,8 @@
 
 #include "common.h"
 #include "common_cpu.h"
+#include "memory_operations.h"
+
+uint8_t fetch_immediate(cpu_registers*);
 
 #endif

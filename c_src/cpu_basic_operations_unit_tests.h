@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "common.h"
+#include "common_unit_test.h"
 
 void run_all_basic_cpu_operations_tests();
 
