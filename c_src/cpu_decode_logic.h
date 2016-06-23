@@ -14,5 +14,6 @@
 #include "memory_operations.h"
 
 uint8_t fetch_immediate(cpu_registers*);
+uint8_t fetch_zeropage(cpu_registers*);
 
 #endif
