@@ -23,6 +23,16 @@ static void zeropageXY_writes() {
 }
 
 
+static void absolute_writes(cpu_registers* registers, uint8_t high, uint8_t low,
+                            uint8_t data)
+{
+    write_RAM(registers->PC, low);
+    write_RAM(registers->PC + 1, high);
+    uint16_t data_address = ((high << 8) | low) + registers->X + registers->Y;
+    write_RAM(data_address, data);
+}
+
+
 //*****************************************************************************
 // Unit tests
 //*****************************************************************************
@@ -74,15 +84,11 @@ static void test_absolute() {
     cpu_registers registers;
     init_cpu_registers(&registers, 0, 0x0, 0x0, 0x200, 0, 0);
 
-    write_RAM(0x200, 0x70);
-    write_RAM(0x201, 0x16);
-    write_RAM(0x1670, 0x13);
+    absolute_writes(&registers, 0x16, 0x70, 0x13);
     assert(fetch_absolute(&registers) == 0x13);
 
     registers.PC += 2;
-    write_RAM(0x202, 0xF0);
-    write_RAM(0x203, 0x67);
-    write_RAM(0x67F0, 0x14);
+    absolute_writes(&registers, 0x67, 0xF0, 0x14);
     assert(fetch_absolute(&registers) == 0x14);
 }
 
@@ -90,15 +96,11 @@ static void test_absoluteX() {
     cpu_registers registers;
     init_cpu_registers(&registers, 0, 0xA, 0x0, 0x200, 0, 0);
 
-    write_RAM(0x200, 0x70);
-    write_RAM(0x201, 0x16);
-    write_RAM(0x167A, 0x13);
+    absolute_writes(&registers, 0x16, 0x70, 0x13);
     assert(fetch_absoluteX(&registers) == 0x13);
 
     registers.PC += 2;
-    write_RAM(0x202, 0xF0);
-    write_RAM(0x203, 0x67);
-    write_RAM(0x67FA, 0x14);
+    absolute_writes(&registers, 0x67, 0xF0, 0x14);
     assert(fetch_absoluteX(&registers) == 0x14);
 }
 
