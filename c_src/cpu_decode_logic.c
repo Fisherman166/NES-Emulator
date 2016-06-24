@@ -57,3 +57,10 @@ uint8_t fetch_absoluteX(cpu_registers* registers) {
     return read_RAM(data_address);
 }
 
+
+uint8_t fetch_absoluteY(cpu_registers* registers) {
+    uint16_t data_address = decode_absolute_base_address(registers);
+    data_address += registers->Y;
+    return read_RAM(data_address);
+}
+

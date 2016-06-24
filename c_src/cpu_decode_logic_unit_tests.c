@@ -96,12 +96,25 @@ static void test_absoluteX() {
     cpu_registers registers;
     init_cpu_registers(&registers, 0, 0xA, 0x0, 0x200, 0, 0);
 
-    absolute_writes(&registers, 0x16, 0x70, 0x13);
-    assert(fetch_absoluteX(&registers) == 0x13);
+    absolute_writes(&registers, 0x16, 0x70, 0x15);
+    assert(fetch_absoluteX(&registers) == 0x15);
 
     registers.PC += 2;
-    absolute_writes(&registers, 0x67, 0xF0, 0x14);
-    assert(fetch_absoluteX(&registers) == 0x14);
+    absolute_writes(&registers, 0x67, 0xF0, 0x16);
+    assert(fetch_absoluteX(&registers) == 0x16);
+}
+
+
+static void test_absoluteY() {
+    cpu_registers registers;
+    init_cpu_registers(&registers, 0, 0x0, 0xA, 0x200, 0, 0);
+
+    absolute_writes(&registers, 0x16, 0x70, 0x17);
+    assert(fetch_absoluteY(&registers) == 0x17);
+
+    registers.PC += 2;
+    absolute_writes(&registers, 0x67, 0xF0, 0x18);
+    assert(fetch_absoluteY(&registers) == 0x18);
 }
 
 void run_all_cpu_decode_logic_tests() {
@@ -112,6 +125,7 @@ void run_all_cpu_decode_logic_tests() {
     test_zeropageY();
     test_absolute();
     test_absoluteX();
+    test_absoluteY();
     my_print("Done testing all cpu decode logic tests\n");
 }
 
