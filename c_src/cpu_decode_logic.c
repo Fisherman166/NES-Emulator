@@ -24,8 +24,25 @@ uint8_t fetch_zeropageX(cpu_registers* registers) {
     return read_RAM(zeropage_address);
 }
 
+
 uint8_t fetch_zeropageY(cpu_registers* registers) {
     uint8_t zeropage_address = (fetch_immediate(registers) + registers->Y) & BYTE_MASK;
     return read_RAM(zeropage_address);
+}
+
+
+uint8_t fetch_absolute(cpu_registers* registers) {
+    uint8_t low_byte = read_RAM(registers->PC);
+    uint8_t high_byte = read_RAM(registers->PC + 1);
+    uint16_t data_address = (high_byte << 8) | low_byte;
+    return read_RAM(data_address);
+}
+
+
+uint8_t fetch_absoluteX(cpu_registers* registers) {
+    uint8_t low_byte = read_RAM(registers->PC);
+    uint8_t high_byte = read_RAM(registers->PC + 1);
+    uint16_t data_address = ((high_byte << 8) | low_byte) + registers->X;
+    return read_RAM(data_address);
 }
 
