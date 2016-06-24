@@ -16,5 +16,6 @@
 uint8_t fetch_immediate(cpu_registers*);
 uint8_t fetch_zeropage(cpu_registers*);
 uint8_t fetch_zeropageX(cpu_registers*);
+uint8_t fetch_zeropageY(cpu_registers*);
 
 #endif
