@@ -117,6 +117,17 @@ static void test_absoluteY() {
     assert(fetch_absoluteY(&registers) == 0x18);
 }
 
+static void test_indirectX() {
+    cpu_registers registers;
+    init_cpu_registers(&registers, 0, 0x5, 0x0, 0x200, 0, 0);
+
+    write_RAM(0x200, 0xFF);
+    write_RAM(0x4, 0x00);
+    write_RAM(0x5, 0x0A);
+    write_RAM(0xA00, 0x1E);
+    assert(fetch_indirectX(&registers) == 0x1E);
+}
+
 void run_all_cpu_decode_logic_tests() {
     my_print("Running all cpu decode logic tests\n");
     test_immediate();
@@ -126,6 +137,7 @@ void run_all_cpu_decode_logic_tests() {
     test_absolute();
     test_absoluteX();
     test_absoluteY();
+    test_indirectX();
     my_print("Done testing all cpu decode logic tests\n");
 }
 

@@ -20,5 +20,7 @@ uint8_t fetch_zeropageY(cpu_registers*);
 uint8_t fetch_absolute(cpu_registers*);
 uint8_t fetch_absoluteX(cpu_registers*);
 uint8_t fetch_absoluteY(cpu_registers*);
+uint8_t fetch_indirectX(cpu_registers*);
+
 
 #endif
