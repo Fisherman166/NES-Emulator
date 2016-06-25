@@ -76,10 +76,21 @@ uint8_t fetch_absoluteY(cpu_registers* registers) {
 //*****************************************************************************
 uint8_t fetch_indirectX(cpu_registers* registers) {
     uint8_t low_byte_address = zeropageX_address(registers);
-    uint8_t low_byte = read_RAM(low_byte_address);
     uint8_t high_byte_address = (low_byte_address + 1) & BYTE_MASK;
+
+    uint8_t low_byte = read_RAM(low_byte_address);
     uint8_t high_byte = read_RAM(high_byte_address);
     uint16_t indirect_address = (high_byte << 8) | low_byte;
+    return read_RAM(indirect_address);
+}
+
+uint8_t fetch_indirectY(cpu_registers* registers) {
+    uint8_t zeropage_address = fetch_immediate(registers);
+    uint8_t low_byte_address = read_RAM(zeropage_address);
+    uint8_t high_byte_address = read_RAM((zeropage_address + 1) & BYTE_MASK);
+    uint8_t low_byte = read_RAM(low_byte_address);
+    uint8_t high_byte = read_RAM(high_byte_address);
+    uint16_t indirect_address = ((high_byte << 8) | low_byte) + registers->Y;
     return read_RAM(indirect_address);
 }
 
