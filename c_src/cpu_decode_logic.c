@@ -16,6 +16,12 @@ uint8_t fetch_immediate(cpu_registers* registers) {
 //*****************************************************************************
 // Zeropage decode functions
 //*****************************************************************************
+static uint8_t zeropageX_address(cpu_registers* registers) {
+    uint8_t low_byte_address = (fetch_immediate(registers) + registers->X) & BYTE_MASK;
+    return low_byte_address;
+}
+
+
 uint8_t fetch_zeropage(cpu_registers* registers) {
     uint8_t zeropage_address = fetch_immediate(registers);
     return read_RAM(zeropage_address);
@@ -23,7 +29,7 @@ uint8_t fetch_zeropage(cpu_registers* registers) {
 
 
 uint8_t fetch_zeropageX(cpu_registers* registers) {
-    uint8_t zeropage_address = (fetch_immediate(registers) + registers->X) & BYTE_MASK;
+    uint8_t zeropage_address = zeropageX_address(registers);
     return read_RAM(zeropage_address);
 }
 
@@ -65,8 +71,11 @@ uint8_t fetch_absoluteY(cpu_registers* registers) {
 }
 
 
+//*****************************************************************************
+// Indirect decode functions
+//*****************************************************************************
 uint8_t fetch_indirectX(cpu_registers* registers) {
-    uint8_t low_byte_address = (fetch_immediate(registers) + registers->X) & BYTE_MASK;
+    uint8_t low_byte_address = zeropageX_address(registers);
     uint8_t low_byte = read_RAM(low_byte_address);
     uint8_t high_byte_address = (low_byte_address + 1) & BYTE_MASK;
     uint8_t high_byte = read_RAM(high_byte_address);
