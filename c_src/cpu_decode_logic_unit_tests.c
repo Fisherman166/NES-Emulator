@@ -95,26 +95,42 @@ static void test_absolute() {
 static void test_absoluteX() {
     cpu_registers registers;
     init_cpu_registers(&registers, 0, 0xA, 0x0, 0x200, 0, 0);
+    bool page_crossed;
 
     absolute_writes(&registers, 0x16, 0x70, 0x15);
-    assert(fetch_absoluteX(&registers) == 0x15);
+    assert(fetch_absoluteX(&registers, &page_crossed) == 0x15);
+    assert(page_crossed == false);
 
     registers.PC += 2;
     absolute_writes(&registers, 0x67, 0xF0, 0x16);
-    assert(fetch_absoluteX(&registers) == 0x16);
+    assert(fetch_absoluteX(&registers, &page_crossed) == 0x16);
+    assert(page_crossed == false);
+
+    registers.PC += 2;
+    absolute_writes(&registers, 0x10, 0xFF, 0x25);
+    assert(fetch_absoluteX(&registers, &page_crossed) == 0x25);
+    assert(page_crossed == true);
 }
 
 
 static void test_absoluteY() {
     cpu_registers registers;
     init_cpu_registers(&registers, 0, 0x0, 0xA, 0x200, 0, 0);
+    bool page_crossed;
 
     absolute_writes(&registers, 0x16, 0x70, 0x17);
-    assert(fetch_absoluteY(&registers) == 0x17);
+    assert(fetch_absoluteY(&registers, &page_crossed) == 0x17);
+    assert(page_crossed == false);
 
     registers.PC += 2;
     absolute_writes(&registers, 0x67, 0xF0, 0x18);
-    assert(fetch_absoluteY(&registers) == 0x18);
+    assert(fetch_absoluteY(&registers, &page_crossed) == 0x18);
+    assert(page_crossed == false);
+
+    registers.PC += 2;
+    absolute_writes(&registers, 0x10, 0xFF, 0x26);
+    assert(fetch_absoluteY(&registers, &page_crossed) == 0x26);
+    assert(page_crossed == true);
 }
 
 static void test_indirectX() {

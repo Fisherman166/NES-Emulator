@@ -8,6 +8,14 @@
 
 #include "cpu_decode_logic.h"
 
+static bool is_page_crossed(uint16_t calculated_address, uint8_t register_value) {
+    const uint16_t page_mask = 0xFF00;
+    uint16_t reg_value_sub = calculated_address - register_value;
+    if((calculated_address & page_mask) == (reg_value_sub & page_mask)) return false;
+    else return true;
+}
+
+
 uint8_t fetch_immediate(cpu_registers* registers) {
     return read_RAM(registers->PC);
 }
@@ -57,16 +65,18 @@ uint8_t fetch_absolute(cpu_registers* registers) {
 }
 
 
-uint8_t fetch_absoluteX(cpu_registers* registers) {
+uint8_t fetch_absoluteX(cpu_registers* registers, bool* page_crossed) {
     uint16_t data_address = decode_absolute_base_address(registers);
     data_address += registers->X;
+    *page_crossed = is_page_crossed(data_address, registers->X);
     return read_RAM(data_address);
 }
 
 
-uint8_t fetch_absoluteY(cpu_registers* registers) {
+uint8_t fetch_absoluteY(cpu_registers* registers, bool* page_crossed) {
     uint16_t data_address = decode_absolute_base_address(registers);
     data_address += registers->Y;
+    *page_crossed = is_page_crossed(data_address, registers->Y);
     return read_RAM(data_address);
 }
 
@@ -84,13 +94,14 @@ uint8_t fetch_indirectX(cpu_registers* registers) {
     return read_RAM(indirect_address);
 }
 
-uint8_t fetch_indirectY(cpu_registers* registers) {
+uint8_t fetch_indirectY(cpu_registers* registers, bool* page_crossed) {
     uint8_t zeropage_address = fetch_immediate(registers);
     uint8_t low_byte_address = read_RAM(zeropage_address);
     uint8_t high_byte_address = read_RAM((zeropage_address + 1) & BYTE_MASK);
     uint8_t low_byte = read_RAM(low_byte_address);
     uint8_t high_byte = read_RAM(high_byte_address);
     uint16_t indirect_address = ((high_byte << 8) | low_byte) + registers->Y;
+    *page_crossed = is_page_crossed(indirect_address, registers->Y);
     return read_RAM(indirect_address);
 }
 
