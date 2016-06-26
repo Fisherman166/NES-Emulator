@@ -13,6 +13,23 @@
 #include "common_cpu.h"
 #include "memory_operations.h"
 
+//*****************************************************************************
+// Address calculation functions
+//*****************************************************************************
+uint8_t calc_zeropage_address(cpu_registers*);
+uint8_t calc_zeropageX_address(cpu_registers*);
+uint8_t calc_zeropageY_address(cpu_registers*);
+
+uint16_t calc_absolute_address(cpu_registers*);
+uint16_t calc_absoluteX_address(cpu_registers*);
+uint16_t calc_absoluteY_address(cpu_registers*);
+
+uint16_t calc_indirectX_address(cpu_registers*);
+uint16_t calc_indirectY_address(cpu_registers*);
+
+//*****************************************************************************
+// Data read functions
+//*****************************************************************************
 uint8_t fetch_immediate(cpu_registers*);
 uint8_t fetch_zeropage(cpu_registers*);
 uint8_t fetch_zeropageX(cpu_registers*);
