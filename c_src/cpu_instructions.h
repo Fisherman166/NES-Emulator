@@ -46,5 +46,22 @@ void zeropageX_ASL(cpu_registers*);
 void absolute_ASL(cpu_registers*);
 void absoluteX_ASL(cpu_registers*);
 
+//*****************************************************************************
+// Relative branches based on flags
+//*****************************************************************************
+uint8_t BCC(cpu_registers*);
+uint8_t BSC(cpu_registers*);
+uint8_t BEQ(cpu_registers*);
+uint8_t BMI(cpu_registers*);
+uint8_t BNE(cpu_registers*);
+uint8_t BPL(cpu_registers*);
+uint8_t BVC(cpu_registers*);
+uint8_t BVS(cpu_registers*);
+
+void zeropage_BIT(cpu_registers*);
+void absolute_BIT(cpu_registers*);
+
+
+
 #endif
 

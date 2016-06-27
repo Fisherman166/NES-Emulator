@@ -8,10 +8,9 @@
 
 #include "cpu_decode_logic.h"
 
-static bool is_page_crossed(uint16_t calculated_address, uint8_t register_value) {
+static bool is_page_crossed(uint16_t original_address, uint16_t branch_address) {
     const uint16_t page_mask = 0xFF00;
-    uint16_t reg_value_sub = calculated_address - register_value;
-    if((calculated_address & page_mask) == (reg_value_sub & page_mask)) return false;
+    if((original_address & page_mask) == (branch_address & page_mask)) return false;
     else return true;
 }
 
@@ -111,14 +110,16 @@ uint8_t fetch_absolute(cpu_registers* registers) {
 
 uint8_t fetch_absoluteX(cpu_registers* registers, bool* page_crossed) {
     uint16_t absoluteX_address = calc_absoluteX_address(registers);
-    *page_crossed = is_page_crossed(absoluteX_address, registers->X);
+    if(page_crossed) *page_crossed = is_page_crossed(absoluteX_address - registers->X,
+                                                     absoluteX_address);
     return read_RAM(absoluteX_address);
 }
 
 
 uint8_t fetch_absoluteY(cpu_registers* registers, bool* page_crossed) {
     uint16_t absoluteY_address = calc_absoluteY_address(registers);
-    *page_crossed = is_page_crossed(absoluteY_address, registers->Y);
+    if(page_crossed) *page_crossed = is_page_crossed(absoluteY_address - registers->Y,
+                                                     absoluteY_address);
     return read_RAM(absoluteY_address);
 }
 
@@ -132,7 +133,16 @@ uint8_t fetch_indirectX(cpu_registers* registers) {
 
 uint8_t fetch_indirectY(cpu_registers* registers, bool* page_crossed) {
     uint16_t indirectY_address = calc_indirectY_address(registers);
-    *page_crossed = is_page_crossed(indirectY_address, registers->Y);
+    if(page_crossed) *page_crossed = is_page_crossed(indirectY_address - registers->Y,
+                                                     indirectY_address);
     return read_RAM(indirectY_address);
+}
+
+
+bool branch_relative(cpu_registers* registers) {
+    int8_t offset = read_RAM(registers->PC);
+    bool page_crossed = is_page_crossed(registers->PC, registers->PC + offset);
+    registers->PC += offset;
+    return page_crossed;
 }
 

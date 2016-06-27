@@ -41,4 +41,7 @@ uint8_t fetch_indirectX(cpu_registers*);
 uint8_t fetch_indirectY(cpu_registers*, bool*);
 
 
+bool branch_relative(cpu_registers*);
+
+
 #endif
