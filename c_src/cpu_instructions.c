@@ -180,44 +180,73 @@ void absoluteX_ASL(cpu_registers* registers) {
 //*****************************************************************************
 // Relative branches based on flags
 //*****************************************************************************
-uint8_t BCC(cpu_registers* registers) {
+uint8_t implied_BCC(cpu_registers* registers) {
     return branch_on_flag_clear(registers, CARRY_FLAG);
 }
 
 
-uint8_t BSC(cpu_registers* registers) {
+uint8_t implied_BSC(cpu_registers* registers) {
     return branch_on_flag_set(registers, CARRY_FLAG);
 }
 
 
-uint8_t BEQ(cpu_registers* registers) {
+uint8_t implied_BEQ(cpu_registers* registers) {
     return branch_on_flag_set(registers, ZERO_FLAG);
 }
 
 
-uint8_t BMI(cpu_registers* registers) {
+uint8_t implied_BMI(cpu_registers* registers) {
     return branch_on_flag_set(registers, NEGATIVE_FLAG);
 }
 
 
-uint8_t BNE(cpu_registers* registers) {
+uint8_t implied_BNE(cpu_registers* registers) {
     return branch_on_flag_clear(registers, ZERO_FLAG);
 }
 
-uint8_t BPL(cpu_registers* registers) {
+uint8_t implied_BPL(cpu_registers* registers) {
     return branch_on_flag_clear(registers, NEGATIVE_FLAG);
 }
 
 
-uint8_t BCV(cpu_registers* registers) {
+uint8_t implied_BCV(cpu_registers* registers) {
     return branch_on_flag_clear(registers, OVERFLOW_FLAG);
 }
 
 
-uint8_t BVS(cpu_registers* registers) {
+uint8_t implied_BVS(cpu_registers* registers) {
     return branch_on_flag_set(registers, OVERFLOW_FLAG);
 }
 
+//*****************************************************************************
+// Interrupts
+//*****************************************************************************
+static void push_PC_onto_stack(cpu_registers* registers, uint16_t PC) {
+    const uint16_t high_byte_mask = 0xFF00;
+    uint8_t low_byte = PC & BYTE_MASK;
+    uint8_t high_byte = ((PC & high_byte_mask) >> 8) & BYTE_MASK;
+    push_stack(registers, low_byte);
+    push_stack(registers, high_byte);
+}
+
+static void load_IRQ_vector_into_PC(cpu_registers* registers) {
+    const uint16_t low_byte_IRQ_vector = 0xFFFE;
+    const uint16_t high_byte_IRQ_vector = 0xFFFF;
+    registers->PC = read_RAM(high_byte_IRQ_vector) << 8;
+    registers->PC |= read_RAM(low_byte_IRQ_vector);
+}
+
+void implied_BRK(cpu_registers* registers) {
+    // Pushes PC + 2 from instruction fetch for some reason
+    push_PC_onto_stack(registers, registers->PC + 1);
+    push_stack(registers, registers->flags);
+    load_IRQ_vector_into_PC(registers);
+    set_cpu_flag(registers, INTERRUPT_FLAG);
+}
+
+//*****************************************************************************
+// BIT tests
+//*****************************************************************************
 void zeropage_BIT(cpu_registers* registers) {
     uint8_t data = fetch_zeropage(registers);
     base_bit_test(registers, data);
@@ -226,4 +255,108 @@ void zeropage_BIT(cpu_registers* registers) {
 void absolute_BIT(cpu_registers* registers) {
     uint8_t data = fetch_absolute(registers);
     base_bit_test(registers, data);
+}
+
+//*****************************************************************************
+// Flag Clearers
+//*****************************************************************************
+void implied_CLC(cpu_registers* registers) {
+    clear_cpu_flag(registers, CARRY_FLAG);
+}
+
+void implied_CLD(cpu_registers* registers) {
+    clear_cpu_flag(registers, DECIMAL_FLAG);
+}
+
+void implied_CLI(cpu_registers* registers) {
+    clear_cpu_flag(registers, INTERRUPT_FLAG);
+}
+
+void implied_CLV(cpu_registers* registers) {
+    clear_cpu_flag(registers, OVERFLOW_FLAG);
+}
+
+//*****************************************************************************
+// Accumulator Compares
+//*****************************************************************************
+void immediate_CMP(cpu_registers* registers) {
+    uint8_t data = fetch_immediate(registers);
+    base_compare(registers, registers->A, data);
+}
+
+void zeropage_CMP(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_compare(registers, registers->A, data);
+}
+
+void zeropageX_CMP(cpu_registers* registers) {
+    uint8_t data = fetch_zeropageX(registers);
+    base_compare(registers, registers->A, data);
+}
+
+void absolute_CMP(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_compare(registers, registers->A, data);
+}
+
+bool absoluteX_CMP(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_absoluteX(registers, &page_crossed);
+    base_compare(registers, registers->A, data);
+    return page_crossed;
+}
+
+bool absoluteY_CMP(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_absoluteY(registers, &page_crossed);
+    base_compare(registers, registers->A, data);
+    return page_crossed;
+}
+
+void indirectX_CMP(cpu_registers* registers) {
+    uint8_t data = fetch_indirectX(registers);
+    base_compare(registers, registers->A, data);
+}
+
+bool indirectY_CMP(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_indirectY(registers, &page_crossed);
+    base_compare(registers, registers->A, data);
+    return page_crossed;
+}
+
+//*****************************************************************************
+// X compares
+//*****************************************************************************
+void immediate_CPX(cpu_registers* registers) {
+    uint8_t data = fetch_immediate(registers);
+    base_compare(registers, registers->X, data);
+}
+
+void zeropage_CPX(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_compare(registers, registers->X, data);
+}
+
+void absolute_CPX(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_compare(registers, registers->X, data);
+}
+
+//*****************************************************************************
+// Y compares
+//*****************************************************************************
+void immediate_CPY(cpu_registers* registers) {
+    uint8_t data = fetch_immediate(registers);
+    base_compare(registers, registers->Y, data);
+}
+
+void zeropage_CPY(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_compare(registers, registers->Y, data);
+}
+
+void absolute_CPY(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_compare(registers, registers->Y, data);
 }
