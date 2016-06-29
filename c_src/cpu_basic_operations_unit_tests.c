@@ -231,6 +231,24 @@ static void test_base_store() {
     assert(read_RAM(0x100) == 0xFC);
 }
 
+static void test_stack() {
+    cpu_registers registers;
+    init_cpu_registers(&registers, 0x24, 0, 0, 0, 0x00, 0);
+
+    push_stack(&registers, 0xFF);
+    assert(compare_registers(&registers, 0x24, 0, 0, 0, 0xFF, 0) == 1);
+    assert(read_RAM(0x100) == 0xFF);
+
+    push_stack(&registers, 0xFE);
+    assert(compare_registers(&registers, 0x24, 0, 0, 0, 0xFE, 0) == 1);
+    assert(read_RAM(0x1FF) == 0xFE);
+
+    assert(pop_stack(&registers) == 0xFE);
+    assert(compare_registers(&registers, 0x24, 0, 0, 0, 0xFF, 0) == 1);
+    assert(pop_stack(&registers) == 0xFF);
+    assert(compare_registers(&registers, 0x24, 0, 0, 0, 0x00, 0) == 1);
+}
+
 void run_all_basic_cpu_operations_tests() {
     my_print("Running all basic cpu operation unit tests\n");
     test_set_cpu_flag();
@@ -251,6 +269,7 @@ void run_all_basic_cpu_operations_tests() {
     test_base_rotate_left();
     test_base_rotate_right();
     test_base_store();
+    test_stack();
     my_print("Done testing all basic cpu operation unit tests\n");
 }
 

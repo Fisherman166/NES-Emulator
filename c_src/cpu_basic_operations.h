@@ -56,5 +56,12 @@ void base_rotate_right(cpu_registers*, uint8_t*);
 void base_subtract(cpu_registers*, uint8_t);
 void base_store(uint16_t, uint8_t*);
 
+//*****************************************************************************
+// Stack functions
+//*****************************************************************************
+void push_stack(cpu_registers*, uint8_t);
+uint8_t pop_stack(cpu_registers*);
+
+
 #endif
 

@@ -186,3 +186,25 @@ void base_subtract(cpu_registers* registers, uint8_t memory_value) {
 void base_store(uint16_t address_to_store_in, uint8_t* register_to_store) {
     write_RAM(address_to_store_in, *register_to_store);
 }
+
+//*****************************************************************************
+// Stack functions
+//*****************************************************************************
+static uint16_t generate_stack_address(uint8_t stack_offset) {
+    const uint16_t bottom_of_stack = 0x100;
+    uint16_t stack_address = bottom_of_stack + stack_offset;
+    return stack_address;
+}
+
+void push_stack(cpu_registers* registers, uint8_t data) {
+    uint16_t stack_address = generate_stack_address(registers->S);  
+    write_RAM(stack_address, data);
+    registers->S--;
+}
+
+uint8_t pop_stack(cpu_registers* registers) {
+    registers->S++;
+    uint16_t stack_address = generate_stack_address(registers->S);  
+    return read_RAM(stack_address);
+}
+    
