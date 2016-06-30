@@ -447,3 +447,247 @@ bool indirectY_EOR(cpu_registers* registers) {
     base_xor(registers, data);
     return page_crossed;
 }
+
+//*****************************************************************************
+// INC
+//*****************************************************************************
+void zeropage_INC(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_increment(registers, &data);
+    write_zeropage(registers, data);
+}
+
+void zeropageX_INC(cpu_registers* registers) {
+    uint8_t data = fetch_zeropageX(registers);
+    base_increment(registers, &data);
+    write_zeropageX(registers, data);
+}
+
+void absolute_INC(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_increment(registers, &data);
+    write_absolute(registers, data);
+}
+
+void absoluteX_INC(cpu_registers* registers) {
+    uint8_t data = fetch_absoluteX(registers, NULL);
+    base_increment(registers, &data);
+    write_absoluteX(registers, data);
+}
+
+//*****************************************************************************
+// INX and INY
+//*****************************************************************************
+void implied_INX(cpu_registers* registers) {
+    base_increment(registers, &(registers->X));
+}
+
+void implied_INY(cpu_registers* registers) {
+    base_increment(registers, &(registers->Y));
+}
+
+//*****************************************************************************
+// JMP, JSR
+//*****************************************************************************
+void absolute_JMP(cpu_registers* registers) {
+    registers->PC = calc_absolute_address(registers);
+}
+
+void absolute_JSR(cpu_registers* registers) {
+    push_PC_onto_stack(registers, registers->PC + 1);
+    registers->PC = calc_absolute_address(registers);
+}
+
+//*****************************************************************************
+// LDA
+//*****************************************************************************
+void immediate_LDA(cpu_registers* registers) {
+    uint8_t data = fetch_immediate(registers);
+    base_load_register(registers, &(registers->A), data);
+}
+
+void zeropage_LDA(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_load_register(registers, &(registers->A), data);
+}
+
+void zeropageX_LDA(cpu_registers* registers) {
+    uint8_t data = fetch_zeropageX(registers);
+    base_load_register(registers, &(registers->A), data);
+}
+
+void absolute_LDA(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_load_register(registers, &(registers->A), data);
+}
+
+bool absoluteX_LDA(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_absoluteX(registers, &page_crossed);
+    base_load_register(registers, &(registers->A), data);
+    return page_crossed;
+}
+
+bool absoluteY_LDA(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_absoluteY(registers, &page_crossed);
+    base_load_register(registers, &(registers->A), data);
+    return page_crossed;
+}
+
+void indirectX_LDA(cpu_registers* registers) {
+    uint8_t data = fetch_indirectX(registers);
+    base_load_register(registers, &(registers->A), data);
+}
+
+bool indirectY_LDA(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_indirectY(registers, &page_crossed);
+    base_load_register(registers, &(registers->A), data);
+    return page_crossed;
+}
+
+//*****************************************************************************
+// LDX
+//*****************************************************************************
+void immediate_LDX(cpu_registers* registers) {
+    uint8_t data = fetch_immediate(registers);
+    base_load_register(registers, &(registers->X), data);
+}
+
+void zeropage_LDX(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_load_register(registers, &(registers->X), data);
+}
+
+void zeropageY_LDX(cpu_registers* registers) {
+    uint8_t data = fetch_zeropageY(registers);
+    base_load_register(registers, &(registers->X), data);
+}
+
+void absolute_LDX(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_load_register(registers, &(registers->X), data);
+}
+
+bool absoluteY_LDX(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_absoluteY(registers, &page_crossed);
+    base_load_register(registers, &(registers->X), data);
+    return page_crossed;
+}
+
+//*****************************************************************************
+// LDY
+//*****************************************************************************
+void immediate_LDY(cpu_registers* registers) {
+    uint8_t data = fetch_immediate(registers);
+    base_load_register(registers, &(registers->Y), data);
+}
+
+void zeropage_LDY(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_load_register(registers, &(registers->Y), data);
+}
+
+void zeropageX_LDY(cpu_registers* registers) {
+    uint8_t data = fetch_zeropageX(registers);
+    base_load_register(registers, &(registers->Y), data);
+}
+
+void absolute_LDY(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_load_register(registers, &(registers->Y), data);
+}
+
+bool absoluteX_LDY(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_absoluteX(registers, &page_crossed);
+    base_load_register(registers, &(registers->Y), data);
+    return page_crossed;
+}
+
+//*****************************************************************************
+// LSR
+//*****************************************************************************
+void accumulator_LSR(cpu_registers* registers) {
+    base_shift_right(registers, &(registers->A));
+}
+
+void zeropage_LSR(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_shift_right(registers, &data);
+    write_zeropage(registers, data);
+}
+
+void zeropageX_LSR(cpu_registers* registers) {
+    uint8_t data = fetch_zeropageX(registers);
+    base_shift_right(registers, &data);
+    write_zeropageX(registers, data);
+}
+
+void absolute_LSR(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_shift_right(registers, &data);
+    write_absolute(registers, data);
+}
+
+void absoluteX_LSR(cpu_registers* registers) {
+    uint8_t data = fetch_absoluteX(registers, NULL);
+    base_shift_right(registers, &data);
+    write_absoluteX(registers, data);
+}
+
+void implied_NOP() {
+    return;
+}
+
+//*****************************************************************************
+// ORA
+//*****************************************************************************
+void immediate_ORA(cpu_registers* registers) {
+    uint8_t data = fetch_immediate(registers);
+    base_or(registers, data);
+}
+
+void zeropage_ORA(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_or(registers, data);
+}
+
+void zeropageX_ORA(cpu_registers* registers) {
+    uint8_t data = fetch_zeropageX(registers);
+    base_or(registers, data);
+}
+
+void absolute_ORA(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_or(registers, data);
+}
+
+bool absoluteX_ORA(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_absoluteX(registers, &page_crossed);
+    base_or(registers, data);
+    return page_crossed;
+}
+
+bool absoluteY_ORA(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_absoluteY(registers, &page_crossed);
+    base_or(registers, data);
+    return page_crossed;
+}
+
+void indirectX_ORA(cpu_registers* registers) {
+    uint8_t data = fetch_indirectX(registers);
+    base_or(registers, data);
+}
+
+bool indirectY_ORA(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_indirectY(registers, &page_crossed);
+    base_or(registers, data);
+    return page_crossed;
+}
+

@@ -39,6 +39,7 @@ uint8_t fetch_absoluteX(cpu_registers*, bool*);
 uint8_t fetch_absoluteY(cpu_registers*, bool*);
 uint8_t fetch_indirectX(cpu_registers*);
 uint8_t fetch_indirectY(cpu_registers*, bool*);
+uint16_t fetch_indirect(cpu_registers*);
 
 
 bool branch_relative(cpu_registers*);

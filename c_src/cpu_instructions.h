@@ -129,5 +129,57 @@ bool absoluteY_EOR(cpu_registers*);
 void indirectX_EOR(cpu_registers*);
 bool indirectY_EOR(cpu_registers*);
 
+//*****************************************************************************
+// INC
+//*****************************************************************************
+void zeropage_INC(cpu_registers*);
+void zeropageX_INC(cpu_registers*);
+void absolute_INC(cpu_registers*);
+void absoluteX_INC(cpu_registers*);
+
+//*****************************************************************************
+// INX and INY
+//*****************************************************************************
+void implied_INX(cpu_registers*);
+void implied_INY(cpu_registers*);
+
+//*****************************************************************************
+// JMP, JSR
+//*****************************************************************************
+void absolute_JMP(cpu_registers*); // Use for both JMPS - same thing
+void absolute_JSR(cpu_registers*);
+
+//*****************************************************************************
+// LDA
+//*****************************************************************************
+void immediate_LDA(cpu_registers*);
+void zeropage_LDA(cpu_registers*);
+void zeropageX_LDA(cpu_registers*);
+void absolute_LDA(cpu_registers*);
+bool absoluteX_LDA(cpu_registers*);
+bool absoluteY_LDA(cpu_registers*);
+void indirectX_LDA(cpu_registers*);
+bool indirectY_LDA(cpu_registers*);
+
+//*****************************************************************************
+// LDX
+//*****************************************************************************
+void immediate_LDX(cpu_registers*);
+void zeropage_LDX(cpu_registers*);
+void zeropageY_LDX(cpu_registers*);
+void absolute_LDX(cpu_registers*);
+bool absoluteY_LDX(cpu_registers*);
+
+//*****************************************************************************
+// LSR
+//*****************************************************************************
+void accumulator_LSR(cpu_registers*);
+void zeropage_LSR(cpu_registers*);
+void zeropageX_LSR(cpu_registers*);
+void absolute_LSR(cpu_registers*);
+void absoluteX_LSR(cpu_registers*);
+
+void implied_NOP();
+
 #endif
 
