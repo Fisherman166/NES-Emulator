@@ -277,7 +277,7 @@ void implied_CLV(cpu_registers* registers) {
 }
 
 //*****************************************************************************
-// Accumulator Compares
+// CMP
 //*****************************************************************************
 void immediate_CMP(cpu_registers* registers) {
     uint8_t data = fetch_immediate(registers);
@@ -326,7 +326,7 @@ bool indirectY_CMP(cpu_registers* registers) {
 }
 
 //*****************************************************************************
-// X compares
+// CPX
 //*****************************************************************************
 void immediate_CPX(cpu_registers* registers) {
     uint8_t data = fetch_immediate(registers);
@@ -344,7 +344,7 @@ void absolute_CPX(cpu_registers* registers) {
 }
 
 //*****************************************************************************
-// Y compares
+// CPY
 //*****************************************************************************
 void immediate_CPY(cpu_registers* registers) {
     uint8_t data = fetch_immediate(registers);
@@ -359,4 +359,91 @@ void zeropage_CPY(cpu_registers* registers) {
 void absolute_CPY(cpu_registers* registers) {
     uint8_t data = fetch_absolute(registers);
     base_compare(registers, registers->Y, data);
+}
+
+//*****************************************************************************
+// DEC
+//*****************************************************************************
+void zeropage_DEC(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_decrement(registers, &data);
+    write_zeropage(registers, data);
+}
+
+void zeropageX_DEC(cpu_registers* registers) {
+    uint8_t data = fetch_zeropageX(registers);
+    base_decrement(registers, &data);
+    write_zeropageX(registers, data);
+}
+
+void absolute_DEC(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_decrement(registers, &data);
+    write_absolute(registers, data);
+}
+
+void absoluteX_DEC(cpu_registers* registers) {
+    uint8_t data = fetch_absoluteX(registers, NULL);
+    base_decrement(registers, &data);
+    write_absoluteX(registers, data);
+}
+
+//*****************************************************************************
+// DEX and DEY
+//*****************************************************************************
+void implied_DEX(cpu_registers* registers) {
+    base_decrement(registers, &(registers->X));
+}
+
+void implied_DEY(cpu_registers* registers) {
+    base_decrement(registers, &(registers->Y));
+}
+
+//*****************************************************************************
+// EOR
+//*****************************************************************************
+void immediate_EOR(cpu_registers* registers) {
+    uint8_t data = fetch_immediate(registers);
+    base_xor(registers, data);
+}
+
+void zeropage_EOR(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_xor(registers, data);
+}
+
+void zeropageX_EOR(cpu_registers* registers) {
+    uint8_t data = fetch_zeropageX(registers);
+    base_xor(registers, data);
+}
+
+void absolute_EOR(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_xor(registers, data);
+}
+
+bool absoluteX_EOR(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_absoluteX(registers, &page_crossed);
+    base_xor(registers, data);
+    return page_crossed;
+}
+
+bool absoluteY_EOR(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_absoluteY(registers, &page_crossed);
+    base_xor(registers, data);
+    return page_crossed;
+}
+
+void indirectX_EOR(cpu_registers* registers) {
+    uint8_t data = fetch_indirectX(registers);
+    base_xor(registers, data);
+}
+
+bool indirectY_EOR(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_indirectY(registers, &page_crossed);
+    base_xor(registers, data);
+    return page_crossed;
 }

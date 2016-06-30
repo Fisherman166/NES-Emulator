@@ -78,7 +78,7 @@ void implied_CLI(cpu_registers*);
 void implied_CLV(cpu_registers*);
 
 //*****************************************************************************
-// Accumulator Compares
+// CMP
 //*****************************************************************************
 void immediate_CMP(cpu_registers*);
 void zeropage_CMP(cpu_registers*);
@@ -90,18 +90,44 @@ void indirectX_CMP(cpu_registers*);
 bool indirectY_CMP(cpu_registers*);
 
 //*****************************************************************************
-// X compares
+// CPX
 //*****************************************************************************
 void immediate_CPX(cpu_registers*);
 void zeropage_CPX(cpu_registers*);
 void absolute_CPX(cpu_registers*);
 
 //*****************************************************************************
-// Y compares
+// CPY
 //*****************************************************************************
 void immediate_CPY(cpu_registers*);
 void zeropage_CPY(cpu_registers*);
 void absolute_CPY(cpu_registers*);
+
+//*****************************************************************************
+// DEC
+//*****************************************************************************
+void zeropage_DEC(cpu_registers*);
+void zeropageX_DEC(cpu_registers*);
+void absolute_DEC(cpu_registers*);
+void absoluteX_DEC(cpu_registers*);
+
+//*****************************************************************************
+// DEX and DEY
+//*****************************************************************************
+void implied_DEX(cpu_registers*);
+void implied_DEY(cpu_registers*);
+
+//*****************************************************************************
+// EOR
+//*****************************************************************************
+void immediate_EOR(cpu_registers*);
+void zeropage_EOR(cpu_registers*);
+void zeropageX_EOR(cpu_registers*);
+void absolute_EOR(cpu_registers*);
+bool absoluteX_EOR(cpu_registers*);
+bool absoluteY_EOR(cpu_registers*);
+void indirectX_EOR(cpu_registers*);
+bool indirectY_EOR(cpu_registers*);
 
 #endif
 
