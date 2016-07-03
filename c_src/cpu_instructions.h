@@ -256,5 +256,15 @@ void zeropage_STY(cpu_registers*);
 void zeropageX_STY(cpu_registers*);
 void absolute_STY(cpu_registers*);
 
+//*****************************************************************************
+// Transfer instructions
+//*****************************************************************************
+uint8_t implied_TAX(cpu_registers*);
+uint8_t implied_TAY(cpu_registers*);
+uint8_t implied_TSX(cpu_registers*);
+uint8_t implied_TXA(cpu_registers*);
+uint8_t implied_TXS(cpu_registers*);
+uint8_t implied_TYA(cpu_registers*);
+
 #endif
 
