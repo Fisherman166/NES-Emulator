@@ -10,6 +10,10 @@
 #include "cpu_basic_operations.h"
 #include "cpu_decode_logic.h"
 
+#define ZERO_EXTRA_CYCLES 0
+#define ONE_EXTRA_CYCLE 1
+#define TWO_EXTRA_CYCLES 2
+
 static uint8_t branch_on_flag_set(cpu_registers* registers, uint8_t flag) {
     uint8_t additional_cycles = 0;
     if(get_cpu_flag(registers, flag)) {
@@ -227,6 +231,12 @@ static void push_PC_onto_stack(cpu_registers* registers, uint16_t PC) {
     uint8_t high_byte = ((PC & high_byte_mask) >> 8) & BYTE_MASK;
     push_stack(registers, low_byte);
     push_stack(registers, high_byte);
+}
+
+static void pop_PC_off_stack(cpu_registers* registers) {
+    uint8_t high_byte = pop_stack(registers);
+    uint8_t low_byte = pop_stack(registers);
+    registers->PC = (high_byte << 8) | low_byte;
 }
 
 static void load_IRQ_vector_into_PC(cpu_registers* registers) {
@@ -691,3 +701,281 @@ bool indirectY_ORA(cpu_registers* registers) {
     return page_crossed;
 }
 
+//*****************************************************************************
+// Stack instructions
+//*****************************************************************************
+void implied_PHA(cpu_registers* registers) {
+    push_stack(registers, registers->A);
+}
+
+void implied_PHP(cpu_registers* registers) {
+    push_stack(registers, registers->flags);
+}
+
+void implied_PLA(cpu_registers* registers) {
+    registers->A = pop_stack(registers);
+    determine_zero_flag(registers, registers->A);
+    determine_negative_flag(registers, registers->A);
+}
+
+void implied_PLP(cpu_registers* registers) {
+    registers->flags = pop_stack(registers);
+}
+
+//*****************************************************************************
+// ROL
+//*****************************************************************************
+void accumulator_ROL(cpu_registers* registers) {
+    base_rotate_left(registers, &(registers->A));
+}
+
+void zeropage_ROL(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_rotate_left(registers, &data);
+    write_zeropage(registers, data);
+}
+
+void zeropageX_ROL(cpu_registers* registers) {
+    uint8_t data = fetch_zeropageX(registers);
+    base_rotate_left(registers, &data);
+    write_zeropageX(registers, data);
+}
+
+void absolute_ROL(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_rotate_left(registers, &data);
+    write_absolute(registers, data);
+}
+
+void absoluteX_ROL(cpu_registers* registers) {
+    uint8_t data = fetch_absoluteX(registers, NULL);
+    base_rotate_left(registers, &data);
+    write_absoluteX(registers, data);
+}
+
+//*****************************************************************************
+// ROR
+//*****************************************************************************
+void accumulator_ROR(cpu_registers* registers) {
+    base_rotate_right(registers, &(registers->A));
+}
+
+void zeropage_ROR(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_rotate_right(registers, &data);
+    write_zeropage(registers, data);
+}
+
+void zeropageX_ROR(cpu_registers* registers) {
+    uint8_t data = fetch_zeropageX(registers);
+    base_rotate_right(registers, &data);
+    write_zeropageX(registers, data);
+}
+
+void absolute_ROR(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_rotate_right(registers, &data);
+    write_absolute(registers, data);
+}
+
+void absoluteX_ROR(cpu_registers* registers) {
+    uint8_t data = fetch_absoluteX(registers, NULL);
+    base_rotate_right(registers, &data);
+    write_absoluteX(registers, data);
+}
+//*****************************************************************************
+// Return instructions
+//*****************************************************************************
+void implied_RTI(cpu_registers* registers) {
+    registers->flags = pop_stack(registers);
+    pop_PC_off_stack(registers);
+}
+
+void implied_RTS(cpu_registers* registers) {
+    pop_PC_off_stack(registers);
+}
+
+
+//*****************************************************************************
+// SBC
+//*****************************************************************************
+void immediate_SBC(cpu_registers* registers) {
+    uint8_t data = fetch_immediate(registers);
+    base_subtract(registers, data);
+}
+
+void zeropage_SBC(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_subtract(registers, data);
+}
+
+void zeropageX_SBC(cpu_registers* registers) {
+    uint8_t data = fetch_zeropageX(registers);
+    base_subtract(registers, data);
+}
+
+void absolute_SBC(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_subtract(registers, data);
+}
+
+bool absoluteX_SBC(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_absoluteX(registers, &page_crossed);
+    base_subtract(registers, data);
+    return page_crossed;
+}
+
+bool absoluteY_SBC(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_absoluteY(registers, &page_crossed);
+    base_subtract(registers, data);
+    return page_crossed;
+}
+
+void indirectX_SBC(cpu_registers* registers) {
+    uint8_t data = fetch_indirectX(registers);
+    base_subtract(registers, data);
+}
+
+bool indirectY_SBC(cpu_registers* registers) {
+    bool page_crossed;
+    uint8_t data = fetch_indirectY(registers, &page_crossed);
+    base_subtract(registers, data);
+    return page_crossed;
+}
+
+//*****************************************************************************
+// Flag setters
+//*****************************************************************************
+void implied_SEC(cpu_registers* registers) {
+    set_cpu_flag(registers, CARRY_FLAG);
+}
+
+void implied_SED(cpu_registers* registers) {
+    set_cpu_flag(registers, DECIMAL_FLAG);
+}
+
+void implied_SEI(cpu_registers* registers) {
+    set_cpu_flag(registers, INTERRUPT_FLAG);
+}
+
+//*****************************************************************************
+// STA
+//*****************************************************************************
+void zeropage_STA(cpu_registers* registers) {
+    uint8_t address = calc_zeropage_address(registers);
+    base_store(address, &(registers->A));
+}
+
+void zeropageX_STA(cpu_registers* registers) {
+    uint8_t address = calc_zeropageX_address(registers);
+    base_store(address, &(registers->A));
+}
+
+void absolute_STA(cpu_registers* registers) {
+    uint16_t address = calc_absolute_address(registers);
+    base_store(address, &(registers->A));
+}
+
+bool absoluteX_STA(cpu_registers* registers) {
+    uint16_t address = calc_absoluteX_address(registers);
+    base_store(address, &(registers->A));
+    return 0;
+}
+
+bool absoluteY_STA(cpu_registers* registers) {
+    uint16_t address = calc_absoluteY_address(registers);
+    base_store(address, &(registers->A));
+    return 0;
+}
+
+void indirectX_STA(cpu_registers* registers) {
+    uint16_t address = calc_indirectX_address(registers);
+    base_store(address, &(registers->A));
+}
+
+bool indirectY_STA(cpu_registers* registers) {
+    uint16_t address = calc_indirectY_address(registers);
+    base_store(address, &(registers->A));
+    return 0;
+}
+
+//*****************************************************************************
+// STX
+//*****************************************************************************
+void zeropage_STX(cpu_registers* registers) {
+    uint8_t address = calc_zeropage_address(registers);
+    base_store(address, &(registers->X));
+}
+
+void zeropageY_STX(cpu_registers* registers) {
+    uint8_t address = calc_zeropageY_address(registers);
+    base_store(address, &(registers->X));
+}
+
+void absolute_STX(cpu_registers* registers) {
+    uint16_t address = calc_absolute_address(registers);
+    base_store(address, &(registers->X));
+}
+
+//*****************************************************************************
+// STY
+//*****************************************************************************
+void zeropage_STY(cpu_registers* registers) {
+    uint8_t address = calc_zeropage_address(registers);
+    base_store(address, &(registers->Y));
+}
+
+void zeropageX_STY(cpu_registers* registers) {
+    uint8_t address = calc_zeropageX_address(registers);
+    base_store(address, &(registers->Y));
+}
+
+void absolute_STY(cpu_registers* registers) {
+    uint16_t address = calc_absolute_address(registers);
+    base_store(address, &(registers->Y));
+}
+
+//*****************************************************************************
+// Transfer instructions
+//*****************************************************************************
+uint8_t implied_TAX(cpu_registers* registers) {
+    registers->X = registers->A;
+    determine_zero_flag(registers, registers->X);
+    determine_negative_flag(registers, registers->X);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t implied_TAY(cpu_registers* registers) {
+    registers->Y = registers->A;
+    determine_zero_flag(registers, registers->Y);
+    determine_negative_flag(registers, registers->Y);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t implied_TSX(cpu_registers* registers) {
+    registers->X = registers->S;
+    determine_zero_flag(registers, registers->X);
+    determine_negative_flag(registers, registers->X);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t implied_TXA(cpu_registers* registers) {
+    registers->A = registers->X;
+    determine_zero_flag(registers, registers->A);
+    determine_negative_flag(registers, registers->A);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t implied_TXS(cpu_registers* registers) {
+    registers->S = registers->X;
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t implied_TYA(cpu_registers* registers) {
+    registers->A = registers->Y;
+    determine_zero_flag(registers, registers->A);
+    determine_negative_flag(registers, registers->A);
+    return ZERO_EXTRA_CYCLES;
+}

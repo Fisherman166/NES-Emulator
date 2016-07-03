@@ -24,7 +24,6 @@ bool absoluteY_ADC(cpu_registers*);
 void indirectX_ADC(cpu_registers*);
 bool indirectY_ADC(cpu_registers*);
 
-
 //*****************************************************************************
 // AND
 //*****************************************************************************
@@ -180,6 +179,82 @@ void absolute_LSR(cpu_registers*);
 void absoluteX_LSR(cpu_registers*);
 
 void implied_NOP();
+
+//*****************************************************************************
+// Stack instructions
+//*****************************************************************************
+void implied_PHA(cpu_registers*);
+void implied_PHP(cpu_registers*);
+void implied_PLA(cpu_registers*);
+void implied_PLP(cpu_registers*);
+
+//*****************************************************************************
+// ROL
+//*****************************************************************************
+void accumulator_ROL(cpu_registers*);
+void zeropage_ROL(cpu_registers*);
+void zeropageX_ROL(cpu_registers*);
+void absolute_ROL(cpu_registers*);
+void absoluteX_ROL(cpu_registers*);
+
+//*****************************************************************************
+// ROR
+//*****************************************************************************
+void accumulator_ROR(cpu_registers*);
+void zeropage_ROR(cpu_registers*);
+void zeropageX_ROR(cpu_registers*);
+void absolute_ROR(cpu_registers*);
+void absoluteX_ROR(cpu_registers*);
+
+//*****************************************************************************
+// Return instructions
+//*****************************************************************************
+void implied_RTI(cpu_registers*);
+void implied_RTS(cpu_registers*);
+
+//*****************************************************************************
+// SBC
+//*****************************************************************************
+void immediate_SBC(cpu_registers*);
+void zeropage_SBC(cpu_registers*);
+void zeropageX_SBC(cpu_registers*);
+void absolute_SBC(cpu_registers*);
+bool absoluteX_SBC(cpu_registers*);
+bool absoluteY_SBC(cpu_registers*);
+void indirectX_SBC(cpu_registers*);
+bool indirectY_SBC(cpu_registers*);
+
+//*****************************************************************************
+// Flag setters
+//*****************************************************************************
+void implied_SEC(cpu_registers*);
+void implied_SED(cpu_registers*);
+void implied_SEI(cpu_registers*);
+
+//*****************************************************************************
+// STA
+//*****************************************************************************
+void zeropage_STA(cpu_registers*);
+void zeropageX_STA(cpu_registers*);
+void absolute_STA(cpu_registers*);
+bool absoluteX_STA(cpu_registers*);
+bool absoluteY_STA(cpu_registers*);
+void indirectX_STA(cpu_registers*);
+bool indirectY_STA(cpu_registers*);
+
+//*****************************************************************************
+// STX
+//*****************************************************************************
+void zeropage_STX(cpu_registers*);
+void zeropageY_STX(cpu_registers*);
+void absolute_STX(cpu_registers*);
+
+//*****************************************************************************
+// STY
+//*****************************************************************************
+void zeropage_STY(cpu_registers*);
+void zeropageX_STY(cpu_registers*);
+void absolute_STY(cpu_registers*);
 
 #endif
 
