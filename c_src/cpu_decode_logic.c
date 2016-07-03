@@ -14,6 +14,9 @@ static bool is_page_crossed(uint16_t original_address, uint16_t branch_address) 
     else return true;
 }
 
+uint8_t fetch_opcode(cpu_registers* registers) {
+    return fetch_immediate(registers);
+}
 
 uint8_t fetch_immediate(cpu_registers* registers) {
     return read_RAM(registers->PC);

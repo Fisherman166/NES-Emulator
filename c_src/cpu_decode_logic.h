@@ -30,6 +30,7 @@ uint16_t calc_indirectY_address(cpu_registers*);
 //*****************************************************************************
 // Data read functions
 //*****************************************************************************
+uint8_t fetch_opcode(cpu_registers*);
 uint8_t fetch_immediate(cpu_registers*);
 uint8_t fetch_zeropage(cpu_registers*);
 uint8_t fetch_zeropageX(cpu_registers*);
@@ -41,8 +42,7 @@ uint8_t fetch_indirectX(cpu_registers*);
 uint8_t fetch_indirectY(cpu_registers*, bool*);
 uint16_t fetch_indirect(cpu_registers*);
 
-
 bool branch_relative(cpu_registers*);
 
-
 #endif
+

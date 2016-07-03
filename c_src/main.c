@@ -10,8 +10,10 @@
 #include <stdlib.h>
 #include "common.h"
 #include "common_cpu.h"
+#include "cpu.h"
 #include "cpu_basic_operations_unit_tests.h"
 #include "cpu_decode_logic_unit_tests.h"
+#include "cpu_unit_tests.h"
 
 bool parse_cmdline(int, char **);
 
@@ -20,8 +22,21 @@ int main(int argc, char *argv[]) {
     if(run_unit_tests) {
         run_all_basic_cpu_operations_tests();
         run_all_cpu_decode_logic_tests();
+        run_all_cpu_tests();
         exit(EXIT_SUCCESS);
     }
+
+    #ifdef DEBUG
+        open_cpu_debug_logfile();
+    #endif
+
+    cpu_registers registers;
+    cold_boot_init(&registers);
+    execute_interpreter_cycle(&registers);
+
+    #ifdef DEBUG
+        close_cpu_debug_logfile();
+    #endif
 
     return 0;
 }
