@@ -203,7 +203,7 @@ uint8_t relative_BPL(cpu_registers* registers) {
     return branch_on_flag_clear(registers, NEGATIVE_FLAG);
 }
 
-uint8_t relative_BCV(cpu_registers* registers) {
+uint8_t relative_BVC(cpu_registers* registers) {
     return branch_on_flag_clear(registers, OVERFLOW_FLAG);
 }
 

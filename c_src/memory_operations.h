@@ -13,6 +13,7 @@
 #include "common_cpu.h"
 
 void init_RAM();
+bool load_game();
 uint8_t read_RAM(uint16_t);
 void write_RAM(uint16_t, uint8_t);
 

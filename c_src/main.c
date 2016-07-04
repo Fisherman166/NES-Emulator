@@ -14,6 +14,7 @@
 #include "cpu_basic_operations_unit_tests.h"
 #include "cpu_decode_logic_unit_tests.h"
 #include "cpu_unit_tests.h"
+#include "memory_operations.h"
 
 bool parse_cmdline(int, char **);
 
@@ -30,11 +31,12 @@ int main(int argc, char *argv[]) {
         open_cpu_debug_logfile();
     #endif
 
-    uint16_t break_PC = 0x00;
+    load_game();
+    cpu_registers registers;
+    cold_boot_init(&registers);
+    uint16_t break_PC = 0xF1D1;
 
     for(;;) {
-        cpu_registers registers;
-        cold_boot_init(&registers);
         execute_interpreter_cycle(&registers);
         if(registers.PC == break_PC) break;
     }

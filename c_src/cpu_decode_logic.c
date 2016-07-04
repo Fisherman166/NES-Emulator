@@ -143,7 +143,7 @@ uint8_t fetch_indirectY(cpu_registers* registers, bool* page_crossed) {
 
 
 bool branch_relative(cpu_registers* registers) {
-    int8_t offset = read_RAM(registers->PC);
+    char offset = read_RAM(registers->PC) & BYTE_MASK;
     bool page_crossed = is_page_crossed(registers->PC, registers->PC + offset);
     registers->PC += offset;
     return page_crossed;
