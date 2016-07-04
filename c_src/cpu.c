@@ -70,63 +70,62 @@ static const uint8_t instruction_cycle_length[] = {
 };
 
 static const char* instruction_text[] = {
-   //0   , 1    , 2    , 3    , 4    , 5    , 6    , 7    , 8    , 9    , A    , B    , C    , D    , E    , F    , 
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // 0
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // 1
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // 2
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // 3
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // 4
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // 5
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ADC", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // 6
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // 7
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // 8
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // 9
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // A
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // B
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // C
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // D
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // E
-    "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR", "ERR",  // F
+   //0   , 1    , 2    , 3    , 4    , 5    , 6    , 7    , 8    , 9    , A    , B    , C    , D    , E    , F    ,
+    "BRK", "ORA", "ERR", "ERR", "ERR", "ORA", "ASL", "ERR", "PHP", "ORA", "ASL", "ERR", "ERR", "ORA", "ASL", "ERR",
+    "BPL", "ORA", "ERR", "ERR", "ERR", "ORA", "ASL", "ERR", "CLC", "ORA", "ERR", "ERR", "ERR", "ORA", "ASL", "ERR",
+    "JSR", "AND", "ERR", "ERR", "BIT", "AND", "ROL", "ERR", "PLP", "AND", "ROL", "ERR", "BIT", "AND", "ROL", "ERR",
+    "BMI", "AND", "ERR", "ERR", "ERR", "AND", "ROL", "ERR", "CLC", "AND", "ERR", "ERR", "ERR", "AND", "ROL", "ERR",
+    "RTI", "EOR", "ERR", "ERR", "ERR", "EOR", "LSR", "ERR", "PHA", "EOR", "LSR", "ERR", "JMP", "EOR", "LSR", "ERR",
+    "BVC", "EOR", "ERR", "ERR", "ERR", "EOR", "LSR", "ERR", "CLI", "EOR", "ERR", "ERR", "ERR", "EOR", "LSR", "ERR",
+    "RTS", "ADC", "ERR", "ERR", "ERR", "ADC", "ROR", "ERR", "PLA", "ADC", "ROR", "ERR", "JMP", "ADC", "ROR", "ERR",
+    "BVS", "ADC", "ERR", "ERR", "ERR", "ADC", "ROR", "ERR", "SEI", "ADC", "ERR", "ERR", "ERR", "ADC", "ROR", "ERR",
+    "ERR", "STA", "ERR", "ERR", "STY", "STA", "STX", "ERR", "DEY", "ERR", "TXA", "ERR", "STY", "STA", "STX", "ERR",
+    "BCC", "STA", "ERR", "ERR", "STY", "STA", "STX", "ERR", "TYA", "STA", "TXS", "ERR", "ERR", "STA", "ERR", "ERR",
+    "LDY", "LDA", "LDX", "ERR", "LDY", "LDA", "LDX", "ERR", "TAY", "LDA", "TAX", "ERR", "LDY", "LDA", "LDX", "ERR",
+    "BCS", "LDA", "ERR", "ERR", "LDY", "LDA", "LDX", "ERR", "CLV", "LDA", "TSX", "ERR", "LDY", "LDA", "LDX", "ERR",
+    "CPY", "CMP", "ERR", "ERR", "CPY", "CMP", "DEC", "ERR", "INY", "CMP", "DEX", "ERR", "CPY", "CMP", "DEC", "ERR",
+    "BNE", "CMP", "ERR", "ERR", "ERR", "CMP", "DEC", "ERR", "CLD", "CMP", "ERR", "ERR", "ERR", "CMP", "DEC", "ERR",
+    "CPX", "SBC", "ERR", "ERR", "CPX", "SBC", "INC", "ERR", "INX", "SBC", "NOP", "ERR", "CPX", "SBC", "INC", "ERR",
+    "BEQ", "SBC", "ERR", "ERR", "ERR", "SBC", "INC", "ERR", "SED", "SBC", "ERR", "ERR", "ERR", "SBC", "INC", "ERR",
 };
 
 static const uint8_t instruction_addressing_mode[] = {
   //0  , 1  , 2  , 3  , 4  , 5  , 6  , 7  , 8  , 9  , A  , B  , C  , D  , E  , F  , 
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // 0
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // 1
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // 2
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // 3
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // 4
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // 5
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, IMM, ERR, ERR, ERR, ERR, ERR, ERR,  // 6
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // 7
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // 8
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // 9
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // A
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // B
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // C
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // D
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // E
-    ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,  // F
+    IMP, ERR, ERR, ERR, ERR, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ERR, ABS, ABS, ERR,
+    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR,
+    ABS, ERR, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR,
+    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR,
+    IMP, ERR, ERR, ERR, ERR, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR,
+    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR,
+    IMP, ERR, ERR, ERR, ERR, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR,
+    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR,
+    ERR, ERR, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, ERR, IMP, ERR, ABS, ABS, ABS, ERR,
+    REL, INY, ERR, ERR, ZPX, ZPX, ZPY, ERR, IMP, ABY, IMP, ERR, ERR, ABX, ERR, ERR,
+    IMM, ERR, IMM, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ERR,
+    REL, INY, ERR, ERR, ZPX, ZPX, ZPY, ERR, IMP, ABY, IMP, ERR, ABX, ABX, ABY, ERR,
+    IMM, ERR, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ERR,
+    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR,
+    IMM, ERR, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ERR,
+    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR,
 };
 
-static uint8_t (*instructions[]) (cpu_registers*) = {
-  //0   , 1   , 2   , 3   , 4   , 5   , 6   , 7   , 8   , 9   , A   , B   , C   , D   , E   , F
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 0
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 1
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 2
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 3
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 4
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 5
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &immediate_ADC, NULL, NULL, NULL, NULL, NULL, NULL, // 6
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 7
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 8
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // 9
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // A
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // B
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // C
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // D
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // E
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, // F
+static uint8_t (*instructions[])(cpu_registers*) = {
+    &implied_BRK, &indirectX_ORA, NULL, NULL, NULL, &zeropage_ORA, &zeropage_ASL, NULL, &implied_PHP, &immediate_ORA, &accumulator_ASL, NULL, NULL, &absolute_ORA, &absolute_ASL, NULL, 
+    &relative_BPL, &indirectY_ORA, NULL, NULL, NULL, &zeropageX_ORA, &zeropageX_ASL, NULL, &implied_CLC, &absoluteY_ORA, NULL, NULL, NULL, &absoluteX_ORA, &absoluteX_ASL, NULL, 
+    &absolute_JSR, &indirectX_AND, NULL, NULL, &zeropage_BIT, &zeropage_AND, &zeropage_ROL, NULL, &implied_PLP, &immediate_AND, &accumulator_ROL, NULL, &absolute_BIT, &absolute_AND, &absolute_ROL, NULL, 
+    &relative_BMI, &indirectY_AND, NULL, NULL, NULL, &zeropageX_AND, &zeropageX_ROL, NULL, &implied_CLC, &absoluteY_AND, NULL, NULL, NULL, &absoluteX_AND, &absoluteX_ROL, NULL, 
+    &implied_RTI, &indirectX_EOR, NULL, NULL, NULL, &zeropage_EOR, &zeropage_LSR, NULL, &implied_PHA, &immediate_EOR, &accumulator_LSR, NULL, &absolute_JMP, &absolute_EOR, &absolute_LSR, NULL, 
+    &relative_BVC, &indirectY_EOR, NULL, NULL, NULL, &zeropageX_EOR, &zeropageX_LSR, NULL, &implied_CLI, &absoluteY_EOR, NULL, NULL, NULL, &absoluteX_EOR, &absoluteX_LSR, NULL, 
+    &implied_RTS, &indirectX_ADC, NULL, NULL, NULL, &zeropage_ADC, &zeropage_ROR, NULL, &implied_PLA, &immediate_ADC, &accumulator_ROR, NULL, &absolute_JMP, &absolute_ADC, &absolute_ROR, NULL, 
+    &relative_BVS, &indirectY_ADC, NULL, NULL, NULL, &zeropageX_ADC, &zeropageX_ROR, NULL, &implied_SEI, &absoluteY_ADC, NULL, NULL, NULL, &absoluteX_ADC, &absoluteX_ROR, NULL, 
+    NULL, &indirectX_STA, NULL, NULL, &zeropage_STY, &zeropage_STA, &zeropage_STX, NULL, &implied_DEY, NULL, &implied_TXA, NULL, &absolute_STY, &absolute_STA, &absolute_STX, NULL, 
+    &relative_BCC, &indirectY_STA, NULL, NULL, &zeropageX_STY, &zeropageX_STA, &zeropageY_STX, NULL, &implied_TYA, &absoluteY_STA, &implied_TXS, NULL, NULL, &absoluteX_STA, NULL, NULL, 
+    &immediate_LDY, &indirectX_LDA, &immediate_LDX, NULL, &zeropage_LDY, &zeropage_LDA, &zeropage_LDX, NULL, &implied_TAY, &immediate_LDA, &implied_TAX, NULL, &absolute_LDY, &absolute_LDA, &absolute_LDX, NULL, 
+    &relative_BCS, &indirectY_LDA, NULL, NULL, &zeropageX_LDY, &zeropageX_LDA, &zeropageY_LDX, NULL, &implied_CLV, &absoluteY_LDA, &implied_TSX, NULL, &absoluteX_LDY, &absoluteX_LDA, &absoluteY_LDX, NULL, 
+    &immediate_CPY, &indirectX_CMP, NULL, NULL, &zeropage_CPY, &zeropage_CMP, &zeropage_DEC, NULL, &implied_INY, &immediate_CMP, &implied_DEX, NULL, &absolute_CPY, &absolute_CMP, &absolute_DEC, NULL, 
+    &relative_BNE, &indirectY_CMP, NULL, NULL, NULL, &zeropageX_CMP, &zeropageX_DEC, NULL, &implied_CLD, &absoluteY_CMP, NULL, NULL, NULL, &absoluteX_CMP, &absoluteX_DEC, NULL, 
+    &immediate_CPX, &indirectX_SBC, NULL, NULL, &zeropage_CPX, &zeropage_SBC, &zeropage_INC, NULL, &implied_INX, &immediate_SBC, &implied_NOP, NULL, &absolute_CPX, &absolute_SBC, &absolute_INC, NULL, 
+    &relative_BEQ, &indirectY_SBC, NULL, NULL, NULL, &zeropageX_SBC, &zeropageX_INC, NULL, &implied_SED, &absoluteY_SBC, NULL, NULL, NULL, &absoluteX_SBC, &absoluteX_INC, NULL, 
 };
 
 //*****************************************************************************

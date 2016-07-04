@@ -48,14 +48,14 @@ uint8_t absoluteX_ASL(cpu_registers*);
 //*****************************************************************************
 // Relative branches based on flags
 //*****************************************************************************
-uint8_t implied_BCC(cpu_registers*);
-uint8_t implied_BSC(cpu_registers*);
-uint8_t implied_BEQ(cpu_registers*);
-uint8_t implied_BMI(cpu_registers*);
-uint8_t implied_BNE(cpu_registers*);
-uint8_t implied_BPL(cpu_registers*);
-uint8_t implied_BVC(cpu_registers*);
-uint8_t implied_BVS(cpu_registers*);
+uint8_t relative_BCC(cpu_registers*);
+uint8_t relative_BCS(cpu_registers*);
+uint8_t relative_BEQ(cpu_registers*);
+uint8_t relative_BMI(cpu_registers*);
+uint8_t relative_BNE(cpu_registers*);
+uint8_t relative_BPL(cpu_registers*);
+uint8_t relative_BVC(cpu_registers*);
+uint8_t relative_BVS(cpu_registers*);
 
 //*****************************************************************************
 // Interrupts
@@ -170,6 +170,15 @@ uint8_t absolute_LDX(cpu_registers*);
 uint8_t absoluteY_LDX(cpu_registers*);
 
 //*****************************************************************************
+// LDY
+//*****************************************************************************
+uint8_t immediate_LDY(cpu_registers*);
+uint8_t zeropage_LDY(cpu_registers*);
+uint8_t zeropageX_LDY(cpu_registers*);
+uint8_t absolute_LDY(cpu_registers*);
+uint8_t absoluteX_LDY(cpu_registers*);
+
+//*****************************************************************************
 // LSR
 //*****************************************************************************
 uint8_t accumulator_LSR(cpu_registers*);
@@ -179,6 +188,18 @@ uint8_t absolute_LSR(cpu_registers*);
 uint8_t absoluteX_LSR(cpu_registers*);
 
 uint8_t implied_NOP(cpu_registers*);
+
+//*****************************************************************************
+// ORA
+//*****************************************************************************
+uint8_t immediate_ORA(cpu_registers*);
+uint8_t zeropage_ORA(cpu_registers*);
+uint8_t zeropageX_ORA(cpu_registers*);
+uint8_t absolute_ORA(cpu_registers*);
+uint8_t absoluteX_ORA(cpu_registers*);
+uint8_t absoluteY_ORA(cpu_registers*);
+uint8_t indirectX_ORA(cpu_registers*);
+uint8_t indirectY_ORA(cpu_registers*);
 
 //*****************************************************************************
 // Stack instructions

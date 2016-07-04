@@ -179,35 +179,35 @@ uint8_t absoluteX_ASL(cpu_registers* registers) {
 //*****************************************************************************
 // Relative branches based on flags
 //*****************************************************************************
-uint8_t implied_BCC(cpu_registers* registers) {
+uint8_t relative_BCC(cpu_registers* registers) {
     return branch_on_flag_clear(registers, CARRY_FLAG);
 }
 
-uint8_t implied_BSC(cpu_registers* registers) {
+uint8_t relative_BCS(cpu_registers* registers) {
     return branch_on_flag_set(registers, CARRY_FLAG);
 }
 
-uint8_t implied_BEQ(cpu_registers* registers) {
+uint8_t relative_BEQ(cpu_registers* registers) {
     return branch_on_flag_set(registers, ZERO_FLAG);
 }
 
-uint8_t implied_BMI(cpu_registers* registers) {
+uint8_t relative_BMI(cpu_registers* registers) {
     return branch_on_flag_set(registers, NEGATIVE_FLAG);
 }
 
-uint8_t implied_BNE(cpu_registers* registers) {
+uint8_t relative_BNE(cpu_registers* registers) {
     return branch_on_flag_clear(registers, ZERO_FLAG);
 }
 
-uint8_t implied_BPL(cpu_registers* registers) {
+uint8_t relative_BPL(cpu_registers* registers) {
     return branch_on_flag_clear(registers, NEGATIVE_FLAG);
 }
 
-uint8_t implied_BCV(cpu_registers* registers) {
+uint8_t relative_BCV(cpu_registers* registers) {
     return branch_on_flag_clear(registers, OVERFLOW_FLAG);
 }
 
-uint8_t implied_BVS(cpu_registers* registers) {
+uint8_t relative_BVS(cpu_registers* registers) {
     return branch_on_flag_set(registers, OVERFLOW_FLAG);
 }
 

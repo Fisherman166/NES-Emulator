@@ -30,9 +30,14 @@ int main(int argc, char *argv[]) {
         open_cpu_debug_logfile();
     #endif
 
-    cpu_registers registers;
-    cold_boot_init(&registers);
-    execute_interpreter_cycle(&registers);
+    uint16_t break_PC = 0x00;
+
+    for(;;) {
+        cpu_registers registers;
+        cold_boot_init(&registers);
+        execute_interpreter_cycle(&registers);
+        if(registers.PC == break_PC) break;
+    }
 
     #ifdef DEBUG
         close_cpu_debug_logfile();
