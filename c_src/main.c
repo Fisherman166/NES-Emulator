@@ -31,7 +31,11 @@ int main(int argc, char *argv[]) {
         open_cpu_debug_logfile();
     #endif
 
-    load_game();
+    bool game_loaded = load_game();
+    if(!game_loaded) {
+        printf("FATAL ERROR occurred while attempting to load game.\n");
+        return -1;
+    }
     cpu_registers registers;
     cold_boot_init(&registers);
     uint16_t break_PC = 0xF1D1;

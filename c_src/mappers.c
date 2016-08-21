@@ -9,21 +9,33 @@
 #include "memory_operations.h"
 #include "mappers.h"
 
-void load_NROM(uint8_t* game_data) {
-    uint8_t CHR_rom_size = game_data[4];
-    uint32_t NES_address = 0x8000;
+#define CHR_BANK_SIZE 0x4000
 
-    if(CHR_rom_size > 1) {
-        for(uint32_t game_address = 0x10; game_address < 0x8010; game_address++) {
-            write_RAM(NES_address, game_data[game_address]);
-            NES_address++;
+static bool is_dual_bank_NROM(uint8_t CHR_rom_size) {
+    if(CHR_rom_size > 1) return true;
+    else return false;
+}
+
+void load_NROM(uint8_t* game_data) {
+    const uint16_t game_data_start = 0x10;
+    const uint16_t single_bank_end = CHR_BANK_SIZE + game_data_start;
+    const uint16_t dual_bank_end = (CHR_BANK_SIZE * 2) + game_data_start;
+
+    uint8_t CHR_rom_size = game_data[4];
+    uint16_t NES_rom_address = 0x8000;
+
+    // Fill both rom banks without mirroring
+    if(is_dual_bank_NROM(CHR_rom_size)) {
+        for(uint32_t game_address = game_data_start; game_address < dual_bank_end; game_address++) {
+            write_RAM(NES_rom_address, game_data[game_address]);
+            NES_rom_address++;
         }
     }
-    else { // First bank mirrored in second
-        for(uint32_t game_address = 0x10; game_address < 0x4010; game_address++) {
-            write_RAM(NES_address, game_data[game_address]);
-            write_RAM(NES_address + 0x4000, game_data[game_address]);
-            NES_address++;
+    else { // First bank mirrored in second bank
+        for(uint32_t game_address = game_data_start; game_address < single_bank_end; game_address++) {
+            write_RAM(NES_rom_address, game_data[game_address]);
+            write_RAM(NES_rom_address + 0x4000, game_data[game_address]);
+            NES_rom_address++;
         }
     }
 }

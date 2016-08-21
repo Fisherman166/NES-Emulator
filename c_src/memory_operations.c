@@ -25,7 +25,7 @@ void init_RAM() {
     for(int i = 0x4000; i < 0x8000; i++) RAM[i] = 0xFF;
 }
 
-static uint8_t* read_file(FILE* game_filehandle) {
+static uint8_t* read_rom(FILE* game_filehandle) {
     if(fseek(game_filehandle, 0, SEEK_END) != 0) {
         printf("ERROR: Failed to move to END of file\n");
         return NULL;
@@ -67,7 +67,10 @@ bool load_game() {
         printf("ERROR: Failed to open game file %s\n", game_filename);
         return false;
     }
-    uint8_t* game_data = read_file(game_filehandle);
+    uint8_t* game_data = read_rom(game_filehandle);
+    if(game_data == NULL) {
+        return false;
+    }
     uint8_t mapper = extract_mapper_from_header(game_data);
 
     if(mapper == NROM) load_NROM(game_data);

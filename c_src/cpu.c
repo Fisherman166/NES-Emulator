@@ -344,7 +344,7 @@ void cold_boot_init(cpu_registers* registers) {
     const uint8_t initial_X = 0;
     const uint8_t initial_Y = 0;
     const uint8_t initial_S = 0xFD;
-    const uint8_t initial_flags = 0x34;
+    const uint8_t initial_flags = 0x24;
 
     uint16_t initial_PC = fetch_reset_vector();
     init_cpu_registers(registers, initial_A, initial_X, initial_Y, initial_PC,
@@ -354,12 +354,12 @@ void cold_boot_init(cpu_registers* registers) {
 void execute_interpreter_cycle(cpu_registers* registers) {
     uint8_t opcode = fetch_opcode(registers);
     increment_PC(registers);
-    execute_instruction(registers, opcode);
 
     #ifdef DEBUG
         print_debug_info(registers, opcode);
     #endif
 
+    execute_instruction(registers, opcode);
     increment_PC_instruction_length(registers, opcode);
 }
 

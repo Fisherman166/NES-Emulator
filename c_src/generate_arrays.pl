@@ -152,5 +152,4 @@ sub write_array() {
         print $filehandle "\n" if(not ($counter % 16));
     }
 }
-    
 
