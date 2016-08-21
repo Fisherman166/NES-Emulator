@@ -21,7 +21,7 @@ uint8_t RAM[RAM_locations];
 // Functions 
 //*****************************************************************************
 void init_RAM() {
-    for(int i = 0; i < 0x4000; i++) RAM[i] = 0x00;
+    for(int i = 0; i < 0x4000; i++) RAM[i] = 0xFF;
     for(int i = 0x4000; i < 0x8000; i++) RAM[i] = 0xFF;
 }
 

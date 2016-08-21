@@ -74,9 +74,7 @@ uint16_t calc_indirectY_address(cpu_registers* registers) {
     uint8_t zeropage_address = fetch_immediate(registers);
     uint8_t low_byte_address = read_RAM(zeropage_address);
     uint8_t high_byte_address = read_RAM((zeropage_address + 1) & BYTE_MASK);
-    uint8_t low_byte = read_RAM(low_byte_address);
-    uint8_t high_byte = read_RAM(high_byte_address);
-    uint16_t indirectY_address = ((high_byte << 8) | low_byte) + registers->Y;
+    uint16_t indirectY_address = ((high_byte_address << 8) | low_byte_address) + registers->Y;
     return indirectY_address;
 }
 

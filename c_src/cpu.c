@@ -156,6 +156,32 @@ static uint8_t execute_instruction(cpu_registers* registers, uint8_t opcode) {
     return extra_cycles;
 }
 
+// TODO: REMOVE after PPU is coded
+static uint16_t dot = 0;
+static uint16_t scanline = 241;
+static void ppu_bfm(uint8_t extra_cycles, uint8_t opcode) {
+    uint8_t cpu_cycles = instruction_cycle_length[opcode] + extra_cycles;
+
+    dot += cpu_cycles * 3;
+    if(dot > 340) {
+        dot -= 341;
+        scanline++;
+
+        if(scanline > 261) {
+            scanline = 0;
+        }
+    }
+    
+    const uint16_t reg2002_address = 0x2002;
+    const uint8_t vblank_value = 0x80;
+    if((scanline == 241) && (dot > 0)) {
+        write_RAM(reg2002_address, vblank_value);
+    }
+    if((scanline == 261) && (dot > 0)) {
+        write_RAM(reg2002_address, 0x00);
+    }
+}
+
 //*****************************************************************************
 // Debug file functions
 //*****************************************************************************
@@ -294,8 +320,8 @@ static void print_common_debug_info(cpu_registers* registers) {
     fprintf(cpu_logfile, "Y:%02X ", registers->Y);
     fprintf(cpu_logfile, "P:%02X ", registers->flags);
     fprintf(cpu_logfile, "SP:%02X ", registers->S);
-    fprintf(cpu_logfile, "CYC:%3d ", 0);
-    fprintf(cpu_logfile, "SL:%3d ", 0);
+    fprintf(cpu_logfile, "CYC:%3d ", dot);
+    fprintf(cpu_logfile, "SL:%3d", scanline);
     fprintf(cpu_logfile, "\n");
 }
 
@@ -359,7 +385,9 @@ void execute_interpreter_cycle(cpu_registers* registers) {
         print_debug_info(registers, opcode);
     #endif
 
-    execute_instruction(registers, opcode);
+    uint8_t extra_cycles = execute_instruction(registers, opcode);
     increment_PC_instruction_length(registers, opcode);
+    ppu_bfm(extra_cycles, opcode);
 }
 
+    
