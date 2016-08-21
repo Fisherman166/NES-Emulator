@@ -141,10 +141,30 @@ static void increment_PC(cpu_registers* registers) {
     registers->PC++;
 }
 
+static bool is_JSR_or_JMP(uint8_t opcode) {
+    const uint8_t JSR_opcode = 0x20;
+    const uint8_t JMP_abs_opcode = 0x4C;
+    const uint8_t JMP_indir_opcode = 0x6C;
+    if(opcode == JSR_opcode) return true;
+    if(opcode == JMP_abs_opcode) return true;
+    if(opcode == JMP_indir_opcode) return true;
+    return false;
+}
+
+static bool is_RTS(uint8_t opcode) {
+    const uint8_t RTS_opcode = 0x60;
+    if(opcode == RTS_opcode) return true;
+    return false;
+}
+
 static void increment_PC_instruction_length(cpu_registers* registers, uint8_t opcode) {
     // Have to subtract 1 to account for the increment done after the
     // opcode fetch
-    registers-> PC += instruction_byte_length[opcode] - 1;
+    registers->PC += instruction_byte_length[opcode] - 1;
+
+    // RTS cancels out the PC increment done after the opcode fetch. So add 1 here
+    // too get the right return address
+    if(is_RTS(opcode)) increment_PC(registers);
 }
 
 static uint8_t execute_instruction(cpu_registers* registers, uint8_t opcode) {
@@ -154,16 +174,6 @@ static uint8_t execute_instruction(cpu_registers* registers, uint8_t opcode) {
     }
     uint8_t extra_cycles = (*instructions[opcode])(registers);
     return extra_cycles;
-}
-
-static bool is_JSR_or_JMP(uint8_t opcode) {
-    const uint8_t JSR_opcode = 0x20;
-    const uint8_t JMP_abs_opcode = 0x4C;
-    const uint8_t JMP_indir_opcode = 0x6C;
-    if(opcode == JSR_opcode) return true;
-    if(opcode == JMP_abs_opcode) return true;
-    if(opcode == JMP_indir_opcode) return true;
-    return false;
 }
 
 // TODO: REMOVE after PPU is coded
