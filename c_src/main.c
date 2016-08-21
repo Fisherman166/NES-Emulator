@@ -38,11 +38,9 @@ int main(int argc, char *argv[]) {
     }
     cpu_registers registers;
     cold_boot_init(&registers);
-    uint16_t break_PC = 0xF1D1;
 
     for(;;) {
         execute_interpreter_cycle(&registers);
-        if(registers.PC == break_PC) break;
     }
 
     #ifdef DEBUG
