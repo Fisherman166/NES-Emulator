@@ -156,9 +156,19 @@ static uint8_t execute_instruction(cpu_registers* registers, uint8_t opcode) {
     return extra_cycles;
 }
 
+static bool is_JSR_or_JMP(uint8_t opcode) {
+    const uint8_t JSR_opcode = 0x20;
+    const uint8_t JMP_abs_opcode = 0x4C;
+    const uint8_t JMP_indir_opcode = 0x6C;
+    if(opcode == JSR_opcode) return true;
+    if(opcode == JMP_abs_opcode) return true;
+    if(opcode == JMP_indir_opcode) return true;
+    return false;
+}
+
 // TODO: REMOVE after PPU is coded
 static uint16_t dot = 0;
-static uint16_t scanline = 241;
+static int16_t scanline = 241;
 static void ppu_bfm(uint8_t extra_cycles, uint8_t opcode) {
     uint8_t cpu_cycles = instruction_cycle_length[opcode] + extra_cycles;
 
@@ -167,8 +177,8 @@ static void ppu_bfm(uint8_t extra_cycles, uint8_t opcode) {
         dot -= 341;
         scanline++;
 
-        if(scanline > 261) {
-            scanline = 0;
+        if(scanline > 260) {
+            scanline = -1;
         }
     }
     
@@ -177,7 +187,7 @@ static void ppu_bfm(uint8_t extra_cycles, uint8_t opcode) {
     if((scanline == 241) && (dot > 0)) {
         write_RAM(reg2002_address, vblank_value);
     }
-    if((scanline == 261) && (dot > 0)) {
+    if((scanline == -1) && (dot > 0)) {
         write_RAM(reg2002_address, 0x00);
     }
 }
@@ -250,8 +260,14 @@ static void print_absolute_debug_info(cpu_registers* registers, uint8_t opcode) 
     fprintf(cpu_logfile, " %02X %02X", low_address_byte, high_address_byte);
     fprintf(cpu_logfile, "%2s", " ");
     fprintf(cpu_logfile, "%3s ", instruction_text[opcode]);
-    fprintf(cpu_logfile, "$%04X = %02X", absolute_address, data_read);
-    fprintf(cpu_logfile, "%18s", " ");
+    if(is_JSR_or_JMP(opcode)) {
+        fprintf(cpu_logfile, "$%04X", absolute_address);
+        fprintf(cpu_logfile, "%23s", " ");
+    }
+    else {
+        fprintf(cpu_logfile, "$%04X = %02X", absolute_address, data_read);
+        fprintf(cpu_logfile, "%18s", " ");
+    }
 }
 
 static void print_absoluteX_debug_info(cpu_registers* registers, uint8_t opcode) {
@@ -321,7 +337,7 @@ static void print_common_debug_info(cpu_registers* registers) {
     fprintf(cpu_logfile, "P:%02X ", registers->flags);
     fprintf(cpu_logfile, "SP:%02X ", registers->S);
     fprintf(cpu_logfile, "CYC:%3d ", dot);
-    fprintf(cpu_logfile, "SL:%3d", scanline);
+    fprintf(cpu_logfile, "SL:%d", scanline);
     fprintf(cpu_logfile, "\n");
 }
 
@@ -386,7 +402,8 @@ void execute_interpreter_cycle(cpu_registers* registers) {
     #endif
 
     uint8_t extra_cycles = execute_instruction(registers, opcode);
-    increment_PC_instruction_length(registers, opcode);
+    // Do not increment PC if we jump because it will skip the first instruction at least
+    if(!is_JSR_or_JMP(opcode)) increment_PC_instruction_length(registers, opcode);
     ppu_bfm(extra_cycles, opcode);
 }
 
