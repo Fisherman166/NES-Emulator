@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
         if( check_input(JOYPAD1) ) break;
     }
     printf("Ending Emulation!\n");
+    exit_SDL();
 
     #ifdef DEBUG
         close_cpu_debug_logfile();

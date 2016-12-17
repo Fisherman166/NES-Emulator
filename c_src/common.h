@@ -19,5 +19,8 @@
 #define JOYPAD1 0
 #define JOYPAD2 1
 
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 256
+
 #endif
 
