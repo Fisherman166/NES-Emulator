@@ -12,6 +12,9 @@
 #include "common.h"
 #include "common_cpu.h"
 
+#define JOYPAD1_ADDRESS 0x4016
+#define JOYPAD2_ADDRESS 0x4017
+
 void init_RAM();
 bool load_game();
 uint8_t read_RAM(uint16_t);

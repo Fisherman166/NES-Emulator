@@ -1,6 +1,6 @@
 CC = gcc
-LIBS = 
-CFLAGS = -Wall -std=gnu99 -D=DEBUG
+LIBS = -l SDL2
+CFLAGS = -Wall -std=gnu99 #-D=DEBUG
 TARGET = nes_emu
 
 .PHONY: default all clean

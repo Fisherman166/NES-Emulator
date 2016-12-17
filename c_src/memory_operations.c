@@ -10,6 +10,7 @@
 #include "memory_operations.h"
 #include "cpu_decode_logic.h"
 #include "mappers.h"
+#include "sdl_interface.h"
 
 #define RAM_locations 0x10000
 
@@ -83,14 +84,24 @@ bool load_game() {
     return true;
 }
     
-
-
 uint8_t read_RAM(uint16_t address_to_read) {
+    // FIXME - Revisit controller input when PPU is working and allowing the game to boot
+    if(address_to_read == JOYPAD1_ADDRESS) {
+        printf("JOYPAD1 RAM VALUE = %X", RAM[address_to_read]);
+    }
     return RAM[address_to_read];
 }
 
 void write_RAM(uint16_t address_to_write, uint8_t value_to_write) {
-   RAM[address_to_write] = value_to_write;
+    if(address_to_write == JOYPAD1_ADDRESS) {
+        if(value_to_write & 1) enable_controller_strobe(JOYPAD1);
+        else disable_controller_strobe(JOYPAD1);
+    }
+    else if(address_to_write == JOYPAD2_ADDRESS) {
+        if(value_to_write & 1) enable_controller_strobe(JOYPAD2);
+        else disable_controller_strobe(JOYPAD2);
+    }
+    RAM[address_to_write] = value_to_write;
 }
 
 //*****************************************************************************
