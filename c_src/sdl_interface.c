@@ -125,6 +125,8 @@ bool init_SDL() {
 }
 
 void exit_SDL() {
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(screen);
     SDL_Quit();
 }

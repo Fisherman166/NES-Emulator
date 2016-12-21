@@ -66,22 +66,22 @@ bool load_game() {
     game_filehandle = fopen(game_filename, "rb");
     if(game_filename == NULL) {
         printf("ERROR: Failed to open game file %s\n", game_filename);
-        return false;
+        return true;
     }
     uint8_t* game_data = read_rom(game_filehandle);
     if(game_data == NULL) {
-        return false;
+        return true;
     }
     uint8_t mapper = extract_mapper_from_header(game_data);
 
     if(mapper == NROM) load_NROM(game_data);
     else {
         printf("ERROR: Mapper %u does not match any supported mappers\n", mapper);
-        return false;
+        return true;
     }
 
     free(game_data);
-    return true;
+    return false;
 }
     
 uint8_t read_RAM(uint16_t address_to_read) {

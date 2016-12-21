@@ -16,6 +16,7 @@
 #include "cpu_unit_tests.h"
 #include "memory_operations.h"
 #include "sdl_interface.h"
+#include "ppu.h"
 
 bool parse_cmdline(int, char **);
 
@@ -34,8 +35,7 @@ int main(int argc, char *argv[]) {
 
     if( init_SDL() ) return 1;
     bool game_loaded = load_game();
-    printf("LOADED GAME\n");
-    if(!game_loaded) {
+    if(game_loaded) {
         printf("FATAL ERROR occurred while attempting to load game.\n");
         return -1;
     }
