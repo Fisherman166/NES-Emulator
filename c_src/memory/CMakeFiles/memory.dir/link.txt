@@ -1,2 +1,0 @@
-/usr/bin/ar cr libmemory.a  CMakeFiles/memory.dir/mappers.c.o CMakeFiles/memory.dir/memory_operations.c.o
-/usr/bin/ranlib libmemory.a
