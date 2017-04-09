@@ -1,0 +1,2 @@
+/usr/bin/ar cr libcpu.a  CMakeFiles/cpu.dir/cpu_basic_operations.c.o CMakeFiles/cpu.dir/cpu.c.o CMakeFiles/cpu.dir/cpu_decode_logic.c.o CMakeFiles/cpu.dir/cpu_instructions.c.o
+/usr/bin/ranlib libcpu.a

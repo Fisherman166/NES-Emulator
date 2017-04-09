@@ -102,19 +102,19 @@ static bool is_reload_dot(uint16_t dot) {
     return false;
 }
 
-static bool is_sprite_rendering_enabled(ppu_registers regs) {
+static bool is_sprite_rendering_enabled(ppu_regs regs) {
     const uint8_t sprite_enabled_bitmask = 0x10;
     if(regs.r2001 & sprite_enabled_bitmask) return true;
     return false;
 }
 
-static bool is_background_rendering_enabled(ppu_registers regs) {
+static bool is_background_rendering_enabled(ppu_regs regs) {
     const uint8_t background_enabled_bitmask = 0x08;
     if(regs.r2001 & background_enabled_bitmask) return true;
     return false;
 }
 
-static bool is_rendering_enabled(ppu_registers regs) {
+static bool is_rendering_enabled(ppu_regs regs) {
     return (is_sprite_rendering_enabled(regs) || is_background_rendering_enabled(regs));
 }
 
@@ -240,7 +240,7 @@ static void reload_shift_registers(background_registers* BG_regs, fetched_BG_byt
     four_to_one_mux(BG_regs, fetched_bytes->attribute_byte);
 }
 
-static void fetch_shift_register_byte(fetched_BG_bytes* fetched_bytes, ppu_registers* ppu_regs,
+static void fetch_shift_register_byte(fetched_BG_bytes* fetched_bytes, ppu_regs* ppu_regs,
                                       uint16_t VRAM_address, uint16_t dot) {
     switch( dot % 8 ) {
         case 1:
@@ -306,7 +306,7 @@ static void copyY(uint16_t VRAM_address, uint16_t temp_VRAM_address) {
     *VRAM_address |= temp_VRAM_address & clear_vertical_position_bitmask;
 }
 
-static void execute_ppu(uint32_t** pixel_data, ppu_registers* ppu_regs, line_status* status,
+static void execute_ppu(uint32_t** pixel_data, ppu_regs* ppu_regs, line_status* status,
                         uint16_t scanline, uint16_t dot) {
     static background_registers background_regs = {0, 0, 0, 0, 0, 0, 0, 0};
     static fetched_BG_bytes fetched_bytes = {0, 0, 0, 0};
@@ -324,7 +324,7 @@ static void execute_ppu(uint32_t** pixel_data, ppu_registers* ppu_regs, line_sta
     }
 }
 
-static void tick(ppu_registers regs, line_status status, uint16_t* scanline, uint16_t* dot) {
+static void tick(ppu_regs regs, line_status status, uint16_t* scanline, uint16_t* dot) {
     const uint16_t max_dot = 341;
 
     // When BG rendering is enabled and we are on an odd frame, skip from 261, 339 -> 0, 0
@@ -349,7 +349,7 @@ static void tick(ppu_registers regs, line_status status, uint16_t* scanline, uin
     }
 }
 
-static void check_VBlank(ppu_registers regs, uint16_t scanline, uint16_t dot, bool* NMI_flag) {
+static void check_VBlank(ppu_regs regs, uint16_t scanline, uint16_t dot, bool* NMI_flag) {
     const uint16_t vblank_enter_scanline = 241;
     const uint16_t vblank_enter_dot = 1;
     const uint16_t vblank_exit_scanline = 261;
@@ -376,7 +376,7 @@ static void check_VBlank(ppu_registers regs, uint16_t scanline, uint16_t dot, bo
 //*****************************************************************************
 void run_PPU_cycle(uint32_t** pixel_data) {
     line_status status = get_ppu_line_status(scanline, dot);
-    ppu_registers ppu_regs = get_ppu_registers();
+    ppu_regs ppu_regs = get_ppu_registers();
 
     if( is_rendering_enabled(ppu_regs) ) execute_ppu(pixel_data);
     tick(ppu_regs, status, &scanline, &dot);
