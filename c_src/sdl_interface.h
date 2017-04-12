@@ -13,6 +13,7 @@
 #include "common.h"
 
 bool init_SDL();
+void render_frame(uint32_t*);
 void exit_SDL();
 
 // Input functions

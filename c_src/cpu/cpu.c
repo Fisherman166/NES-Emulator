@@ -181,6 +181,14 @@ static uint16_t dot = 0;
 static int16_t scanline = 241;
 static void ppu_bfm(uint8_t extra_cycles, uint8_t opcode) {
     uint8_t cpu_cycles = instruction_cycle_length[opcode] + extra_cycles;
+    static bool first_time = 1;
+
+    const uint16_t reg2002_address = 0x2002;
+    const uint8_t vblank_value = 0x80;
+    if(first_time) {
+        set_vblank_bit();
+        first_time = false;
+    }
 
     dot += cpu_cycles * 3;
     if(dot > 340) {
@@ -192,10 +200,8 @@ static void ppu_bfm(uint8_t extra_cycles, uint8_t opcode) {
         }
     }
     
-    const uint16_t reg2002_address = 0x2002;
-    const uint8_t vblank_value = 0x80;
     if((scanline == 241) && (dot > 0)) {
-        write_RAM(reg2002_address, vblank_value);
+        write_RAM(reg2002_address, 0xFF);
     }
     if((scanline == -1) && (dot > 0)) {
         write_RAM(reg2002_address, 0x00);
@@ -214,7 +220,7 @@ static void print_accumulator_debug_info(cpu_registers* registers, uint8_t opcod
 }
 
 static void print_immediate_debug_info(cpu_registers* registers, uint8_t opcode) {
-    uint8_t data_read = fetch_immediate(registers);
+    uint8_t data_read = debug_read_RAM(registers->PC);
     fprintf(cpu_logfile, " %02X", data_read);
     fprintf(cpu_logfile, "%5s", " ");
     fprintf(cpu_logfile, "%3s ", instruction_text[opcode]);
@@ -229,8 +235,8 @@ static void print_implied_debug_info(cpu_registers* registers, uint8_t opcode) {
 }
 
 static void print_zeropage_debug_info(cpu_registers* registers, uint8_t opcode) {
-    uint8_t zeropage_address  = fetch_immediate(registers);
-    uint8_t data_read = fetch_zeropage(registers);
+    uint8_t zeropage_address  = debug_read_RAM(registers->PC);
+    uint8_t data_read = debug_read_RAM(zeropage_address);
     fprintf(cpu_logfile, " %02X", zeropage_address);
     fprintf(cpu_logfile, "%5s", " ");
     fprintf(cpu_logfile, "%3s ", instruction_text[opcode]);
@@ -239,9 +245,9 @@ static void print_zeropage_debug_info(cpu_registers* registers, uint8_t opcode) 
 }
 
 static void print_zeropageX_debug_info(cpu_registers* registers, uint8_t opcode) {
-    uint8_t zeropage_address  = fetch_immediate(registers);
-    uint8_t zeropageX_address  = calc_zeropageX_address(registers);
-    uint8_t data_read = fetch_zeropageX(registers);
+    uint8_t zeropage_address  = debug_read_RAM(registers->PC);
+    uint8_t zeropageX_address = calc_zeropageX_address(registers);
+    uint8_t data_read = debug_read_RAM(zeropageX_address);
     fprintf(cpu_logfile, " %02X", zeropage_address);
     fprintf(cpu_logfile, "%5s", " ");
     fprintf(cpu_logfile, "%3s ", instruction_text[opcode]);
@@ -251,9 +257,9 @@ static void print_zeropageX_debug_info(cpu_registers* registers, uint8_t opcode)
 }
 
 static void print_zeropageY_debug_info(cpu_registers* registers, uint8_t opcode) {
-    uint8_t zeropage_address = fetch_immediate(registers);
+    uint8_t zeropage_address = debug_read_RAM(registers->PC);
     uint8_t zeropageY_address = calc_zeropageY_address(registers);
-    uint8_t data_read = fetch_zeropageY(registers);
+    uint8_t data_read = debug_read_RAM(zeropageY_address);
     fprintf(cpu_logfile, " %02X", zeropage_address);
     fprintf(cpu_logfile, "%5s", " ");
     fprintf(cpu_logfile, "%3s ", instruction_text[opcode]);
@@ -263,10 +269,10 @@ static void print_zeropageY_debug_info(cpu_registers* registers, uint8_t opcode)
 }
 
 static void print_absolute_debug_info(cpu_registers* registers, uint8_t opcode) {
-    uint8_t low_address_byte = fetch_immediate(registers);
-    uint8_t high_address_byte = read_RAM(registers->PC + 1);
+    uint8_t low_address_byte = debug_read_RAM(registers->PC);
+    uint8_t high_address_byte = debug_read_RAM(registers->PC + 1);
     uint16_t absolute_address = calc_absolute_address(registers);
-    uint8_t data_read = fetch_absolute(registers);
+    uint8_t data_read = debug_read_RAM(absolute_address);
     fprintf(cpu_logfile, " %02X %02X", low_address_byte, high_address_byte);
     fprintf(cpu_logfile, "%2s", " ");
     fprintf(cpu_logfile, "%3s ", instruction_text[opcode]);
@@ -281,10 +287,10 @@ static void print_absolute_debug_info(cpu_registers* registers, uint8_t opcode) 
 }
 
 static void print_absoluteX_debug_info(cpu_registers* registers, uint8_t opcode) {
-    uint8_t low_address_byte = fetch_immediate(registers);
-    uint8_t high_address_byte = read_RAM(registers->PC + 1);
+    uint8_t low_address_byte = debug_read_RAM(registers->PC);
+    uint8_t high_address_byte = debug_read_RAM(registers->PC + 1);
     uint16_t absoluteX_address = calc_absoluteX_address(registers);
-    uint8_t data_read = fetch_absoluteX(registers, NULL);
+    uint8_t data_read = debug_read_RAM(absoluteX_address);
     fprintf(cpu_logfile, " %02X %02X", low_address_byte, high_address_byte);
     fprintf(cpu_logfile, "%2s", " ");
     fprintf(cpu_logfile, "%3s ", instruction_text[opcode]);
@@ -294,10 +300,10 @@ static void print_absoluteX_debug_info(cpu_registers* registers, uint8_t opcode)
 }
 
 static void print_absoluteY_debug_info(cpu_registers* registers, uint8_t opcode) {
-    uint8_t low_address_byte = fetch_immediate(registers);
-    uint8_t high_address_byte = read_RAM(registers->PC + 1);
+    uint8_t low_address_byte = debug_read_RAM(registers->PC);
+    uint8_t high_address_byte = debug_read_RAM(registers->PC + 1);
     uint16_t absoluteY_address = calc_absoluteY_address(registers);
-    uint8_t data_read = fetch_absoluteY(registers, NULL);
+    uint8_t data_read = debug_read_RAM(absoluteY_address);
     fprintf(cpu_logfile, " %02X %02X", low_address_byte, high_address_byte);
     fprintf(cpu_logfile, "%2s", " ");
     fprintf(cpu_logfile, "%3s ", instruction_text[opcode]);
@@ -307,9 +313,9 @@ static void print_absoluteY_debug_info(cpu_registers* registers, uint8_t opcode)
 }
 
 static void print_indirectY_debug_info(cpu_registers* registers, uint8_t opcode) {
-    uint8_t zeropage_address = fetch_immediate(registers);
+    uint8_t zeropage_address = debug_read_RAM(registers->PC);
     uint16_t indirect_address = calc_indirectY_address(registers);
-    uint8_t data_read = fetch_indirectY(registers, NULL);
+    uint8_t data_read = debug_read_RAM(indirect_address);
     fprintf(cpu_logfile, " %02X", zeropage_address);
     fprintf(cpu_logfile, "%5s", " ");
     fprintf(cpu_logfile, "%3s ", instruction_text[opcode]);
@@ -319,7 +325,7 @@ static void print_indirectY_debug_info(cpu_registers* registers, uint8_t opcode)
 }
 
 static void print_relative_debug_info(cpu_registers* registers, uint8_t opcode) {
-    char offset = fetch_immediate(registers) & BYTE_MASK;
+    char offset = debug_read_RAM(registers->PC) & BYTE_MASK;
     uint16_t target_address = registers->PC + offset + instruction_byte_length[opcode] - 1;
     fprintf(cpu_logfile, " %02X", offset & BYTE_MASK);
     fprintf(cpu_logfile, "%5s", " ");
@@ -329,8 +335,8 @@ static void print_relative_debug_info(cpu_registers* registers, uint8_t opcode) 
 }
 
 static void print_indirect_debug_info(cpu_registers* registers, uint8_t opcode) {
-    uint8_t low_address_byte = fetch_immediate(registers);
-    uint8_t high_address_byte = read_RAM(registers->PC + 1);
+    uint8_t low_address_byte = debug_read_RAM(registers->PC);
+    uint8_t high_address_byte = debug_read_RAM(registers->PC + 1);
     uint16_t indirect_address = calc_absolute_address(registers);
     fprintf(cpu_logfile, " %02X %02X", low_address_byte, high_address_byte);
     fprintf(cpu_logfile, "%2s", " ");
@@ -375,6 +381,18 @@ static void print_debug_info(cpu_registers* registers, uint8_t opcode) {
     print_common_debug_info(registers);
 }
 
+static uint8_t execute_NMI(cpu_registers* registers) {
+    #ifdef DEBUG
+        fprintf(cpu_logfile, "Executing NMI\n");
+    #endif
+    push_stack(registers, (registers->PC >> 8) & BYTE_MASK);
+    push_stack(registers, registers->PC & BYTE_MASK);
+    push_stack(registers, registers->flags);
+    registers->PC = (read_RAM(0xFFFB) << 8) | read_RAM(0xFFFA);
+    set_cpu_flag(registers, INTERRUPT_FLAG);
+    return 7;
+}
+
 //*****************************************************************************
 // Public functions
 //*****************************************************************************
@@ -403,7 +421,8 @@ void cold_boot_init(cpu_registers* registers) {
                        initial_S, initial_flags);
 }
 
-void execute_interpreter_cycle(cpu_registers* registers) {
+uint8_t execute_interpreter_cycle(cpu_registers* registers, bool nmi_flag) {
+    static bool previous_nmi_flag = false;
     uint8_t opcode = fetch_opcode(registers);
     increment_PC(registers);
 
@@ -411,10 +430,19 @@ void execute_interpreter_cycle(cpu_registers* registers) {
         print_debug_info(registers, opcode);
     #endif
 
-    uint8_t extra_cycles = execute_instruction(registers, opcode);
+    uint8_t cpu_cycles_executed = 0;
+    uint8_t extra_cycles= 0;
+    if(nmi_flag && !previous_nmi_flag) cpu_cycles_executed = execute_NMI(registers);
+    else {
+        extra_cycles = execute_instruction(registers, opcode);
+        cpu_cycles_executed = instruction_cycle_length[opcode] + extra_cycles;
+    }
+    previous_nmi_flag = nmi_flag;
+
+
     // Do not increment PC if we jump because it will skip the first instruction at least
     if(!is_JSR_or_JMP(opcode)) increment_PC_instruction_length(registers, opcode);
     ppu_bfm(extra_cycles, opcode);
+    return cpu_cycles_executed;
 }
 
-    

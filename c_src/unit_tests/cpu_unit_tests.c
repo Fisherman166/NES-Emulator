@@ -25,7 +25,7 @@ static void test_immediate_ADC() {
     open_cpu_debug_logfile();
     cpu_registers registers;
     cold_boot_init(&registers);
-    execute_interpreter_cycle(&registers);
+    execute_interpreter_cycle(&registers, false);
     assert(compare_registers(&registers, 0xDE, 0, 0, 0x8100, 0xFD, registers.flags | NEGATIVE_FLAG) == 1);
 
     close_cpu_debug_logfile();

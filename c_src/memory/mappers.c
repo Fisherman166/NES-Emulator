@@ -7,6 +7,7 @@
 //*****************************************************************************
 
 #include "memory_operations.h"
+#include "VRAM.h"
 #include "mappers.h"
 
 #define CHR_BANK_SIZE 0x4000
@@ -24,6 +25,9 @@ void load_NROM(uint8_t* game_data) {
     uint8_t CHR_rom_size = game_data[4];
     uint16_t NES_rom_address = 0x8000;
 
+    if(game_data[6] & 1) set_horizontal_mirroring();
+    else set_vertical_mirroring();
+
     // Fill both rom banks without mirroring
     if(is_dual_bank_NROM(CHR_rom_size)) {
         for(uint32_t game_address = game_data_start; game_address < dual_bank_end; game_address++) {
@@ -34,7 +38,7 @@ void load_NROM(uint8_t* game_data) {
     else { // First bank mirrored in second bank
         for(uint32_t game_address = game_data_start; game_address < single_bank_end; game_address++) {
             write_RAM(NES_rom_address, game_data[game_address]);
-            write_RAM(NES_rom_address + 0x4000, game_data[game_address]);
+            write_RAM(NES_rom_address + CHR_BANK_SIZE, game_data[game_address]);
             NES_rom_address++;
         }
     }

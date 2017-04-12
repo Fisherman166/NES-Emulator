@@ -124,6 +124,13 @@ bool init_SDL() {
     return false;
 }
 
+void render_frame(uint32_t* pixel_data) {
+    SDL_UpdateTexture(texture, NULL, (void*)pixel_data, SCREEN_HEIGHT * 4);
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderPresent(renderer);
+}
+
 void exit_SDL() {
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);

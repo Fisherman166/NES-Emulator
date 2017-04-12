@@ -15,7 +15,7 @@
 void open_cpu_debug_logfile();
 void close_cpu_debug_logfile();
 void cold_boot_init(cpu_registers*);
-void execute_interpreter_cycle(cpu_registers*);
+uint8_t execute_interpreter_cycle(cpu_registers*, bool);
 
 #endif
 

@@ -1,6 +1,7 @@
 #include "common.h"
 #include "ppu.h"
 #include "memory_operations.h"
+#include "VRAM.h"
 
 typedef struct {
     bool visable_line;
@@ -13,15 +14,11 @@ typedef struct {
 } line_status;
 
 typedef struct {
-    uint16_t    VRAM_address;
-    uint16_t    temp_VRAM_address;
-    uint8_t     fineX_scroll;
-    bool        write_toggle;
     uint16_t    high_background_shift;
     uint16_t    low_background_shift;
     uint8_t     high_attribute_shift;
     uint8_t     low_attribute_shift;
-} background_registers;
+} BG_shift_registers;
 
 typedef struct {
     uint8_t     high_background_byte;
@@ -52,6 +49,7 @@ static uint16_t dot = 0;
 static bool     odd_frame = false;
 static uint32_t pixel_data[SCREEN_WIDTH][SCREEN_HEIGHT];
 static bool     NMI_flag = false;
+
 
 //*****************************************************************************
 // Private functions
@@ -163,33 +161,34 @@ static uint8_t fetch_attribute_byte(uint16_t VRAM_address) {
     return read_VRAM(attribute_address);
 }
 
-static uint16_t calc_base_tile_address(ppu_regs ppu_registers, uint16_t VRAM_address, uint8_t nametable_byte) {
+static uint16_t calc_base_tile_address(ppu_regs* ppu_registers, uint16_t VRAM_address, uint8_t nametable_byte) {
     const uint8_t pattern_table_select_bitmask = 0x10;
     const uint16_t fine_Y_scroll_bitmask = 0x7000;
     uint16_t base_pattern_address;
 
-    if(ppu_registers.r2000 & pattern_table_select_bitmask) base_pattern_address = 0x1000;
+    if(ppu_registers->r2000 & pattern_table_select_bitmask) base_pattern_address = 0x1000;
     else base_pattern_address = 0x0000;
     base_pattern_address |= (nametable_byte << 4) | ((VRAM_address & fine_Y_scroll_bitmask) >> 12);
     return base_pattern_address;
 }
 
-static uint8_t fetch_low_pattern_table_byte(ppu_regs ppu_registers, uint16_t VRAM_address, uint8_t nametable_byte) {
+static uint8_t fetch_low_pattern_table_byte(ppu_regs* ppu_registers, uint16_t VRAM_address, uint8_t nametable_byte) {
     uint16_t base_pattern_address = calc_base_tile_address(ppu_registers, VRAM_address, nametable_byte);
     return read_VRAM(base_pattern_address);
 }
 
-static uint8_t fetch_high_pattern_table_byte(ppu_regs ppu_registers, uint16_t VRAM_address, uint8_t nametable_byte) {
+static uint8_t fetch_high_pattern_table_byte(ppu_regs* ppu_registers, uint16_t VRAM_address, uint8_t nametable_byte) {
     const uint8_t high_tile_offset = 8;
     uint16_t base_pattern_address = calc_base_tile_address(ppu_registers, VRAM_address, nametable_byte);
     return read_VRAM(base_pattern_address + high_tile_offset);
 }
 
-static uint8_t four_to_one_mux(background_registers BG_regs, uint8_t attribute_byte) {
+static void four_to_one_mux(BG_shift_registers* BG_regs, uint8_t attribute_byte,
+                            uint16_t VRAM_address) {
     const uint8_t coarseX = 0x1;
     const uint8_t coarseY = 0x20;
-    bool xBit = BG_regs->VRAM_address & coarseX;
-    bool yBit = BG_regs->VRAM_address & coarseY;
+    bool xBit = VRAM_address & coarseX;
+    bool yBit = VRAM_address & coarseY;
 
     if(xBit && yBit) attribute_byte >>= 6;
     else if(xBit) attribute_byte >>= 4;
@@ -198,10 +197,10 @@ static uint8_t four_to_one_mux(background_registers BG_regs, uint8_t attribute_b
     bool att_bit2 = attribute_byte & 0x2;
 
     if(att_bit1) BG_regs->high_attribute_shift |= 0xFF;
-    else BG_regs->high_attribute_shift &= ~0xFF; //Only 0 low byte
+    else BG_regs->high_attribute_shift = 0;
 
     if(att_bit2) BG_regs->low_attribute_shift |= 0xFF;
-    else BG_regs->low_attribute_shift &= ~0xFF; //Only 0 low byte
+    else BG_regs->low_attribute_shift = 0;
 }
 
 bool eight_to_one_mux(uint8_t fineX_scroll, uint16_t background_tile) {
@@ -221,23 +220,26 @@ bool eight_to_one_mux(uint8_t fineX_scroll, uint16_t background_tile) {
 //*****************************************************************************
 // Heavy lifters
 //*****************************************************************************
-void render_pixel(uint32_t** pixel_data, background_registers* BG_regs, uint16_t scanline, uint16_t dot) {
+void render_pixel(uint32_t pixel_data[SCREEN_WIDTH][SCREEN_HEIGHT], BG_shift_registers* BG_regs,
+                  uint16_t scanline, uint16_t dot) {
     const uint16_t pallete_base_address = 0x3F00;
+    uint8_t fineX_scroll= get_fineX_scroll();
 
     //Assumes only background can be enabled right now
     uint16_t pallete_address = pallete_base_address |
-                               eight_to_one_mux( BG_regs->fineX_scroll, BG_regs->low_background_shift) |
-                               (eight_to_one_mux( BG_regs->fineX_scroll, BG_regs->high_background_shift) << 1) | 
-                               (eight_to_one_mux( BG_regs->fineX_scroll, BG_regs->low_attribute_shift) << 2) |
-                               (eight_to_one_mux( BG_regs->fineX_scroll, BG_regs->high_attribute_shift) << 3);
+                               (eight_to_one_mux( fineX_scroll, BG_regs->low_background_shift)) |
+                               (eight_to_one_mux( fineX_scroll, BG_regs->high_background_shift) << 1) | 
+                               (eight_to_one_mux( fineX_scroll, BG_regs->low_attribute_shift) << 2) |
+                               (eight_to_one_mux( fineX_scroll, BG_regs->high_attribute_shift) << 3);
     uint16_t pallete_data = read_VRAM(pallete_address);
-    *pixel_data[scanline][dot] = RGB_colors[pallete_data];
+    pixel_data[scanline][dot] = RGB_colors[pallete_data];
 }
 
-static void reload_shift_registers(background_registers* BG_regs, fetched_BG_bytes* fetched_bytes) {
+static void reload_shift_registers(BG_shift_registers* BG_regs, fetched_BG_bytes* fetched_bytes,
+                                   uint16_t VRAM_address) {
     BG_regs->low_background_shift |= fetched_bytes->low_background_byte;
     BG_regs->high_background_shift |= fetched_bytes->high_background_byte;
-    four_to_one_mux(BG_regs, fetched_bytes->attribute_byte);
+    four_to_one_mux(BG_regs, fetched_bytes->attribute_byte, VRAM_address);
 }
 
 static void fetch_shift_register_byte(fetched_BG_bytes* fetched_bytes, ppu_regs* ppu_regs,
@@ -258,69 +260,29 @@ static void fetch_shift_register_byte(fetched_BG_bytes* fetched_bytes, ppu_regs*
     }
 }
 
-static void shift_registers(background_registers* BG_regs) {
+static void shift_registers(BG_shift_registers* BG_regs) {
     BG_regs->low_background_shift <<= 1;
     BG_regs->high_background_shift <<= 1;
     BG_regs->low_attribute_shift <<= 1;
     BG_regs->high_attribute_shift <<= 1;
 }
 
-static void incrementY(uint16_t* VRAM_address) {
-    if( (*VRAM_address & 0x7000) != 0x7000 ) *VRAM_address += 0x1000;    // Increment if fine Y < 7
-    else {
-        *VRAM_address &= ~0x7000;   //Fine Y = 0
-        uint16_t coarseY = (*VRAM_address & 0x03E0) >> 5;
-
-        if(coarseY == 29) {
-            coarseY = 0;
-            *VRAM_address ^= 0x8000;    //Switch vertical nametable
-        }
-        else if(coarseY == 31) {
-            coarseY = 0;
-        }
-        else coarseY++;
-        *VRAM_address = (*VRAM_address & ~0x03E0) | (coarseY << 5); //Coarse Y back into address
-    }
-}
-
-static void incrementX(uint16_t* VRAM_address) {
-    const uint16_t coarseX_bitmask = 0x001F;
-    const uint16_t switch_nametable = 0x0400;
-
-    if( (*VRAM_address & coarseX_bitmask) == 31 ) {
-        *VRAM_address &= ~coarseX_bitmask;  // CoarseX = 0
-        *VRAM_address ^= switch_nametable;  // Switch horizontal nametable
-    }
-    else *VRAM_address++;
-}
-
-static void copyX(uint16_t VRAM_address, uint16_t temp_VRAM_address) {
-    const uint16_t clear_horizontal_position_bitmask = 0x041F;
-    *VRAM_address &= ~clear_horizontal_position_bitmask;
-    *VRAM_address |= temp_VRAM_address & clear_horizontal_position_bitmask;
-}
-
-static void copyY(uint16_t VRAM_address, uint16_t temp_VRAM_address) {
-    const uint16_t clear_vertical_position_bitmask = 0x7BE0;
-    *VRAM_address &= ~clear_vertical_position_bitmask;
-    *VRAM_address |= temp_VRAM_address & clear_vertical_position_bitmask;
-}
-
-static void execute_ppu(uint32_t** pixel_data, ppu_regs* ppu_regs, line_status* status,
+static void execute_ppu(uint32_t pixel_data[SCREEN_WIDTH][SCREEN_HEIGHT], ppu_regs* ppu_regs, line_status* status,
                         uint16_t scanline, uint16_t dot) {
-    static background_registers background_regs = {0, 0, 0, 0, 0, 0, 0, 0};
+    static BG_shift_registers background_regs = {0, 0, 0, 0};
     static fetched_BG_bytes fetched_bytes = {0, 0, 0, 0};
-
     bool renderline = status->visable_line || status->prerender_line;
+    uint16_t VRAM_address = get_VRAM_address();
+
     if(status->visable_line && status->visable_dot) render_pixel(pixel_data, &background_regs, scanline, dot);
-    if(renderline && status->shift_reload_dot_range && status->shift_reload_dot) reload_shift_registers(&background_regs, &fetched_bytes);
-    if(renderline && status->visable_dot) fetch_shift_register_byte(&fetched_bytes, ppu_regs, background_regs->VRAM_address, dot);
+    if(renderline && status->shift_reload_dot_range && status->shift_reload_dot) reload_shift_registers(&background_regs, &fetched_bytes, VRAM_address);
+    if(renderline && status->visable_dot) fetch_shift_register_byte(&fetched_bytes, ppu_regs, VRAM_address, dot);
     if(should_shift_shift_registers(dot)) shift_registers(&background_regs);
     if(renderline) {
-        if(dot == 256) incrementY( &(background_regs->VRAM_address) );
-        if( (status->visable_dot || status->next_screen_dot) && ((dot % 8) == 0) ) incrementX( &(background_regs->VRAM_address) );
-        if(dot == 257) copyX(  &(background_regs->VRAM_address), background_regs->temp_VRAM_address );
-        if( status->prerender_line && (dot >= 280) && (dot >= 304) ) copyY( &(background_regs->VRAM_address), background_regs->temp_VRAM_address);
+        if(dot == 256) incrementY();
+        if( (status->visable_dot || status->next_screen_dot) && ((dot % 8) == 0) ) incrementX();
+        if(dot == 257) copyX();
+        if( status->prerender_line && (dot >= 280) && (dot >= 304) ) copyY();
     }
 }
 
@@ -343,43 +305,48 @@ static void tick(ppu_regs regs, line_status status, uint16_t* scanline, uint16_t
             *scanline = 0;
             odd_frame ^= 1;
         }
-        else {
-            *scanline++;
-        }
+        else *scanline++;
     }
 }
 
-static void check_VBlank(ppu_regs regs, uint16_t scanline, uint16_t dot, bool* NMI_flag) {
+static bool check_VBlank(ppu_regs regs, uint16_t scanline, uint16_t dot, bool* NMI_flag) {
     const uint16_t vblank_enter_scanline = 241;
     const uint16_t vblank_enter_dot = 1;
     const uint16_t vblank_exit_scanline = 261;
     const uint16_t vblank_exit_dot = 1;
-    const uint8_t vblank_bit = 0x80;
-    const uint8_t NMI_bitmask = 0x80;
-    const uint8_t clear_bitmask = 0x9F;
-    uint8_t r2002_value;
+    static bool vblank = false;
 
-    r2002_value = read_RAM(PPUSTATUS_ADDRESS);
     if( (scanline == vblank_enter_scanline) && (dot == vblank_enter_dot) ) {
-        r2002_value |= vblank_bit;
-        write_RAM(PPUSTATUS_ADDRESS, r2002_value);
-        if(regs.r2000 & NMI_bitmask) *NMI_flag = 1;
+        set_vblank_bit();
+        vblank = true;
     }
     else if( (scanline == vblank_exit_scanline) && (dot == vblank_exit_dot) ) {
-        r2002_value &= clear_bitmask;
-        write_RAM(PPUSTATUS_ADDRESS, r2002_value);
+        clear_vblank_bit();
+        vblank = false;
     }
+
+    if(NMI_and_vblank_set()) *NMI_flag = 1;
+    else *NMI_flag = 0;
+    return vblank;
 }
 
 //*****************************************************************************
 // Public functions
 //*****************************************************************************
-void run_PPU_cycle(uint32_t** pixel_data) {
+uint32_t (*get_pixel_data_ptr())[SCREEN_HEIGHT] {
+    return pixel_data;
+}
+
+bool get_NMI_flag() {
+    return NMI_flag;
+}
+
+bool run_PPU_cycle() {
     line_status status = get_ppu_line_status(scanline, dot);
     ppu_regs ppu_regs = get_ppu_registers();
 
-    if( is_rendering_enabled(ppu_regs) ) execute_ppu(pixel_data);
+    if( is_rendering_enabled(ppu_regs) ) execute_ppu(pixel_data, &ppu_regs, &status, scanline, dot);
     tick(ppu_regs, status, &scanline, &dot);
-    check_VBlank(ppu_regs, scanline, dot, &NMI_flag);
+    return check_VBlank(ppu_regs, scanline, dot, &NMI_flag);
 }
 

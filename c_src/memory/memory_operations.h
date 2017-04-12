@@ -29,7 +29,12 @@ void init_RAM();
 bool load_game();
 
 uint8_t read_RAM(uint16_t);
+uint8_t debug_read_RAM(uint16_t);
 void write_RAM(uint16_t, uint8_t);
+
+void clear_vblank_bit();
+void set_vblank_bit();
+bool NMI_and_vblank_set();
 
 //*****************************************************************************
 // Specific address mode writes

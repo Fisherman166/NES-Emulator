@@ -8,19 +8,23 @@
 
 #include <unistd.h>
 #include <stdlib.h>
-#include "common.h"
-#include "common_cpu.h"
+#include <stdio.h>
 #include "cpu.h"
-#include "cpu_basic_operations_unit_tests.h"
-#include "cpu_decode_logic_unit_tests.h"
-#include "cpu_unit_tests.h"
 #include "memory_operations.h"
 #include "sdl_interface.h"
 #include "ppu.h"
 
+#ifdef UNIT_TESTS
+#include "cpu_basic_operations_unit_tests.h"
+#include "cpu_decode_logic_unit_tests.h"
+#include "cpu_unit_tests.h"
+#endif
+
 bool parse_cmdline(int, char **);
 
 int main(int argc, char *argv[]) {
+
+#ifdef UNIT_TESTS
     bool run_unit_tests = parse_cmdline(argc, argv);
     if(run_unit_tests) {
         run_all_basic_cpu_operations_tests();
@@ -28,6 +32,7 @@ int main(int argc, char *argv[]) {
         run_all_cpu_tests();
         exit(EXIT_SUCCESS);
     }
+#endif
 
     #ifdef DEBUG
         open_cpu_debug_logfile();
@@ -42,9 +47,23 @@ int main(int argc, char *argv[]) {
     cpu_registers registers;
     cold_boot_init(&registers);
 
+    printf("Entering main loop\n");
+    uint8_t cycles_executed;
+    bool nmi_flag = false;
+    uint32_t* pixel_data = get_pixel_data_ptr();
+    bool vblank;
+    bool old_vblank = false;
+
     for(;;) {
-        execute_interpreter_cycle(&registers);
+        nmi_flag = get_NMI_flag();
+        cycles_executed = execute_interpreter_cycle(&registers, nmi_flag);
+        //for(uint8_t ppu_cycles = cycles_executed * 3; ppu_cycles > 0; ppu_cycles--)
+            //vblank = run_PPU_cycle();
         if( check_input(JOYPAD1) ) break;
+
+        //if( vblank & !old_vblank ) render_frame(pixel_data);
+        //old_vblank = vblank;
+
     }
     printf("Ending Emulation!\n");
     exit_SDL();
