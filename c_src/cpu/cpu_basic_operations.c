@@ -132,10 +132,10 @@ void base_bit_test(cpu_registers* registers, uint8_t memory_value) {
 void base_compare(cpu_registers* registers, uint8_t register_value,
                   uint8_t memory_value)
 {
-    int8_t compare_result = (int8_t)(register_value) - (int8_t)memory_value;
-    determine_zero_flag(registers, (uint8_t)compare_result);
-    determine_negative_flag(registers, (uint8_t)compare_result);
-    if(compare_result >= 0) set_cpu_flag(registers, CARRY_FLAG);
+    uint8_t delta = register_value - memory_value;
+    determine_zero_flag(registers, delta);
+    determine_negative_flag(registers, delta);
+    if(register_value >= memory_value) set_cpu_flag(registers, CARRY_FLAG);
     else clear_cpu_flag(registers, CARRY_FLAG);
 }
 
