@@ -214,17 +214,17 @@ uint8_t relative_BVS(cpu_registers* registers) {
 //*****************************************************************************
 // Interrupts
 //*****************************************************************************
-static void push_PC_onto_stack(cpu_registers* registers, uint16_t PC) {
+void push_PC_onto_stack(cpu_registers* registers, uint16_t PC) {
     const uint16_t high_byte_mask = 0xFF00;
     uint8_t low_byte = PC & BYTE_MASK;
     uint8_t high_byte = ((PC & high_byte_mask) >> 8) & BYTE_MASK;
-    push_stack(registers, low_byte);
     push_stack(registers, high_byte);
+    push_stack(registers, low_byte);
 }
 
 static void pop_PC_off_stack(cpu_registers* registers) {
-    uint8_t high_byte = pop_stack(registers);
     uint8_t low_byte = pop_stack(registers);
+    uint8_t high_byte = pop_stack(registers);
     registers->PC = (high_byte << 8) | low_byte;
 }
 

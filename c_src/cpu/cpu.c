@@ -160,13 +160,18 @@ static bool is_RTS(uint8_t opcode) {
     return false;
 }
 
+static bool is_RTI(uint8_t opcode) {
+    if(opcode == 0x40) return true;
+    return false;
+}
+
 static void increment_PC_instruction_length(cpu_registers* registers, uint8_t opcode) {
     // Have to subtract 1 to account for the increment done after the
     // opcode fetch
     registers->PC += instruction_byte_length[opcode] - 1;
 
     // RTS cancels out the PC increment done after the opcode fetch. So add 1 here
-    // too get the right return address
+    // to get the right return address
     if(is_RTS(opcode)) increment_PC(registers);
 }
 
@@ -363,8 +368,7 @@ static uint8_t execute_NMI(cpu_registers* registers) {
     // NMI clears bit 4 and sets bit 5 for flags push
     uint8_t NMI_flags = registers->flags | 0x20;
     NMI_flags &= ~0x10;
-    push_stack(registers, (registers->PC >> 8) & BYTE_MASK);
-    push_stack(registers, registers->PC & BYTE_MASK);
+    push_PC_onto_stack(registers, registers->PC);
     push_stack(registers, NMI_flags);
     registers->PC = (read_RAM(0xFFFB) << 8) | read_RAM(0xFFFA);
     set_cpu_flag(registers, INTERRUPT_FLAG);
@@ -432,7 +436,7 @@ uint8_t execute_interpreter_cycle(cpu_registers* registers, bool nmi_flag) {
             cpu_cycles_executed = instruction_cycle_length[opcode] + extra_cycles;
         }
         // Do not increment PC if we jump because it will skip the first instruction at least
-        if(!is_JSR_or_JMP(opcode)) increment_PC_instruction_length(registers, opcode);
+        if(!is_JSR_or_JMP(opcode) && !is_RTI(opcode)) increment_PC_instruction_length(registers, opcode);
     }
 
     previous_nmi_flag = nmi_flag;
