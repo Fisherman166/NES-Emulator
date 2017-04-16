@@ -10,10 +10,6 @@
 
 static bool is_page_crossed(uint16_t original_address, uint16_t branch_address) {
     const uint16_t page_mask = 0xFF00;
-    // All branches are two bytes and the PC needs to be at the PC+2 address from
-    // when the opcode was fetched. The PC is only incremebted by 1 at this point
-    // so add 1 more to get the correct address to compare
-    original_address += 1;
     if((original_address & page_mask) != (branch_address & page_mask)) return true;
     return false;
 }
@@ -146,7 +142,10 @@ uint8_t fetch_indirectY(cpu_registers* registers, bool* page_crossed) {
 
 bool branch_relative(cpu_registers* registers) {
     char offset = read_RAM(registers->PC) & BYTE_MASK;
-    bool page_crossed = is_page_crossed(registers->PC, registers->PC + offset);
+    // All branches are two bytes and the PC needs to be at the PC+2 address from
+    // when the opcode was fetched. The PC is only incremebted by 1 at this point
+    // so add 1 more to get the correct address to compare
+    bool page_crossed = is_page_crossed(registers->PC + 1, registers->PC + offset);
     registers->PC += offset;
     return page_crossed;
 }

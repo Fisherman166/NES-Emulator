@@ -311,8 +311,8 @@ static void print_indirectY_debug_info(cpu_registers* registers, uint8_t opcode)
     fprintf(cpu_logfile, " %02X", zeropage_address);
     fprintf(cpu_logfile, "%5s", " ");
     fprintf(cpu_logfile, "%3s ", instruction_text[opcode]);
-    fprintf(cpu_logfile, "($%02X),Y = %04X @ %04X = %02X", zeropage_address, indirect_address - registers->Y,
-            indirect_address, data_read);
+    fprintf(cpu_logfile, "($%02X),Y = %04X @ %04X = %02X", zeropage_address,
+            (indirect_address - registers->Y) & 0xFFFF, indirect_address, data_read);
     fprintf(cpu_logfile, "%2s", " ");
 }
 
