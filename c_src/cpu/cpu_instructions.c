@@ -32,6 +32,13 @@ static uint8_t branch_on_flag_clear(cpu_registers* registers, uint8_t flag) {
     return additional_cycles;
 }
 
+static uint8_t get_flags_preserve_bits(cpu_registers* registers) {
+    // Need to preserve bits 4/5 from original flags and get other bits from stack
+    uint8_t preserve_bits = registers->flags & 0x30;
+    uint8_t stack_bits = pop_stack(registers) & 0xCF;
+    return preserve_bits | stack_bits;
+}
+
 //*****************************************************************************
 // ADC
 //*****************************************************************************
@@ -775,10 +782,7 @@ uint8_t implied_PLA(cpu_registers* registers) {
 }
 
 uint8_t implied_PLP(cpu_registers* registers) {
-    // Need to preserve bits 4/5 from original flags and get other bits from stack
-    uint8_t preserve_bits = registers->flags & 0x30;
-    uint8_t stack_bits = pop_stack(registers) & 0xCF;
-    registers->flags = preserve_bits | stack_bits;
+    registers->flags = get_flags_preserve_bits(registers);
     return ZERO_EXTRA_CYCLES;
 }
 
@@ -857,7 +861,7 @@ uint8_t absoluteX_ROR(cpu_registers* registers) {
 // Return instructions
 //*****************************************************************************
 uint8_t implied_RTI(cpu_registers* registers) {
-    registers->flags = pop_stack(registers);
+    registers->flags = get_flags_preserve_bits(registers);
     pop_PC_off_stack(registers);
     return ZERO_EXTRA_CYCLES;
 }
