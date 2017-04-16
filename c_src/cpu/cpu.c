@@ -94,22 +94,22 @@ static const char* instruction_text[] = {
 
 static const uint8_t instruction_addressing_mode[] = {
   //0  , 1  , 2  , 3  , 4  , 5  , 6  , 7  , 8  , 9  , A  , B  , C  , D  , E  , F  , 
-    IMP, ERR, ERR, ERR, ERR, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ERR, ABS, ABS, ERR,
-    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR,
-    ABS, ERR, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR,
-    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR,
-    IMP, ERR, ERR, ERR, ERR, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR,
-    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR,
-    IMP, ERR, ERR, ERR, ERR, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR,
-    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR,
-    ERR, ERR, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, ERR, IMP, ERR, ABS, ABS, ABS, ERR,
-    REL, INY, ERR, ERR, ZPX, ZPX, ZPY, ERR, IMP, ABY, IMP, ERR, ERR, ABX, ERR, ERR,
-    IMM, ERR, IMM, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ERR,
-    REL, INY, ERR, ERR, ZPX, ZPX, ZPY, ERR, IMP, ABY, IMP, ERR, ABX, ABX, ABY, ERR,
-    IMM, ERR, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ERR,
-    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR,
-    IMM, ERR, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ERR,
-    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR,
+    IMP, INX, ERR, ERR, ERR, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ERR, ABS, ABS, ERR, 
+    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR, 
+    ABS, INX, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR, 
+    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR, 
+    IMP, INX, ERR, ERR, ERR, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR, 
+    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR, 
+    IMP, INX, ERR, ERR, ERR, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR, 
+    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR, 
+    ERR, INX, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, ERR, IMP, ERR, ABS, ABS, ABS, ERR, 
+    REL, INY, ERR, ERR, ZPX, ZPX, ZPY, ERR, IMP, ABY, IMP, ERR, ERR, ABX, ERR, ERR, 
+    IMM, INX, IMM, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ERR, 
+    REL, INY, ERR, ERR, ZPX, ZPX, ZPY, ERR, IMP, ABY, IMP, ERR, ABX, ABX, ABY, ERR, 
+    IMM, INX, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ERR, 
+    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR, 
+    IMM, INX, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ERR, 
+    REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR, 
 };
 
 static uint8_t (*instructions[])(cpu_registers*) = {
@@ -291,6 +291,19 @@ static void print_absoluteY_debug_info(cpu_registers* registers, uint8_t opcode)
     fprintf(cpu_logfile, "%9s", " ");
 }
 
+static void print_indirectX_debug_info(cpu_registers* registers, uint8_t opcode) {
+    uint8_t zeropage_address = debug_read_RAM(registers->PC);
+    uint16_t indirect_address = calc_indirectX_address(registers);
+    uint8_t data_read = debug_read_RAM(indirect_address);
+    fprintf(cpu_logfile, " %02X", zeropage_address);
+    fprintf(cpu_logfile, "%5s", " ");
+    fprintf(cpu_logfile, "%3s ", instruction_text[opcode]);
+    fprintf(cpu_logfile, "($%02X,X) @ %02X = %04X = %02X", zeropage_address,
+            (zeropage_address + registers->X) & BYTE_MASK, indirect_address,
+            data_read);
+    fprintf(cpu_logfile, "%4s", " ");
+}
+
 static void print_indirectY_debug_info(cpu_registers* registers, uint8_t opcode) {
     uint8_t zeropage_address = debug_read_RAM(registers->PC);
     uint16_t indirect_address = calc_indirectY_address(registers);
@@ -355,6 +368,7 @@ static void print_debug_info(cpu_registers* registers, uint8_t opcode) {
     else if(instruction_addressing_mode[opcode] == ABS) print_absolute_debug_info(registers, opcode);
     else if(instruction_addressing_mode[opcode] == ABX) print_absoluteX_debug_info(registers, opcode);
     else if(instruction_addressing_mode[opcode] == ABY) print_absoluteY_debug_info(registers, opcode);
+    else if(instruction_addressing_mode[opcode] == INX) print_indirectX_debug_info(registers, opcode);
     else if(instruction_addressing_mode[opcode] == INY) print_indirectY_debug_info(registers, opcode);
     else if(instruction_addressing_mode[opcode] == REL) print_relative_debug_info(registers, opcode);
     else if(instruction_addressing_mode[opcode] == IND) print_indirect_debug_info(registers, opcode);

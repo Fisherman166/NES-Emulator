@@ -73,7 +73,7 @@ sub decode_addressing_mode() {
     elsif($addressing_text eq "absolute") {return "ABS";}
     elsif($addressing_text eq "absoluteX") {return "ABX";}
     elsif($addressing_text eq "absoluteY") {return "ABY";}
-    elsif($addressing_text eq "indirctX") {return "INX";}
+    elsif($addressing_text eq "indirectX") {return "INX";}
     elsif($addressing_text eq "indirectY") {return "INY";}
     elsif($addressing_text eq "relative") {return "REL";}
     elsif($addressing_text eq "indirect") {return "IND";}
