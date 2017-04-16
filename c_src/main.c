@@ -57,13 +57,12 @@ int main(int argc, char *argv[]) {
     for(;;) {
         nmi_flag = get_NMI_flag();
         cycles_executed = execute_interpreter_cycle(&registers, nmi_flag);
-        //for(uint8_t ppu_cycles = cycles_executed * 3; ppu_cycles > 0; ppu_cycles--)
-            //vblank = run_PPU_cycle();
+        for(uint8_t ppu_cycles = cycles_executed * 3; ppu_cycles > 0; ppu_cycles--)
+            vblank = run_PPU_cycle();
         if( check_input(JOYPAD1) ) break;
 
-        //if( vblank & !old_vblank ) render_frame(pixel_data);
-        //old_vblank = vblank;
-
+        if( vblank & !old_vblank ) render_frame(pixel_data);
+        old_vblank = vblank;
     }
     printf("Ending Emulation!\n");
     exit_SDL();

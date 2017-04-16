@@ -44,7 +44,7 @@ static const uint32_t RGB_colors[] = {
    0x00FFF79C, 0x00D7E895, 0x00A6EDAF, 0x00A2F2DA, 0x0099FFFC, 0x00DDDDDD, 0x00111111, 0x00111111
 };
 
-static uint16_t scanline = 261;
+static uint16_t scanline = 241;
 static uint16_t dot = 0;
 static bool     odd_frame = false;
 static uint32_t pixel_data[SCREEN_WIDTH][SCREEN_HEIGHT];
@@ -299,13 +299,14 @@ static void tick(ppu_regs regs, line_status status, uint16_t* scanline, uint16_t
         }
     }
 
-    *dot = (*dot + 1) % max_dot;
-    if(*dot == 0) {
+    *dot += 1;
+    if(*dot >= max_dot) {
+        *dot -= max_dot;
         if(status.prerender_line) {
             *scanline = 0;
             odd_frame ^= 1;
         }
-        else *scanline++;
+        else *scanline += 1;
     }
 }
 
@@ -349,4 +350,7 @@ bool run_PPU_cycle() {
     tick(ppu_regs, status, &scanline, &dot);
     return check_VBlank(ppu_regs, scanline, dot, &NMI_flag);
 }
+
+uint16_t get_scanline() { return scanline; }
+uint16_t get_dot() { return dot; }
 

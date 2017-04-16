@@ -12,6 +12,7 @@
 #include "mappers.h"
 #include "sdl_interface.h"
 #include "VRAM.h"
+#include "cpu.h"
 
 #define RAM_locations 0x10000
 
@@ -22,6 +23,8 @@
 #define APU_IO_REGISTERS_BASE_ADDR 0x4000
 #define APU_DISABLED_REGISTERS_BASE_ADDR 0x4018
 #define CART_ROM_BASE_ADDR 0x4020
+
+#define DMA_REG_ADDR 0x4014
 
 #define NROM 0
 
@@ -91,7 +94,8 @@ static void print_rom_data() {
 
 bool load_game() {
     FILE* game_filehandle = NULL;
-    char* game_filename = "Donkey_Kong.nes";
+    //char* game_filename = "Donkey_Kong.nes";
+    char* game_filename = "nestest.nes";
     game_filehandle = fopen(game_filename, "rb");
     if(game_filename == NULL) {
         printf("ERROR: Failed to open game file %s\n", game_filename);
@@ -165,6 +169,7 @@ void write_RAM(uint16_t address, uint8_t value) {
     else if(address == PPUSCROLL_ADDRESS) PPUSCROLL_update_temp_VRAM_address(value);
     else if(address == PPUADDR_ADDRESS) PPUADDR_update_temp_VRAM_address(value);
     else if(address == PPUDATA_ADDRESS) PPUDATA_update_temp_VRAM_address(value, RAM[PPUCTRL_ADDRESS]);
+    else if(address == DMA_REG_ADDR) start_DMA(value);
     else if(address == JOYPAD1_ADDRESS) {
         if(value & 1) enable_controller_strobe(JOYPAD1);
         else disable_controller_strobe(JOYPAD1);

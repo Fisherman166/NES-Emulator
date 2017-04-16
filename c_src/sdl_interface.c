@@ -191,7 +191,6 @@ bool check_input(uint8_t controller) {
 }
 
 void enable_controller_strobe(uint8_t controller) {
-    printf("HERE\n");
     if( (controller < 0) || (controller > NUM_OF_JOYPADS) ) return;
     controller_strobe[controller] = true;
 }

@@ -12,6 +12,7 @@
 #include "cpu_basic_operations.h"
 #include "cpu_decode_logic.h"
 #include "memory_operations.h"
+#include "ppu.h"
 
 #define IMM 1
 #define ZRP 2
@@ -28,6 +29,8 @@
 #define IND 13
 #define ERR 0xFF
 
+static bool odd_cpu_cycle = false;
+static uint16_t DMA_cycle_count = 0;
 
 static const uint8_t instruction_byte_length[] = { //Opcode included
   //0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F
@@ -74,7 +77,7 @@ static const char* instruction_text[] = {
     "BRK", "ORA", "ERR", "ERR", "ERR", "ORA", "ASL", "ERR", "PHP", "ORA", "ASL", "ERR", "ERR", "ORA", "ASL", "ERR",
     "BPL", "ORA", "ERR", "ERR", "ERR", "ORA", "ASL", "ERR", "CLC", "ORA", "ERR", "ERR", "ERR", "ORA", "ASL", "ERR",
     "JSR", "AND", "ERR", "ERR", "BIT", "AND", "ROL", "ERR", "PLP", "AND", "ROL", "ERR", "BIT", "AND", "ROL", "ERR",
-    "BMI", "AND", "ERR", "ERR", "ERR", "AND", "ROL", "ERR", "CLC", "AND", "ERR", "ERR", "ERR", "AND", "ROL", "ERR",
+    "BMI", "AND", "ERR", "ERR", "ERR", "AND", "ROL", "ERR", "SEC", "AND", "ERR", "ERR", "ERR", "AND", "ROL", "ERR",
     "RTI", "EOR", "ERR", "ERR", "ERR", "EOR", "LSR", "ERR", "PHA", "EOR", "LSR", "ERR", "JMP", "EOR", "LSR", "ERR",
     "BVC", "EOR", "ERR", "ERR", "ERR", "EOR", "LSR", "ERR", "CLI", "EOR", "ERR", "ERR", "ERR", "EOR", "LSR", "ERR",
     "RTS", "ADC", "ERR", "ERR", "ERR", "ADC", "ROR", "ERR", "PLA", "ADC", "ROR", "ERR", "JMP", "ADC", "ROR", "ERR",
@@ -113,7 +116,7 @@ static uint8_t (*instructions[])(cpu_registers*) = {
     &implied_BRK, &indirectX_ORA, NULL, NULL, NULL, &zeropage_ORA, &zeropage_ASL, NULL, &implied_PHP, &immediate_ORA, &accumulator_ASL, NULL, NULL, &absolute_ORA, &absolute_ASL, NULL, 
     &relative_BPL, &indirectY_ORA, NULL, NULL, NULL, &zeropageX_ORA, &zeropageX_ASL, NULL, &implied_CLC, &absoluteY_ORA, NULL, NULL, NULL, &absoluteX_ORA, &absoluteX_ASL, NULL, 
     &absolute_JSR, &indirectX_AND, NULL, NULL, &zeropage_BIT, &zeropage_AND, &zeropage_ROL, NULL, &implied_PLP, &immediate_AND, &accumulator_ROL, NULL, &absolute_BIT, &absolute_AND, &absolute_ROL, NULL, 
-    &relative_BMI, &indirectY_AND, NULL, NULL, NULL, &zeropageX_AND, &zeropageX_ROL, NULL, &implied_CLC, &absoluteY_AND, NULL, NULL, NULL, &absoluteX_AND, &absoluteX_ROL, NULL, 
+    &relative_BMI, &indirectY_AND, NULL, NULL, NULL, &zeropageX_AND, &zeropageX_ROL, NULL, &implied_SEC, &absoluteY_AND, NULL, NULL, NULL, &absoluteX_AND, &absoluteX_ROL, NULL, 
     &implied_RTI, &indirectX_EOR, NULL, NULL, NULL, &zeropage_EOR, &zeropage_LSR, NULL, &implied_PHA, &immediate_EOR, &accumulator_LSR, NULL, &absolute_JMP, &absolute_EOR, &absolute_LSR, NULL, 
     &relative_BVC, &indirectY_EOR, NULL, NULL, NULL, &zeropageX_EOR, &zeropageX_LSR, NULL, &implied_CLI, &absoluteY_EOR, NULL, NULL, NULL, &absoluteX_EOR, &absoluteX_LSR, NULL, 
     &implied_RTS, &indirectX_ADC, NULL, NULL, NULL, &zeropage_ADC, &zeropage_ROR, NULL, &implied_PLA, &immediate_ADC, &accumulator_ROR, NULL, &absolute_JMP, &absolute_ADC, &absolute_ROR, NULL, 
@@ -174,38 +177,6 @@ static uint8_t execute_instruction(cpu_registers* registers, uint8_t opcode) {
     }
     uint8_t extra_cycles = (*instructions[opcode])(registers);
     return extra_cycles;
-}
-
-// TODO: REMOVE after PPU is coded
-static uint16_t dot = 0;
-static int16_t scanline = 241;
-static void ppu_bfm(uint8_t extra_cycles, uint8_t opcode) {
-    uint8_t cpu_cycles = instruction_cycle_length[opcode] + extra_cycles;
-    static bool first_time = 1;
-
-    const uint16_t reg2002_address = 0x2002;
-    const uint8_t vblank_value = 0x80;
-    if(first_time) {
-        set_vblank_bit();
-        first_time = false;
-    }
-
-    dot += cpu_cycles * 3;
-    if(dot > 340) {
-        dot -= 341;
-        scanline++;
-
-        if(scanline > 260) {
-            scanline = -1;
-        }
-    }
-    
-    if((scanline == 241) && (dot > 0)) {
-        write_RAM(reg2002_address, 0xFF);
-    }
-    if((scanline == -1) && (dot > 0)) {
-        write_RAM(reg2002_address, 0x00);
-    }
 }
 
 //*****************************************************************************
@@ -281,7 +252,10 @@ static void print_absolute_debug_info(cpu_registers* registers, uint8_t opcode) 
         fprintf(cpu_logfile, "%23s", " ");
     }
     else {
-        fprintf(cpu_logfile, "$%04X = %02X", absolute_address, data_read);
+        //if( (absolute_address >= 0x2000) && (absolute_address < 0x4000) )
+        //    fprintf(cpu_logfile, "$%04X = %02X", absolute_address, 0xFF);
+        //else
+            fprintf(cpu_logfile, "$%04X = %02X", absolute_address, data_read);
         fprintf(cpu_logfile, "%18s", " ");
     }
 }
@@ -347,13 +321,17 @@ static void print_indirect_debug_info(cpu_registers* registers, uint8_t opcode) 
 }
 
 static void print_common_debug_info(cpu_registers* registers) {
+    uint16_t scanline = get_scanline();
     fprintf(cpu_logfile, "A:%02X ", registers->A);
     fprintf(cpu_logfile, "X:%02X ", registers->X);
     fprintf(cpu_logfile, "Y:%02X ", registers->Y);
     fprintf(cpu_logfile, "P:%02X ", registers->flags);
     fprintf(cpu_logfile, "SP:%02X ", registers->S);
-    fprintf(cpu_logfile, "CYC:%3d ", dot);
-    fprintf(cpu_logfile, "SL:%d", scanline);
+    fprintf(cpu_logfile, "CYC:%3d ", get_dot());
+    if(scanline == 261)
+        fprintf(cpu_logfile, "SL:%d", -1);
+    else
+        fprintf(cpu_logfile, "SL:%d", scanline);
     fprintf(cpu_logfile, "\n");
 }
 
@@ -382,9 +360,6 @@ static void print_debug_info(cpu_registers* registers, uint8_t opcode) {
 }
 
 static uint8_t execute_NMI(cpu_registers* registers) {
-    #ifdef DEBUG
-        fprintf(cpu_logfile, "Executing NMI\n");
-    #endif
     push_stack(registers, (registers->PC >> 8) & BYTE_MASK);
     push_stack(registers, registers->PC & BYTE_MASK);
     push_stack(registers, registers->flags);
@@ -392,6 +367,18 @@ static uint8_t execute_NMI(cpu_registers* registers) {
     set_cpu_flag(registers, INTERRUPT_FLAG);
     return 7;
 }
+
+static bool DMA_is_executing() {
+    if(DMA_cycle_count) return true;
+    else return false;
+}
+
+// FIXME - Just a stub for now that does no real work
+static uint8_t execute_DMA() {
+    DMA_cycle_count -= 1;
+    return 1;
+}
+
 
 //*****************************************************************************
 // Public functions
@@ -416,33 +403,43 @@ void cold_boot_init(cpu_registers* registers) {
     const uint8_t initial_S = 0xFD;
     const uint8_t initial_flags = 0x24;
 
-    uint16_t initial_PC = fetch_reset_vector();
+    //FIXME - Remove after NES test
+    //uint16_t initial_PC = fetch_reset_vector();
+    uint16_t initial_PC = 0xC000;
     init_cpu_registers(registers, initial_A, initial_X, initial_Y, initial_PC,
                        initial_S, initial_flags);
 }
 
 uint8_t execute_interpreter_cycle(cpu_registers* registers, bool nmi_flag) {
     static bool previous_nmi_flag = false;
-    uint8_t opcode = fetch_opcode(registers);
-    increment_PC(registers);
-
-    #ifdef DEBUG
-        print_debug_info(registers, opcode);
-    #endif
-
     uint8_t cpu_cycles_executed = 0;
     uint8_t extra_cycles= 0;
-    if(nmi_flag && !previous_nmi_flag) cpu_cycles_executed = execute_NMI(registers);
+
+    if(DMA_is_executing()) cpu_cycles_executed = execute_DMA();
     else {
-        extra_cycles = execute_instruction(registers, opcode);
-        cpu_cycles_executed = instruction_cycle_length[opcode] + extra_cycles;
+        uint8_t opcode = fetch_opcode(registers);
+        increment_PC(registers);
+
+        if(nmi_flag && !previous_nmi_flag) cpu_cycles_executed = execute_NMI(registers);
+        else {
+            #ifdef DEBUG
+                print_debug_info(registers, opcode);
+            #endif
+            extra_cycles = execute_instruction(registers, opcode);
+            cpu_cycles_executed = instruction_cycle_length[opcode] + extra_cycles;
+        }
+        // Do not increment PC if we jump because it will skip the first instruction at least
+        if(!is_JSR_or_JMP(opcode)) increment_PC_instruction_length(registers, opcode);
     }
+
     previous_nmi_flag = nmi_flag;
+    odd_cpu_cycle = cpu_cycles_executed & 0x1;
 
-
-    // Do not increment PC if we jump because it will skip the first instruction at least
-    if(!is_JSR_or_JMP(opcode)) increment_PC_instruction_length(registers, opcode);
-    ppu_bfm(extra_cycles, opcode);
     return cpu_cycles_executed;
 }
 
+void start_DMA(uint8_t DMA_address) {
+    // uint16_t full_start_address = 0 | (DMA_address << 8);
+    if(odd_cpu_cycle) DMA_cycle_count = 515;
+    else DMA_cycle_count = 514;
+}

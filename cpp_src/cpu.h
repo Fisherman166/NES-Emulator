@@ -10,6 +10,7 @@
 
 using namespace std;
 #define illegal
+#define debugOn
 
 class cpu
 {

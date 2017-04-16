@@ -236,9 +236,11 @@ static void load_IRQ_vector_into_PC(cpu_registers* registers) {
 }
 
 uint8_t implied_BRK(cpu_registers* registers) {
+    // BRK sets these two bits for some reason
+    uint8_t BRK_special_flags = 0x30;
     // Pushes PC + 2 from instruction fetch for some reason
     push_PC_onto_stack(registers, registers->PC + 1);
-    push_stack(registers, registers->flags);
+    push_stack(registers, registers->flags | BRK_special_flags);
     load_IRQ_vector_into_PC(registers);
     set_cpu_flag(registers, INTERRUPT_FLAG);
     return ZERO_EXTRA_CYCLES;
@@ -759,7 +761,9 @@ uint8_t implied_PHA(cpu_registers* registers) {
 }
 
 uint8_t implied_PHP(cpu_registers* registers) {
-    push_stack(registers, registers->flags);
+    // PHP sets these two bits for some reason
+    uint8_t PHP_special_flags = 0x30;
+    push_stack(registers, registers->flags | PHP_special_flags);
     return ZERO_EXTRA_CYCLES;
 }
 

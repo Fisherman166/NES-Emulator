@@ -127,7 +127,7 @@ FD,absoluteX_SBC
 F9,absoluteY_SBC
 E1,indirectX_SBC
 F1,indirectY_SBC
-38,implied_CLC
+38,implied_SEC
 F8,implied_SED
 78,implied_SEI
 85,zeropage_STA
