@@ -360,9 +360,12 @@ static void print_debug_info(cpu_registers* registers, uint8_t opcode) {
 }
 
 static uint8_t execute_NMI(cpu_registers* registers) {
+    // NMI clears bit 4 and sets bit 5 for flags push
+    uint8_t NMI_flags = registers->flags | 0x20;
+    NMI_flags &= ~0x10;
     push_stack(registers, (registers->PC >> 8) & BYTE_MASK);
     push_stack(registers, registers->PC & BYTE_MASK);
-    push_stack(registers, registers->flags);
+    push_stack(registers, NMI_flags);
     registers->PC = (read_RAM(0xFFFB) << 8) | read_RAM(0xFFFA);
     set_cpu_flag(registers, INTERRUPT_FLAG);
     return 7;

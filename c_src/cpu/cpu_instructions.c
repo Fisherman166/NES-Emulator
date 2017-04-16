@@ -775,7 +775,10 @@ uint8_t implied_PLA(cpu_registers* registers) {
 }
 
 uint8_t implied_PLP(cpu_registers* registers) {
-    registers->flags = pop_stack(registers);
+    // Need to preserve bits 4/5 from original flags and get other bits from stack
+    uint8_t preserve_bits = registers->flags & 0x30;
+    uint8_t stack_bits = pop_stack(registers) & 0xCF;
+    registers->flags = preserve_bits | stack_bits;
     return ZERO_EXTRA_CYCLES;
 }
 
