@@ -100,7 +100,7 @@ static const uint8_t instruction_addressing_mode[] = {
     REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR, 
     IMP, INX, ERR, ERR, ERR, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR, 
     REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR, 
-    IMP, INX, ERR, ERR, ERR, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR, 
+    IMP, INX, ERR, ERR, ERR, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, IND, ABS, ABS, ERR, 
     REL, INY, ERR, ERR, ERR, ZPX, ZPX, ERR, IMP, ABY, ERR, ERR, ERR, ABX, ABX, ERR, 
     ERR, INX, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, ERR, IMP, ERR, ABS, ABS, ABS, ERR, 
     REL, INY, ERR, ERR, ZPX, ZPX, ZPY, ERR, IMP, ABY, IMP, ERR, ERR, ABX, ERR, ERR, 
@@ -119,7 +119,7 @@ static uint8_t (*instructions[])(cpu_registers*) = {
     &relative_BMI, &indirectY_AND, NULL, NULL, NULL, &zeropageX_AND, &zeropageX_ROL, NULL, &implied_SEC, &absoluteY_AND, NULL, NULL, NULL, &absoluteX_AND, &absoluteX_ROL, NULL, 
     &implied_RTI, &indirectX_EOR, NULL, NULL, NULL, &zeropage_EOR, &zeropage_LSR, NULL, &implied_PHA, &immediate_EOR, &accumulator_LSR, NULL, &absolute_JMP, &absolute_EOR, &absolute_LSR, NULL, 
     &relative_BVC, &indirectY_EOR, NULL, NULL, NULL, &zeropageX_EOR, &zeropageX_LSR, NULL, &implied_CLI, &absoluteY_EOR, NULL, NULL, NULL, &absoluteX_EOR, &absoluteX_LSR, NULL, 
-    &implied_RTS, &indirectX_ADC, NULL, NULL, NULL, &zeropage_ADC, &zeropage_ROR, NULL, &implied_PLA, &immediate_ADC, &accumulator_ROR, NULL, &absolute_JMP, &absolute_ADC, &absolute_ROR, NULL, 
+    &implied_RTS, &indirectX_ADC, NULL, NULL, NULL, &zeropage_ADC, &zeropage_ROR, NULL, &implied_PLA, &immediate_ADC, &accumulator_ROR, NULL, &indirect_JMP, &absolute_ADC, &absolute_ROR, NULL, 
     &relative_BVS, &indirectY_ADC, NULL, NULL, NULL, &zeropageX_ADC, &zeropageX_ROR, NULL, &implied_SEI, &absoluteY_ADC, NULL, NULL, NULL, &absoluteX_ADC, &absoluteX_ROR, NULL, 
     NULL, &indirectX_STA, NULL, NULL, &zeropage_STY, &zeropage_STA, &zeropage_STX, NULL, &implied_DEY, NULL, &implied_TXA, NULL, &absolute_STY, &absolute_STA, &absolute_STX, NULL, 
     &relative_BCC, &indirectY_STA, NULL, NULL, &zeropageX_STY, &zeropageX_STA, &zeropageY_STX, NULL, &implied_TYA, &absoluteY_STA, &implied_TXS, NULL, NULL, &absoluteX_STA, NULL, NULL, 
@@ -327,14 +327,21 @@ static void print_relative_debug_info(cpu_registers* registers, uint8_t opcode) 
 }
 
 static void print_indirect_debug_info(cpu_registers* registers, uint8_t opcode) {
+    uint16_t target_address;
     uint8_t low_address_byte = debug_read_RAM(registers->PC);
     uint8_t high_address_byte = debug_read_RAM(registers->PC + 1);
     uint16_t indirect_address = calc_absolute_address(registers);
+    // Bug where the MSB is is taken from xx00 instead of the next page if on
+    // page boundry
+    if((indirect_address & 0xFF) == 0xFF) 
+        target_address = (debug_read_RAM(indirect_address & 0xFF00) << 8) | debug_read_RAM(indirect_address);
+    else
+        target_address = (debug_read_RAM(indirect_address + 1) << 8) | debug_read_RAM(indirect_address);
+
     fprintf(cpu_logfile, " %02X %02X", low_address_byte, high_address_byte);
     fprintf(cpu_logfile, "%2s", " ");
     fprintf(cpu_logfile, "%3s ", instruction_text[opcode]);
-    fprintf(cpu_logfile, "($%02X%02X) = %04X", high_address_byte, low_address_byte,
-            indirect_address);
+    fprintf(cpu_logfile, "($%04X) = %04X", indirect_address, target_address);
     fprintf(cpu_logfile, "%14s", " ");
 }
 

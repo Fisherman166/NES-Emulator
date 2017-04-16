@@ -69,7 +69,7 @@ FE,absoluteX_INC
 E8,implied_INX
 C8,implied_INY
 4C,absolute_JMP
-6C,absolute_JMP
+6C,indirect_JMP
 20,absolute_JSR
 A9,immediate_LDA
 A5,zeropage_LDA

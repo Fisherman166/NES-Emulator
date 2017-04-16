@@ -537,6 +537,18 @@ uint8_t absolute_JMP(cpu_registers* registers) {
     return ZERO_EXTRA_CYCLES;
 }
 
+uint8_t indirect_JMP(cpu_registers* registers) {
+    uint16_t indirect_address = calc_absolute_address(registers);
+    uint8_t low_byte = read_RAM(indirect_address);
+    // Bug where the MSB is is taken from xx00 instead of the next page if on
+    // page boundry
+    if((indirect_address & 0xFF) == 0xFF) 
+        registers->PC = (read_RAM(indirect_address & 0xFF00) << 8) | low_byte;
+    else
+        registers->PC = (read_RAM(indirect_address + 1) << 8) | low_byte;
+    return ZERO_EXTRA_CYCLES;
+}
+
 uint8_t absolute_JSR(cpu_registers* registers) {
     push_PC_onto_stack(registers, registers->PC + 1);
     registers->PC = calc_absolute_address(registers);

@@ -146,7 +146,8 @@ uint8_t implied_INY(cpu_registers*);
 //*****************************************************************************
 // JMP, JSR
 //*****************************************************************************
-uint8_t absolute_JMP(cpu_registers*); // Use for both JMPS - same thing
+uint8_t absolute_JMP(cpu_registers*);
+uint8_t indirect_JMP(cpu_registers*);
 uint8_t absolute_JSR(cpu_registers*);
 
 //*****************************************************************************
