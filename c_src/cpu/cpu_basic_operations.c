@@ -161,6 +161,8 @@ void base_load_register(cpu_registers* registers, uint8_t* register_to_load,
 
 void base_rotate_left(cpu_registers* registers, uint8_t* value_to_rotate) {
     uint16_t result = *value_to_rotate << 1;
+    if(get_cpu_flag(registers, CARRY_FLAG)) result |= 0x1;
+    else result &= ~0x1;
     if(*value_to_rotate & BIT7_BITMASK) set_cpu_flag(registers, CARRY_FLAG);
     else clear_cpu_flag(registers, CARRY_FLAG);
     *value_to_rotate = result & BYTE_MASK;
@@ -169,10 +171,12 @@ void base_rotate_left(cpu_registers* registers, uint8_t* value_to_rotate) {
 }
 
 void base_rotate_right(cpu_registers* registers, uint8_t* value_to_rotate) {
-    uint16_t result = *value_to_rotate >> 1;
+    uint8_t result = *value_to_rotate >> 1;
+    if(get_cpu_flag(registers, CARRY_FLAG)) result |= 0x80;
+    else result &= ~0x80;
     if(*value_to_rotate & BIT0_BITMASK) set_cpu_flag(registers, CARRY_FLAG);
     else clear_cpu_flag(registers, CARRY_FLAG);
-    *value_to_rotate = result & BYTE_MASK;
+    *value_to_rotate = result;
     determine_zero_flag(registers, *value_to_rotate);
     determine_negative_flag(registers, *value_to_rotate);
 }
