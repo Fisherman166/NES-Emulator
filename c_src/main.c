@@ -14,15 +14,19 @@
 #include "sdl_interface.h"
 #include "ppu.h"
 
-bool parse_cmdline(int, char **);
+void parse_cmdline(int, char **);
+
+static char* game_file;
 
 int main(int argc, char *argv[]) {
+    parse_cmdline(argc, argv);
+
     #ifdef DEBUG
         open_cpu_debug_logfile();
     #endif
 
     if( init_SDL() ) return 1;
-    bool game_loaded = load_game();
+    bool game_loaded = load_game(game_file);
     if(game_loaded) {
         printf("FATAL ERROR occurred while attempting to load game.\n");
         return -1;
@@ -57,15 +61,10 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-bool parse_cmdline(int argc, char **argv) {
-    bool run_unit_tests = false;
-    int option;
-
-    while( (option = getopt(argc, argv, "u")) != -1 ) {
-        switch(option) {
-            case 'u': run_unit_tests = true; break;
-            default: run_unit_tests = false; break;
-        }
+void parse_cmdline(int argc, char **argv) {
+    if(argc < 2) {
+        printf("ERROR: No game path given. First argument should be game file path\n");
+        exit(1);
     }
-    return run_unit_tests;
+    game_file = argv[1];
 } 

@@ -92,13 +92,12 @@ static void print_rom_data() {
     fclose(rom_data);
 }
 
-bool load_game() {
+bool load_game(char* game_file) {
     FILE* game_filehandle = NULL;
-    //char* game_filename = "Donkey_Kong.nes";
-    char* game_filename = "nestest.nes";
-    game_filehandle = fopen(game_filename, "rb");
-    if(game_filename == NULL) {
-        printf("ERROR: Failed to open game file %s\n", game_filename);
+    game_filehandle = fopen(game_file, "rb");
+    printf("Opening game %s for execution\n", game_file);
+    if(game_file == NULL) {
+        printf("ERROR: Failed to open game file %s\n", game_file);
         return true;
     }
     uint8_t* game_data = read_rom(game_filehandle);
