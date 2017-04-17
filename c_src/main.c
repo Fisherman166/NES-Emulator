@@ -14,26 +14,9 @@
 #include "sdl_interface.h"
 #include "ppu.h"
 
-#ifdef UNIT_TESTS
-#include "cpu_basic_operations_unit_tests.h"
-#include "cpu_decode_logic_unit_tests.h"
-#include "cpu_unit_tests.h"
-#endif
-
 bool parse_cmdline(int, char **);
 
 int main(int argc, char *argv[]) {
-
-#ifdef UNIT_TESTS
-    bool run_unit_tests = parse_cmdline(argc, argv);
-    if(run_unit_tests) {
-        run_all_basic_cpu_operations_tests();
-        run_all_cpu_decode_logic_tests();
-        run_all_cpu_tests();
-        exit(EXIT_SUCCESS);
-    }
-#endif
-
     #ifdef DEBUG
         open_cpu_debug_logfile();
     #endif
