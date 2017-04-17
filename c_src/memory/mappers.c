@@ -6,7 +6,7 @@
 //
 //*****************************************************************************
 
-#include "memory_operations.h"
+#include "RAM.h"
 #include "VRAM.h"
 #include "mappers.h"
 

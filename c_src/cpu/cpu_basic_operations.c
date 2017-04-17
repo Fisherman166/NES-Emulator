@@ -8,7 +8,7 @@
 //*****************************************************************************
 
 #include "cpu_basic_operations.h"
-#include "memory_operations.h"
+#include "RAM.h"
 
 #define BIT0_BITMASK 0x1
 #define BIT1_BITMASK 0x2

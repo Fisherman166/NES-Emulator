@@ -11,7 +11,7 @@
 
 #include "common.h"
 #include "common_cpu.h"
-#include "memory_operations.h"
+#include "RAM.h"
 
 //*****************************************************************************
 // Address calculation functions

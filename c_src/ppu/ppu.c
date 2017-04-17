@@ -1,6 +1,6 @@
 #include "common.h"
 #include "ppu.h"
-#include "memory_operations.h"
+#include "RAM.h"
 #include "VRAM.h"
 
 typedef struct {

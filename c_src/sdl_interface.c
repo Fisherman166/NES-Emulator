@@ -7,7 +7,7 @@
 // ****************************************************************************
 
 #include "sdl_interface.h"
-#include "memory_operations.h"
+#include "RAM.h"
 
 typedef struct {
     bool up_pressed;

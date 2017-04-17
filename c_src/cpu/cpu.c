@@ -11,7 +11,7 @@
 #include "cpu_instructions.h"
 #include "cpu_basic_operations.h"
 #include "cpu_decode_logic.h"
-#include "memory_operations.h"
+#include "RAM.h"
 #include "ppu.h"
 
 #define IMM 1

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include "common.h"
 #include "game_loader.h"
-#include "memory_operations.h"
+#include "RAM.h"
 #include "mappers.h"
 
 #define NROM 0
@@ -100,3 +100,4 @@ bool load_game(char* game_file) {
     fclose(game_filehandle);
     return false;
 }
+
