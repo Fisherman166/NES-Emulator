@@ -26,7 +26,6 @@
 #define PPUDATA_ADDRESS     0x2007
 
 void init_RAM();
-bool load_game(char*);
 
 uint8_t read_RAM(uint16_t);
 uint8_t debug_read_RAM(uint16_t);

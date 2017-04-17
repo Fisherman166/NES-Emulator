@@ -7,12 +7,11 @@
 // ****************************************************************************
 
 #include <unistd.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include "cpu.h"
-#include "memory_operations.h"
 #include "sdl_interface.h"
 #include "ppu.h"
+#include "game_loader.h"
 
 static void parse_cmdline(int, char **);
 static void init_system(cpu_registers*);
