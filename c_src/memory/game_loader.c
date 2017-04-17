@@ -32,7 +32,6 @@ static uint8_t* read_rom(FILE* game_filehandle) {
         return NULL;
     }
     size_t bytes_read = fread(memory_block, sizeof(uint8_t), game_size, game_filehandle);
-    fclose(game_filehandle);
 
     if(bytes_read != game_size) {
         printf("ERROR: Only read %u bytes when expecting %u bytes.\n",
@@ -43,8 +42,6 @@ static uint8_t* read_rom(FILE* game_filehandle) {
 }
 
 static uint8_t extract_mapper_from_header(uint8_t* memory_block) {
-    // Upper nibble of header in byte 8 while lower nibble in byte
-    // 7
     return (memory_block[7] & 0xF0) | (memory_block[6] & 0x0F);
 }
 
@@ -67,30 +64,39 @@ static void print_rom_data() {
     fclose(rom_data);
 }
 
-bool load_game(char* game_file) {
+static FILE* open_game_file(char* game_file) {
     FILE* game_filehandle = NULL;
     game_filehandle = fopen(game_file, "rb");
     printf("Opening game %s for execution\n", game_file);
     if(game_file == NULL) {
         printf("ERROR: Failed to open game file %s\n", game_file);
-        return true;
     }
+    return game_filehandle;
+}
+
+bool load_game(char* game_file) {
+    FILE* game_filehandle = open_game_file(game_file);
+    if(game_filehandle == NULL) return true;
+
     uint8_t* game_data = read_rom(game_filehandle);
     if(game_data == NULL) {
+        fclose(game_filehandle);
         return true;
     }
-    uint8_t mapper = extract_mapper_from_header(game_data);
 
+    uint8_t mapper = extract_mapper_from_header(game_data);
     if(mapper == NROM) load_NROM(game_data);
     else {
         printf("ERROR: Mapper %u does not match any supported mappers\n", mapper);
+        fclose(game_filehandle);
+        free(game_data);
         return true;
     }
 
     #ifdef DEBUG
         print_rom_data();
     #endif
-
     free(game_data);
+    fclose(game_filehandle);
     return false;
 }
