@@ -155,8 +155,7 @@ static bool is_JSR_or_JMP(uint8_t opcode) {
 }
 
 static bool is_RTS(uint8_t opcode) {
-    const uint8_t RTS_opcode = 0x60;
-    if(opcode == RTS_opcode) return true;
+    if(opcode == 0x60) return true;
     return false;
 }
 
@@ -257,10 +256,7 @@ static void print_absolute_debug_info(cpu_registers* registers, uint8_t opcode) 
         fprintf(cpu_logfile, "%23s", " ");
     }
     else {
-        //if( (absolute_address >= 0x2000) && (absolute_address < 0x4000) )
-        //    fprintf(cpu_logfile, "$%04X = %02X", absolute_address, 0xFF);
-        //else
-            fprintf(cpu_logfile, "$%04X = %02X", absolute_address, data_read);
+        fprintf(cpu_logfile, "$%04X = %02X", absolute_address, data_read);
         fprintf(cpu_logfile, "%18s", " ");
     }
 }
@@ -411,7 +407,6 @@ static uint8_t execute_DMA() {
 //*****************************************************************************
 // Public functions
 //*****************************************************************************
-
 void open_cpu_debug_logfile() {
     const char* logfile_name = "cpu_instrunctions.log";
     cpu_logfile = fopen(logfile_name, "w");
