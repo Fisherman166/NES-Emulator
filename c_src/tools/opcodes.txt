@@ -176,3 +176,9 @@ FA,implied_NOP,I
 7C,absoluteX_NOP,I
 DC,absoluteX_NOP,I
 FC,absoluteX_NOP,I
+A7,zeropage_LAX,I
+B7,zeropageY_LAX,I
+AF,absolute_LAX,I
+BF,absoluteY_LAX,I
+A3,indirectX_LAX,I
+B3,indirectY_LAX,I
