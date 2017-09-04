@@ -21,4 +21,12 @@ uint8_t zeropageY_SAX(cpu_registers*);
 uint8_t absolute_SAX(cpu_registers*);
 uint8_t indirectX_SAX(cpu_registers*);
 
+uint8_t zeropage_DCP(cpu_registers*);
+uint8_t zeropageX_DCP(cpu_registers*);
+uint8_t absolute_DCP(cpu_registers*);
+uint8_t absoluteX_DCP(cpu_registers*);
+uint8_t absoluteY_DCP(cpu_registers*);
+uint8_t indirectX_DCP(cpu_registers*);
+uint8_t indirectY_DCP(cpu_registers*);
+
 #endif

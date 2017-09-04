@@ -86,9 +86,9 @@ static const char* instruction_text[] = {
 "BCC", "STA", "ERR", "ERR", "STY", "STA", "STX", "*SAX", "TYA", "STA", "TXS", "ERR", "ERR", "STA", "ERR", "ERR", 
 "LDY", "LDA", "LDX", "*LAX", "LDY", "LDA", "LDX", "*LAX", "TAY", "LDA", "TAX", "ERR", "LDY", "LDA", "LDX", "*LAX", 
 "BCS", "LDA", "ERR", "*LAX", "LDY", "LDA", "LDX", "*LAX", "CLV", "LDA", "TSX", "ERR", "LDY", "LDA", "LDX", "*LAX", 
-"CPY", "CMP", "*NOP", "ERR", "CPY", "CMP", "DEC", "ERR", "INY", "CMP", "DEX", "ERR", "CPY", "CMP", "DEC", "ERR", 
-"BNE", "CMP", "ERR", "ERR", "*NOP", "CMP", "DEC", "ERR", "CLD", "CMP", "*NOP", "ERR", "*NOP", "CMP", "DEC", "ERR", 
-"CPX", "SBC", "*NOP", "ERR", "CPX", "SBC", "INC", "ERR", "INX", "SBC", "NOP", "ERR", "CPX", "SBC", "INC", "ERR", 
+"CPY", "CMP", "*NOP", "*DCP", "CPY", "CMP", "DEC", "*DCP", "INY", "CMP", "DEX", "ERR", "CPY", "CMP", "DEC", "*DCP", 
+"BNE", "CMP", "ERR", "*DCP", "*NOP", "CMP", "DEC", "*DCP", "CLD", "CMP", "*NOP", "*DCP", "*NOP", "CMP", "DEC", "*DCP", 
+"CPX", "SBC", "*NOP", "ERR", "CPX", "SBC", "INC", "ERR", "INX", "SBC", "NOP", "*SBC", "CPX", "SBC", "INC", "ERR", 
 "BEQ", "SBC", "ERR", "ERR", "*NOP", "SBC", "INC", "ERR", "SED", "SBC", "*NOP", "ERR", "*NOP", "SBC", "INC", "ERR", 
 };
 static const uint8_t instruction_addressing_mode[] = {
@@ -104,9 +104,9 @@ IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ABS,
 REL, INY, ERR, ERR, ZPX, ZPX, ZPY, ZPY, IMP, ABY, IMP, ERR, ERR, ABX, ERR, ERR, 
 IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ABS, 
 REL, INY, ERR, INY, ZPX, ZPX, ZPY, ZPY, IMP, ABY, IMP, ERR, ABX, ABX, ABY, ABY, 
-IMM, INX, IMM, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ERR, 
-REL, INY, ERR, ERR, ZPX, ZPX, ZPX, ERR, IMP, ABY, IMP, ERR, ABX, ABX, ABX, ERR, 
-IMM, INX, IMM, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ERR, 
+IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ABS, 
+REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
+IMM, INX, IMM, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, IMP, IMM, ABS, ABS, ABS, ERR, 
 REL, INY, ERR, ERR, ZPX, ZPX, ZPX, ERR, IMP, ABY, IMP, ERR, ABX, ABX, ABX, ERR, 
 };
 static uint8_t (*instructions[]) (cpu_registers*) = {
@@ -122,9 +122,9 @@ static uint8_t (*instructions[]) (cpu_registers*) = {
 &relative_BCC, &indirectY_STA, NULL, NULL, &zeropageX_STY, &zeropageX_STA, &zeropageY_STX, &zeropageY_SAX, &implied_TYA, &absoluteY_STA, &implied_TXS, NULL, NULL, &absoluteX_STA, NULL, NULL, 
 &immediate_LDY, &indirectX_LDA, &immediate_LDX, &indirectX_LAX, &zeropage_LDY, &zeropage_LDA, &zeropage_LDX, &zeropage_LAX, &implied_TAY, &immediate_LDA, &implied_TAX, NULL, &absolute_LDY, &absolute_LDA, &absolute_LDX, &absolute_LAX, 
 &relative_BCS, &indirectY_LDA, NULL, &indirectY_LAX, &zeropageX_LDY, &zeropageX_LDA, &zeropageY_LDX, &zeropageY_LAX, &implied_CLV, &absoluteY_LDA, &implied_TSX, NULL, &absoluteX_LDY, &absoluteX_LDA, &absoluteY_LDX, &absoluteY_LAX, 
-&immediate_CPY, &indirectX_CMP, &immediate_NOP, NULL, &zeropage_CPY, &zeropage_CMP, &zeropage_DEC, NULL, &implied_INY, &immediate_CMP, &implied_DEX, NULL, &absolute_CPY, &absolute_CMP, &absolute_DEC, NULL, 
-&relative_BNE, &indirectY_CMP, NULL, NULL, &zeropageX_NOP, &zeropageX_CMP, &zeropageX_DEC, NULL, &implied_CLD, &absoluteY_CMP, &implied_NOP, NULL, &absoluteX_NOP, &absoluteX_CMP, &absoluteX_DEC, NULL, 
-&immediate_CPX, &indirectX_SBC, &immediate_NOP, NULL, &zeropage_CPX, &zeropage_SBC, &zeropage_INC, NULL, &implied_INX, &immediate_SBC, &implied_NOP, NULL, &absolute_CPX, &absolute_SBC, &absolute_INC, NULL, 
+&immediate_CPY, &indirectX_CMP, &immediate_NOP, &indirectX_DCP, &zeropage_CPY, &zeropage_CMP, &zeropage_DEC, &zeropage_DCP, &implied_INY, &immediate_CMP, &implied_DEX, NULL, &absolute_CPY, &absolute_CMP, &absolute_DEC, &absolute_DCP, 
+&relative_BNE, &indirectY_CMP, NULL, &indirectY_DCP, &zeropageX_NOP, &zeropageX_CMP, &zeropageX_DEC, &zeropageX_DCP, &implied_CLD, &absoluteY_CMP, &implied_NOP, &absoluteY_DCP, &absoluteX_NOP, &absoluteX_CMP, &absoluteX_DEC, &absoluteX_DCP, 
+&immediate_CPX, &indirectX_SBC, &immediate_NOP, NULL, &zeropage_CPX, &zeropage_SBC, &zeropage_INC, NULL, &implied_INX, &immediate_SBC, &implied_NOP, &immediate_SBC, &absolute_CPX, &absolute_SBC, &absolute_INC, NULL, 
 &relative_BEQ, &indirectY_SBC, NULL, NULL, &zeropageX_NOP, &zeropageX_SBC, &zeropageX_INC, NULL, &implied_SED, &absoluteY_SBC, &implied_NOP, NULL, &absoluteX_NOP, &absoluteX_SBC, &absoluteX_INC, NULL, 
 };
 

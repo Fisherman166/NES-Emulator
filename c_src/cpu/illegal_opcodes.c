@@ -80,3 +80,52 @@ uint8_t indirectX_SAX(cpu_registers* registers) {
     base_store(calc_indirectX_address(registers), &data);
     return ZERO_EXTRA_CYCLES;
 }
+
+uint8_t zeropage_DCP(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers) - 1;
+    base_store(calc_zeropage_address(registers), &data);
+    base_compare(registers, registers->A, data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t zeropageX_DCP(cpu_registers* registers) {
+    uint8_t data = fetch_zeropageX(registers) - 1;
+    base_store(calc_zeropageX_address(registers), &data);
+    base_compare(registers, registers->A, data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t absolute_DCP(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers) - 1;
+    base_store(calc_absolute_address(registers), &data);
+    base_compare(registers, registers->A, data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t absoluteX_DCP(cpu_registers* registers) {
+    uint8_t data = fetch_absoluteX(registers, NULL) - 1;
+    base_store(calc_absoluteX_address(registers), &data);
+    base_compare(registers, registers->A, data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t absoluteY_DCP(cpu_registers* registers) {
+    uint8_t data = fetch_absoluteY(registers, NULL) - 1;
+    base_store(calc_absoluteY_address(registers), &data);
+    base_compare(registers, registers->A, data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t indirectX_DCP(cpu_registers* registers) {
+    uint8_t data = fetch_indirectX(registers) - 1;
+    base_store(calc_indirectX_address(registers), &data);
+    base_compare(registers, registers->A, data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t indirectY_DCP(cpu_registers* registers) {
+    uint8_t data = fetch_indirectY(registers, NULL) - 1;
+    base_store(calc_indirectY_address(registers), &data);
+    base_compare(registers, registers->A, data);
+    return ZERO_EXTRA_CYCLES;
+}

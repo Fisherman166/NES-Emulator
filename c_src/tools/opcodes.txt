@@ -186,3 +186,11 @@ B3,indirectY_LAX,I
 97,zeropageY_SAX,I
 8F,absolute_SAX,I
 83,indirectX_SAX,I
+EB,immediate_SBC,I
+C7,zeropage_DCP,I
+D7,zeropageX_DCP,I
+CF,absolute_DCP,I
+DF,absoluteX_DCP,I
+DB,absoluteY_DCP,I
+C3,indirectX_DCP,I
+D3,indirectY_DCP,I
