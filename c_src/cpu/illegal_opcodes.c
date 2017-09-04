@@ -56,3 +56,27 @@ uint8_t indirectY_LAX(cpu_registers* registers) {
     base_load_register(registers, &(registers->A), data);
     return page_crossed;
 }
+
+uint8_t zeropage_SAX(cpu_registers* registers) {
+    uint8_t data = registers->A & registers->X;
+    base_store(calc_zeropage_address(registers), &data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t zeropageY_SAX(cpu_registers* registers) {
+    uint8_t data = registers->A & registers->X;
+    base_store(calc_zeropageY_address(registers), &data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t absolute_SAX(cpu_registers* registers) {
+    uint8_t data = registers->A & registers->X;
+    base_store(calc_absolute_address(registers), &data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t indirectX_SAX(cpu_registers* registers) {
+    uint8_t data = registers->A & registers->X;
+    base_store(calc_indirectX_address(registers), &data);
+    return ZERO_EXTRA_CYCLES;
+}

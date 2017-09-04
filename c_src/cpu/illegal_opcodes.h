@@ -16,4 +16,9 @@ uint8_t absoluteY_LAX(cpu_registers*);
 uint8_t indirectX_LAX(cpu_registers*);
 uint8_t indirectY_LAX(cpu_registers*);
 
+uint8_t zeropage_SAX(cpu_registers*);
+uint8_t zeropageY_SAX(cpu_registers*);
+uint8_t absolute_SAX(cpu_registers*);
+uint8_t indirectX_SAX(cpu_registers*);
+
 #endif

@@ -182,3 +182,7 @@ AF,absolute_LAX,I
 BF,absoluteY_LAX,I
 A3,indirectX_LAX,I
 B3,indirectY_LAX,I
+87,zeropage_SAX,I
+97,zeropageY_SAX,I
+8F,absolute_SAX,I
+83,indirectX_SAX,I
