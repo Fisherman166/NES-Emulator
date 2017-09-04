@@ -61,4 +61,12 @@ uint8_t absoluteY_SRE(cpu_registers*);
 uint8_t indirectX_SRE(cpu_registers*);
 uint8_t indirectY_SRE(cpu_registers*);
 
+uint8_t zeropage_RRA(cpu_registers*);
+uint8_t zeropageX_RRA(cpu_registers*);
+uint8_t absolute_RRA(cpu_registers*);
+uint8_t absoluteX_RRA(cpu_registers*);
+uint8_t absoluteY_RRA(cpu_registers*);
+uint8_t indirectX_RRA(cpu_registers*);
+uint8_t indirectY_RRA(cpu_registers*);
+
 #endif

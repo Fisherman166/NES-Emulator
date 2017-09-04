@@ -347,3 +347,59 @@ uint8_t indirectY_SRE(cpu_registers* registers) {
     base_xor(registers, data);
     return ZERO_EXTRA_CYCLES;
 }
+
+uint8_t zeropage_RRA(cpu_registers* registers) {
+    uint8_t data = fetch_zeropage(registers);
+    base_rotate_right(registers, &data);
+    base_store(calc_zeropage_address(registers), &data);
+    base_add(registers, data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t zeropageX_RRA(cpu_registers* registers) {
+    uint8_t data = fetch_zeropageX(registers);
+    base_rotate_right(registers, &data);
+    base_store(calc_zeropageX_address(registers), &data);
+    base_add(registers, data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t absolute_RRA(cpu_registers* registers) {
+    uint8_t data = fetch_absolute(registers);
+    base_rotate_right(registers, &data);
+    base_store(calc_absolute_address(registers), &data);
+    base_add(registers, data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t absoluteX_RRA(cpu_registers* registers) {
+    uint8_t data = fetch_absoluteX(registers, NULL);
+    base_rotate_right(registers, &data);
+    base_store(calc_absoluteX_address(registers), &data);
+    base_add(registers, data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t absoluteY_RRA(cpu_registers* registers) {
+    uint8_t data = fetch_absoluteY(registers, NULL);
+    base_rotate_right(registers, &data);
+    base_store(calc_absoluteY_address(registers), &data);
+    base_add(registers, data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t indirectX_RRA(cpu_registers* registers) {
+    uint8_t data = fetch_indirectX(registers);
+    base_rotate_right(registers, &data);
+    base_store(calc_indirectX_address(registers), &data);
+    base_add(registers, data);
+    return ZERO_EXTRA_CYCLES;
+}
+
+uint8_t indirectY_RRA(cpu_registers* registers) {
+    uint8_t data = fetch_indirectY(registers, NULL);
+    base_rotate_right(registers, &data);
+    base_store(calc_indirectY_address(registers), &data);
+    base_add(registers, data);
+    return ZERO_EXTRA_CYCLES;
+}

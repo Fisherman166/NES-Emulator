@@ -222,3 +222,10 @@ F3,indirectY_ISB,I
 5B,absoluteY_SRE,I
 43,indirectX_SRE,I
 53,indirectY_SRE,I
+67,zeropage_RRA,I
+77,zeropageX_RRA,I
+6F,absolute_RRA,I
+7F,absoluteX_RRA,I
+7B,absoluteY_RRA,I
+63,indirectX_RRA,I
+73,indirectY_RRA,I
