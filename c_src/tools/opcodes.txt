@@ -194,3 +194,10 @@ DF,absoluteX_DCP,I
 DB,absoluteY_DCP,I
 C3,indirectX_DCP,I
 D3,indirectY_DCP,I
+E7,zeropage_ISB,I
+F7,zeropageX_ISB,I
+EF,absolute_ISB,I
+FF,absoluteX_ISB,I
+FB,absoluteY_ISB,I
+E3,indirectX_ISB,I
+F3,indirectY_ISB,I

@@ -88,8 +88,8 @@ static const char* instruction_text[] = {
 "BCS", "LDA", "ERR", "*LAX", "LDY", "LDA", "LDX", "*LAX", "CLV", "LDA", "TSX", "ERR", "LDY", "LDA", "LDX", "*LAX", 
 "CPY", "CMP", "*NOP", "*DCP", "CPY", "CMP", "DEC", "*DCP", "INY", "CMP", "DEX", "ERR", "CPY", "CMP", "DEC", "*DCP", 
 "BNE", "CMP", "ERR", "*DCP", "*NOP", "CMP", "DEC", "*DCP", "CLD", "CMP", "*NOP", "*DCP", "*NOP", "CMP", "DEC", "*DCP", 
-"CPX", "SBC", "*NOP", "ERR", "CPX", "SBC", "INC", "ERR", "INX", "SBC", "NOP", "*SBC", "CPX", "SBC", "INC", "ERR", 
-"BEQ", "SBC", "ERR", "ERR", "*NOP", "SBC", "INC", "ERR", "SED", "SBC", "*NOP", "ERR", "*NOP", "SBC", "INC", "ERR", 
+"CPX", "SBC", "*NOP", "*ISB", "CPX", "SBC", "INC", "*ISB", "INX", "SBC", "NOP", "*SBC", "CPX", "SBC", "INC", "*ISB", 
+"BEQ", "SBC", "ERR", "*ISB", "*NOP", "SBC", "INC", "*ISB", "SED", "SBC", "*NOP", "*ISB", "*NOP", "SBC", "INC", "*ISB", 
 };
 static const uint8_t instruction_addressing_mode[] = {
 IMP, INX, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR, 
@@ -106,8 +106,8 @@ IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ABS,
 REL, INY, ERR, INY, ZPX, ZPX, ZPY, ZPY, IMP, ABY, IMP, ERR, ABX, ABX, ABY, ABY, 
 IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ABS, 
 REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
-IMM, INX, IMM, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, IMP, IMM, ABS, ABS, ABS, ERR, 
-REL, INY, ERR, ERR, ZPX, ZPX, ZPX, ERR, IMP, ABY, IMP, ERR, ABX, ABX, ABX, ERR, 
+IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, IMM, ABS, ABS, ABS, ABS, 
+REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
 };
 static uint8_t (*instructions[]) (cpu_registers*) = {
 &implied_BRK, &indirectX_ORA, NULL, NULL, &zeropage_NOP, &zeropage_ORA, &zeropage_ASL, NULL, &implied_PHP, &immediate_ORA, &accumulator_ASL, NULL, &absolute_NOP, &absolute_ORA, &absolute_ASL, NULL, 
@@ -124,8 +124,8 @@ static uint8_t (*instructions[]) (cpu_registers*) = {
 &relative_BCS, &indirectY_LDA, NULL, &indirectY_LAX, &zeropageX_LDY, &zeropageX_LDA, &zeropageY_LDX, &zeropageY_LAX, &implied_CLV, &absoluteY_LDA, &implied_TSX, NULL, &absoluteX_LDY, &absoluteX_LDA, &absoluteY_LDX, &absoluteY_LAX, 
 &immediate_CPY, &indirectX_CMP, &immediate_NOP, &indirectX_DCP, &zeropage_CPY, &zeropage_CMP, &zeropage_DEC, &zeropage_DCP, &implied_INY, &immediate_CMP, &implied_DEX, NULL, &absolute_CPY, &absolute_CMP, &absolute_DEC, &absolute_DCP, 
 &relative_BNE, &indirectY_CMP, NULL, &indirectY_DCP, &zeropageX_NOP, &zeropageX_CMP, &zeropageX_DEC, &zeropageX_DCP, &implied_CLD, &absoluteY_CMP, &implied_NOP, &absoluteY_DCP, &absoluteX_NOP, &absoluteX_CMP, &absoluteX_DEC, &absoluteX_DCP, 
-&immediate_CPX, &indirectX_SBC, &immediate_NOP, NULL, &zeropage_CPX, &zeropage_SBC, &zeropage_INC, NULL, &implied_INX, &immediate_SBC, &implied_NOP, &immediate_SBC, &absolute_CPX, &absolute_SBC, &absolute_INC, NULL, 
-&relative_BEQ, &indirectY_SBC, NULL, NULL, &zeropageX_NOP, &zeropageX_SBC, &zeropageX_INC, NULL, &implied_SED, &absoluteY_SBC, &implied_NOP, NULL, &absoluteX_NOP, &absoluteX_SBC, &absoluteX_INC, NULL, 
+&immediate_CPX, &indirectX_SBC, &immediate_NOP, &indirectX_ISB, &zeropage_CPX, &zeropage_SBC, &zeropage_INC, &zeropage_ISB, &implied_INX, &immediate_SBC, &implied_NOP, &immediate_SBC, &absolute_CPX, &absolute_SBC, &absolute_INC, &absolute_ISB, 
+&relative_BEQ, &indirectY_SBC, NULL, &indirectY_ISB, &zeropageX_NOP, &zeropageX_SBC, &zeropageX_INC, &zeropageX_ISB, &implied_SED, &absoluteY_SBC, &implied_NOP, &absoluteY_ISB, &absoluteX_NOP, &absoluteX_SBC, &absoluteX_INC, &absoluteX_ISB, 
 };
 
 //*****************************************************************************

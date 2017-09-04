@@ -29,4 +29,12 @@ uint8_t absoluteY_DCP(cpu_registers*);
 uint8_t indirectX_DCP(cpu_registers*);
 uint8_t indirectY_DCP(cpu_registers*);
 
+uint8_t zeropage_ISB(cpu_registers*);
+uint8_t zeropageX_ISB(cpu_registers*);
+uint8_t absolute_ISB(cpu_registers*);
+uint8_t absoluteX_ISB(cpu_registers*);
+uint8_t absoluteY_ISB(cpu_registers*);
+uint8_t indirectX_ISB(cpu_registers*);
+uint8_t indirectY_ISB(cpu_registers*);
+
 #endif
