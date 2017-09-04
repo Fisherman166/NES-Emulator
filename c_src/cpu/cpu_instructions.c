@@ -10,10 +10,6 @@
 #include "cpu_basic_operations.h"
 #include "cpu_decode_logic.h"
 
-#define ZERO_EXTRA_CYCLES 0
-#define ONE_EXTRA_CYCLE 1
-#define TWO_EXTRA_CYCLES 2
-
 static uint8_t branch_on_flag_set(cpu_registers* registers, uint8_t flag) {
     uint8_t additional_cycles = 0;
     if(get_cpu_flag(registers, flag)) {

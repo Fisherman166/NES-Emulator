@@ -1,7 +1,6 @@
 //*****************************************************************************
 // Filename: common_cpu.h
-// Author: Fisherman166
-//
+// Author: Fisherman166 //
 // Common datastructures that originate with the CPU
 //
 //*****************************************************************************
@@ -10,6 +9,10 @@
 #define COMMON_CPU_H
 
 #include "common.h"
+
+#define ZERO_EXTRA_CYCLES 0
+#define ONE_EXTRA_CYCLE 1
+#define TWO_EXTRA_CYCLES 2
 
 typedef struct {
     uint8_t A;      // Accumulator

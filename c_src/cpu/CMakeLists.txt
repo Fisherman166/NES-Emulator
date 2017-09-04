@@ -8,6 +8,8 @@ set( cpu_src_files
     cpu_decode_logic.h
     cpu_instructions.c
     cpu_instructions.h
+    illegal_opcodes.h
+    illegal_opcodes.c
 )
 include_directories("./")
 

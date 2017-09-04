@@ -46,6 +46,10 @@ sub extract_info() {
         print "$split_opcode_line[1] does not match regex\n";
         exit(-1);
     }
+    
+    if($split_opcode_line[2] eq "I") {
+        $opcode_hash_ref->{$split_opcode_line[0]}->{'instruction_text'} = "*$opcode_hash_ref->{$split_opcode_line[0]}->{'instruction_text'}";
+    }
 }
 
 sub generate_addressing_array() {
