@@ -132,7 +132,8 @@ bool branch_relative(cpu_registers* registers) {
     // All branches are two bytes and the PC needs to be at the PC+2 address from
     // when the opcode was fetched. The PC is only incremebted by 1 at this point
     // so add 1 more to get the correct address to compare
-    bool page_crossed = is_page_crossed(registers->PC + 1, registers->PC + offset);
+    uint16_t real_PC = registers->PC + 1;
+    bool page_crossed = is_page_crossed(real_PC, real_PC + offset);
     registers->PC += offset;
     return page_crossed;
 }
