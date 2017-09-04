@@ -201,3 +201,10 @@ FF,absoluteX_ISB,I
 FB,absoluteY_ISB,I
 E3,indirectX_ISB,I
 F3,indirectY_ISB,I
+07,zeropage_SLO,I
+17,zeropageX_SLO,I
+0F,absolute_SLO,I
+1F,absoluteX_SLO,I
+1B,absoluteY_SLO,I
+03,indirectX_SLO,I
+13,indirectY_SLO,I

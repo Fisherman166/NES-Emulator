@@ -37,4 +37,12 @@ uint8_t absoluteY_ISB(cpu_registers*);
 uint8_t indirectX_ISB(cpu_registers*);
 uint8_t indirectY_ISB(cpu_registers*);
 
+uint8_t zeropage_SLO(cpu_registers*);
+uint8_t zeropageX_SLO(cpu_registers*);
+uint8_t absolute_SLO(cpu_registers*);
+uint8_t absoluteX_SLO(cpu_registers*);
+uint8_t absoluteY_SLO(cpu_registers*);
+uint8_t indirectX_SLO(cpu_registers*);
+uint8_t indirectY_SLO(cpu_registers*);
+
 #endif

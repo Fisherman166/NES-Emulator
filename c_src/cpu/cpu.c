@@ -74,8 +74,8 @@ static const uint8_t instruction_cycle_length[] = {
 };
 
 static const char* instruction_text[] = {
-"BRK", "ORA", "ERR", "ERR", "*NOP", "ORA", "ASL", "ERR", "PHP", "ORA", "ASL", "ERR", "*NOP", "ORA", "ASL", "ERR", 
-"BPL", "ORA", "ERR", "ERR", "*NOP", "ORA", "ASL", "ERR", "CLC", "ORA", "*NOP", "ERR", "*NOP", "ORA", "ASL", "ERR", 
+"BRK", "ORA", "ERR", "*SLO", "*NOP", "ORA", "ASL", "*SLO", "PHP", "ORA", "ASL", "ERR", "*NOP", "ORA", "ASL", "*SLO", 
+"BPL", "ORA", "ERR", "*SLO", "*NOP", "ORA", "ASL", "*SLO", "CLC", "ORA", "*NOP", "*SLO", "*NOP", "ORA", "ASL", "*SLO", 
 "JSR", "AND", "ERR", "ERR", "BIT", "AND", "ROL", "ERR", "PLP", "AND", "ROL", "ERR", "BIT", "AND", "ROL", "ERR", 
 "BMI", "AND", "ERR", "ERR", "*NOP", "AND", "ROL", "ERR", "SEC", "AND", "*NOP", "ERR", "*NOP", "AND", "ROL", "ERR", 
 "RTI", "EOR", "ERR", "ERR", "*NOP", "EOR", "LSR", "ERR", "PHA", "EOR", "LSR", "ERR", "JMP", "EOR", "LSR", "ERR", 
@@ -92,8 +92,8 @@ static const char* instruction_text[] = {
 "BEQ", "SBC", "ERR", "*ISB", "*NOP", "SBC", "INC", "*ISB", "SED", "SBC", "*NOP", "*ISB", "*NOP", "SBC", "INC", "*ISB", 
 };
 static const uint8_t instruction_addressing_mode[] = {
-IMP, INX, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR, 
-REL, INY, ERR, ERR, ZPX, ZPX, ZPX, ERR, IMP, ABY, IMP, ERR, ABX, ABX, ABX, ERR, 
+IMP, INX, ERR, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ABS, 
+REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
 ABS, INX, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR, 
 REL, INY, ERR, ERR, ZPX, ZPX, ZPX, ERR, IMP, ABY, IMP, ERR, ABX, ABX, ABX, ERR, 
 IMP, INX, ERR, ERR, ZRP, ZRP, ZRP, ERR, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ERR, 
@@ -110,8 +110,8 @@ IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, IMM, ABS, ABS, ABS, ABS,
 REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
 };
 static uint8_t (*instructions[]) (cpu_registers*) = {
-&implied_BRK, &indirectX_ORA, NULL, NULL, &zeropage_NOP, &zeropage_ORA, &zeropage_ASL, NULL, &implied_PHP, &immediate_ORA, &accumulator_ASL, NULL, &absolute_NOP, &absolute_ORA, &absolute_ASL, NULL, 
-&relative_BPL, &indirectY_ORA, NULL, NULL, &zeropageX_NOP, &zeropageX_ORA, &zeropageX_ASL, NULL, &implied_CLC, &absoluteY_ORA, &implied_NOP, NULL, &absoluteX_NOP, &absoluteX_ORA, &absoluteX_ASL, NULL, 
+&implied_BRK, &indirectX_ORA, NULL, &indirectX_SLO, &zeropage_NOP, &zeropage_ORA, &zeropage_ASL, &zeropage_SLO, &implied_PHP, &immediate_ORA, &accumulator_ASL, NULL, &absolute_NOP, &absolute_ORA, &absolute_ASL, &absolute_SLO, 
+&relative_BPL, &indirectY_ORA, NULL, &indirectY_SLO, &zeropageX_NOP, &zeropageX_ORA, &zeropageX_ASL, &zeropageX_SLO, &implied_CLC, &absoluteY_ORA, &implied_NOP, &absoluteY_SLO, &absoluteX_NOP, &absoluteX_ORA, &absoluteX_ASL, &absoluteX_SLO, 
 &absolute_JSR, &indirectX_AND, NULL, NULL, &zeropage_BIT, &zeropage_AND, &zeropage_ROL, NULL, &implied_PLP, &immediate_AND, &accumulator_ROL, NULL, &absolute_BIT, &absolute_AND, &absolute_ROL, NULL, 
 &relative_BMI, &indirectY_AND, NULL, NULL, &zeropageX_NOP, &zeropageX_AND, &zeropageX_ROL, NULL, &implied_SEC, &absoluteY_AND, &implied_NOP, NULL, &absoluteX_NOP, &absoluteX_AND, &absoluteX_ROL, NULL, 
 &implied_RTI, &indirectX_EOR, NULL, NULL, &zeropage_NOP, &zeropage_EOR, &zeropage_LSR, NULL, &implied_PHA, &immediate_EOR, &accumulator_LSR, NULL, &absolute_JMP, &absolute_EOR, &absolute_LSR, NULL, 
