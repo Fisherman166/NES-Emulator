@@ -45,4 +45,20 @@ uint8_t absoluteY_SLO(cpu_registers*);
 uint8_t indirectX_SLO(cpu_registers*);
 uint8_t indirectY_SLO(cpu_registers*);
 
+uint8_t zeropage_RLA(cpu_registers*);
+uint8_t zeropageX_RLA(cpu_registers*);
+uint8_t absolute_RLA(cpu_registers*);
+uint8_t absoluteX_RLA(cpu_registers*);
+uint8_t absoluteY_RLA(cpu_registers*);
+uint8_t indirectX_RLA(cpu_registers*);
+uint8_t indirectY_RLA(cpu_registers*);
+
+uint8_t zeropage_SRE(cpu_registers*);
+uint8_t zeropageX_SRE(cpu_registers*);
+uint8_t absolute_SRE(cpu_registers*);
+uint8_t absoluteX_SRE(cpu_registers*);
+uint8_t absoluteY_SRE(cpu_registers*);
+uint8_t indirectX_SRE(cpu_registers*);
+uint8_t indirectY_SRE(cpu_registers*);
+
 #endif

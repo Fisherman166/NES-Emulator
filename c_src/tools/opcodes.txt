@@ -208,3 +208,17 @@ F3,indirectY_ISB,I
 1B,absoluteY_SLO,I
 03,indirectX_SLO,I
 13,indirectY_SLO,I
+27,zeropage_RLA,I
+37,zeropageX_RLA,I
+2F,absolute_RLA,I
+3F,absoluteX_RLA,I
+3B,absoluteY_RLA,I
+23,indirectX_RLA,I
+33,indirectY_RLA,I
+47,zeropage_SRE,I
+57,zeropageX_SRE,I
+4F,absolute_SRE,I
+5F,absoluteX_SRE,I
+5B,absoluteY_SRE,I
+43,indirectX_SRE,I
+53,indirectY_SRE,I
