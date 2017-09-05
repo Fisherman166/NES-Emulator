@@ -12,6 +12,7 @@
 #include "sdl_interface.h"
 #include "ppu.h"
 #include "game_loader.h"
+#include "RAM.h"
 
 static void parse_cmdline(int, char **);
 static void init_system(cpu_registers*);
@@ -60,6 +61,7 @@ static void run_system(cpu_registers* registers) {
     bool vblank;
     bool old_vblank = false;
     uint32_t* pixel_data = get_pixel_data_ptr();
+    init_RAM();
 
     printf("Entering main loop\n");
     for(;;) {

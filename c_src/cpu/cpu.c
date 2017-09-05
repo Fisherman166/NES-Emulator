@@ -74,58 +74,60 @@ static const uint8_t instruction_cycle_length[] = {
 };
 
 static const char* instruction_text[] = {
-"BRK", "ORA", "ERR", "*SLO", "*NOP", "ORA", "ASL", "*SLO", "PHP", "ORA", "ASL", "ERR", "*NOP", "ORA", "ASL", "*SLO", 
-"BPL", "ORA", "ERR", "*SLO", "*NOP", "ORA", "ASL", "*SLO", "CLC", "ORA", "*NOP", "*SLO", "*NOP", "ORA", "ASL", "*SLO", 
-"JSR", "AND", "ERR", "*RLA", "BIT", "AND", "ROL", "*RLA", "PLP", "AND", "ROL", "ERR", "BIT", "AND", "ROL", "*RLA", 
-"BMI", "AND", "ERR", "*RLA", "*NOP", "AND", "ROL", "*RLA", "SEC", "AND", "*NOP", "*RLA", "*NOP", "AND", "ROL", "*RLA", 
-"RTI", "EOR", "ERR", "*SRE", "*NOP", "EOR", "LSR", "*SRE", "PHA", "EOR", "LSR", "ERR", "JMP", "EOR", "LSR", "*SRE", 
-"BVC", "EOR", "ERR", "*SRE", "*NOP", "EOR", "LSR", "*SRE", "CLI", "EOR", "*NOP", "*SRE", "*NOP", "EOR", "LSR", "*SRE", 
-"RTS", "ADC", "ERR", "*RRA", "*NOP", "ADC", "ROR", "*RRA", "PLA", "ADC", "ROR", "ERR", "JMP", "ADC", "ROR", "*RRA", 
-"BVS", "ADC", "ERR", "*RRA", "*NOP", "ADC", "ROR", "*RRA", "SEI", "ADC", "*NOP", "*RRA", "*NOP", "ADC", "ROR", "*RRA", 
-"*NOP", "STA", "*NOP", "*SAX", "STY", "STA", "STX", "*SAX", "DEY", "*NOP", "TXA", "ERR", "STY", "STA", "STX", "*SAX", 
-"BCC", "STA", "ERR", "ERR", "STY", "STA", "STX", "*SAX", "TYA", "STA", "TXS", "ERR", "ERR", "STA", "ERR", "ERR", 
-"LDY", "LDA", "LDX", "*LAX", "LDY", "LDA", "LDX", "*LAX", "TAY", "LDA", "TAX", "ERR", "LDY", "LDA", "LDX", "*LAX", 
-"BCS", "LDA", "ERR", "*LAX", "LDY", "LDA", "LDX", "*LAX", "CLV", "LDA", "TSX", "ERR", "LDY", "LDA", "LDX", "*LAX", 
-"CPY", "CMP", "*NOP", "*DCP", "CPY", "CMP", "DEC", "*DCP", "INY", "CMP", "DEX", "ERR", "CPY", "CMP", "DEC", "*DCP", 
-"BNE", "CMP", "ERR", "*DCP", "*NOP", "CMP", "DEC", "*DCP", "CLD", "CMP", "*NOP", "*DCP", "*NOP", "CMP", "DEC", "*DCP", 
-"CPX", "SBC", "*NOP", "*ISB", "CPX", "SBC", "INC", "*ISB", "INX", "SBC", "NOP", "*SBC", "CPX", "SBC", "INC", "*ISB", 
-"BEQ", "SBC", "ERR", "*ISB", "*NOP", "SBC", "INC", "*ISB", "SED", "SBC", "*NOP", "*ISB", "*NOP", "SBC", "INC", "*ISB", 
+    "BRK", "ORA", "ERR", "*SLO", "*NOP", "ORA", "ASL", "*SLO", "PHP", "ORA", "ASL", "ERR", "*NOP", "ORA", "ASL", "*SLO", 
+    "BPL", "ORA", "ERR", "*SLO", "*NOP", "ORA", "ASL", "*SLO", "CLC", "ORA", "*NOP", "*SLO", "*NOP", "ORA", "ASL", "*SLO", 
+    "JSR", "AND", "ERR", "*RLA", "BIT", "AND", "ROL", "*RLA", "PLP", "AND", "ROL", "ERR", "BIT", "AND", "ROL", "*RLA", 
+    "BMI", "AND", "ERR", "*RLA", "*NOP", "AND", "ROL", "*RLA", "SEC", "AND", "*NOP", "*RLA", "*NOP", "AND", "ROL", "*RLA", 
+    "RTI", "EOR", "ERR", "*SRE", "*NOP", "EOR", "LSR", "*SRE", "PHA", "EOR", "LSR", "ERR", "JMP", "EOR", "LSR", "*SRE", 
+    "BVC", "EOR", "ERR", "*SRE", "*NOP", "EOR", "LSR", "*SRE", "CLI", "EOR", "*NOP", "*SRE", "*NOP", "EOR", "LSR", "*SRE", 
+    "RTS", "ADC", "ERR", "*RRA", "*NOP", "ADC", "ROR", "*RRA", "PLA", "ADC", "ROR", "ERR", "JMP", "ADC", "ROR", "*RRA", 
+    "BVS", "ADC", "ERR", "*RRA", "*NOP", "ADC", "ROR", "*RRA", "SEI", "ADC", "*NOP", "*RRA", "*NOP", "ADC", "ROR", "*RRA", 
+    "*NOP", "STA", "*NOP", "*SAX", "STY", "STA", "STX", "*SAX", "DEY", "*NOP", "TXA", "ERR", "STY", "STA", "STX", "*SAX", 
+    "BCC", "STA", "ERR", "ERR", "STY", "STA", "STX", "*SAX", "TYA", "STA", "TXS", "ERR", "ERR", "STA", "ERR", "ERR", 
+    "LDY", "LDA", "LDX", "*LAX", "LDY", "LDA", "LDX", "*LAX", "TAY", "LDA", "TAX", "ERR", "LDY", "LDA", "LDX", "*LAX", 
+    "BCS", "LDA", "ERR", "*LAX", "LDY", "LDA", "LDX", "*LAX", "CLV", "LDA", "TSX", "ERR", "LDY", "LDA", "LDX", "*LAX", 
+    "CPY", "CMP", "*NOP", "*DCP", "CPY", "CMP", "DEC", "*DCP", "INY", "CMP", "DEX", "ERR", "CPY", "CMP", "DEC", "*DCP", 
+    "BNE", "CMP", "ERR", "*DCP", "*NOP", "CMP", "DEC", "*DCP", "CLD", "CMP", "*NOP", "*DCP", "*NOP", "CMP", "DEC", "*DCP", 
+    "CPX", "SBC", "*NOP", "*ISB", "CPX", "SBC", "INC", "*ISB", "INX", "SBC", "NOP", "*SBC", "CPX", "SBC", "INC", "*ISB", 
+    "BEQ", "SBC", "ERR", "*ISB", "*NOP", "SBC", "INC", "*ISB", "SED", "SBC", "*NOP", "*ISB", "*NOP", "SBC", "INC", "*ISB", 
 };
+
 static const uint8_t instruction_addressing_mode[] = {
-IMP, INX, ERR, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ABS, 
-REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
-ABS, INX, ERR, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ABS, 
-REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
-IMP, INX, ERR, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ABS, 
-REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
-IMP, INX, ERR, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, ACC, ERR, IND, ABS, ABS, ABS, 
-REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
-IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ABS, 
-REL, INY, ERR, ERR, ZPX, ZPX, ZPY, ZPY, IMP, ABY, IMP, ERR, ERR, ABX, ERR, ERR, 
-IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ABS, 
-REL, INY, ERR, INY, ZPX, ZPX, ZPY, ZPY, IMP, ABY, IMP, ERR, ABX, ABX, ABY, ABY, 
-IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ABS, 
-REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
-IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, IMM, ABS, ABS, ABS, ABS, 
-REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
+    IMP, INX, ERR, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ABS, 
+    REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
+    ABS, INX, ERR, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ABS, 
+    REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
+    IMP, INX, ERR, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ABS, 
+    REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
+    IMP, INX, ERR, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, ACC, ERR, IND, ABS, ABS, ABS, 
+    REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
+    IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ABS, 
+    REL, INY, ERR, ERR, ZPX, ZPX, ZPY, ZPY, IMP, ABY, IMP, ERR, ERR, ABX, ERR, ERR, 
+    IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ABS, 
+    REL, INY, ERR, INY, ZPX, ZPX, ZPY, ZPY, IMP, ABY, IMP, ERR, ABX, ABX, ABY, ABY, 
+    IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, ERR, ABS, ABS, ABS, ABS, 
+    REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
+    IMM, INX, IMM, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, IMP, IMM, ABS, ABS, ABS, ABS, 
+    REL, INY, ERR, INY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX, 
 };
+
 static uint8_t (*instructions[]) (cpu_registers*) = {
-&implied_BRK, &indirectX_ORA, NULL, &indirectX_SLO, &zeropage_NOP, &zeropage_ORA, &zeropage_ASL, &zeropage_SLO, &implied_PHP, &immediate_ORA, &accumulator_ASL, NULL, &absolute_NOP, &absolute_ORA, &absolute_ASL, &absolute_SLO, 
-&relative_BPL, &indirectY_ORA, NULL, &indirectY_SLO, &zeropageX_NOP, &zeropageX_ORA, &zeropageX_ASL, &zeropageX_SLO, &implied_CLC, &absoluteY_ORA, &implied_NOP, &absoluteY_SLO, &absoluteX_NOP, &absoluteX_ORA, &absoluteX_ASL, &absoluteX_SLO, 
-&absolute_JSR, &indirectX_AND, NULL, &indirectX_RLA, &zeropage_BIT, &zeropage_AND, &zeropage_ROL, &zeropage_RLA, &implied_PLP, &immediate_AND, &accumulator_ROL, NULL, &absolute_BIT, &absolute_AND, &absolute_ROL, &absolute_RLA, 
-&relative_BMI, &indirectY_AND, NULL, &indirectY_RLA, &zeropageX_NOP, &zeropageX_AND, &zeropageX_ROL, &zeropageX_RLA, &implied_SEC, &absoluteY_AND, &implied_NOP, &absoluteY_RLA, &absoluteX_NOP, &absoluteX_AND, &absoluteX_ROL, &absoluteX_RLA, 
-&implied_RTI, &indirectX_EOR, NULL, &indirectX_SRE, &zeropage_NOP, &zeropage_EOR, &zeropage_LSR, &zeropage_SRE, &implied_PHA, &immediate_EOR, &accumulator_LSR, NULL, &absolute_JMP, &absolute_EOR, &absolute_LSR, &absolute_SRE, 
-&relative_BVC, &indirectY_EOR, NULL, &indirectY_SRE, &zeropageX_NOP, &zeropageX_EOR, &zeropageX_LSR, &zeropageX_SRE, &implied_CLI, &absoluteY_EOR, &implied_NOP, &absoluteY_SRE, &absoluteX_NOP, &absoluteX_EOR, &absoluteX_LSR, &absoluteX_SRE, 
-&implied_RTS, &indirectX_ADC, NULL, &indirectX_RRA, &zeropage_NOP, &zeropage_ADC, &zeropage_ROR, &zeropage_RRA, &implied_PLA, &immediate_ADC, &accumulator_ROR, NULL, &indirect_JMP, &absolute_ADC, &absolute_ROR, &absolute_RRA, 
-&relative_BVS, &indirectY_ADC, NULL, &indirectY_RRA, &zeropageX_NOP, &zeropageX_ADC, &zeropageX_ROR, &zeropageX_RRA, &implied_SEI, &absoluteY_ADC, &implied_NOP, &absoluteY_RRA, &absoluteX_NOP, &absoluteX_ADC, &absoluteX_ROR, &absoluteX_RRA, 
-&immediate_NOP, &indirectX_STA, &immediate_NOP, &indirectX_SAX, &zeropage_STY, &zeropage_STA, &zeropage_STX, &zeropage_SAX, &implied_DEY, &immediate_NOP, &implied_TXA, NULL, &absolute_STY, &absolute_STA, &absolute_STX, &absolute_SAX, 
-&relative_BCC, &indirectY_STA, NULL, NULL, &zeropageX_STY, &zeropageX_STA, &zeropageY_STX, &zeropageY_SAX, &implied_TYA, &absoluteY_STA, &implied_TXS, NULL, NULL, &absoluteX_STA, NULL, NULL, 
-&immediate_LDY, &indirectX_LDA, &immediate_LDX, &indirectX_LAX, &zeropage_LDY, &zeropage_LDA, &zeropage_LDX, &zeropage_LAX, &implied_TAY, &immediate_LDA, &implied_TAX, NULL, &absolute_LDY, &absolute_LDA, &absolute_LDX, &absolute_LAX, 
-&relative_BCS, &indirectY_LDA, NULL, &indirectY_LAX, &zeropageX_LDY, &zeropageX_LDA, &zeropageY_LDX, &zeropageY_LAX, &implied_CLV, &absoluteY_LDA, &implied_TSX, NULL, &absoluteX_LDY, &absoluteX_LDA, &absoluteY_LDX, &absoluteY_LAX, 
-&immediate_CPY, &indirectX_CMP, &immediate_NOP, &indirectX_DCP, &zeropage_CPY, &zeropage_CMP, &zeropage_DEC, &zeropage_DCP, &implied_INY, &immediate_CMP, &implied_DEX, NULL, &absolute_CPY, &absolute_CMP, &absolute_DEC, &absolute_DCP, 
-&relative_BNE, &indirectY_CMP, NULL, &indirectY_DCP, &zeropageX_NOP, &zeropageX_CMP, &zeropageX_DEC, &zeropageX_DCP, &implied_CLD, &absoluteY_CMP, &implied_NOP, &absoluteY_DCP, &absoluteX_NOP, &absoluteX_CMP, &absoluteX_DEC, &absoluteX_DCP, 
-&immediate_CPX, &indirectX_SBC, &immediate_NOP, &indirectX_ISB, &zeropage_CPX, &zeropage_SBC, &zeropage_INC, &zeropage_ISB, &implied_INX, &immediate_SBC, &implied_NOP, &immediate_SBC, &absolute_CPX, &absolute_SBC, &absolute_INC, &absolute_ISB, 
-&relative_BEQ, &indirectY_SBC, NULL, &indirectY_ISB, &zeropageX_NOP, &zeropageX_SBC, &zeropageX_INC, &zeropageX_ISB, &implied_SED, &absoluteY_SBC, &implied_NOP, &absoluteY_ISB, &absoluteX_NOP, &absoluteX_SBC, &absoluteX_INC, &absoluteX_ISB, 
+    &implied_BRK, &indirectX_ORA, NULL, &indirectX_SLO, &zeropage_NOP, &zeropage_ORA, &zeropage_ASL, &zeropage_SLO, &implied_PHP, &immediate_ORA, &accumulator_ASL, NULL, &absolute_NOP, &absolute_ORA, &absolute_ASL, &absolute_SLO, 
+    &relative_BPL, &indirectY_ORA, NULL, &indirectY_SLO, &zeropageX_NOP, &zeropageX_ORA, &zeropageX_ASL, &zeropageX_SLO, &implied_CLC, &absoluteY_ORA, &implied_NOP, &absoluteY_SLO, &absoluteX_NOP, &absoluteX_ORA, &absoluteX_ASL, &absoluteX_SLO, 
+    &absolute_JSR, &indirectX_AND, NULL, &indirectX_RLA, &zeropage_BIT, &zeropage_AND, &zeropage_ROL, &zeropage_RLA, &implied_PLP, &immediate_AND, &accumulator_ROL, NULL, &absolute_BIT, &absolute_AND, &absolute_ROL, &absolute_RLA, 
+    &relative_BMI, &indirectY_AND, NULL, &indirectY_RLA, &zeropageX_NOP, &zeropageX_AND, &zeropageX_ROL, &zeropageX_RLA, &implied_SEC, &absoluteY_AND, &implied_NOP, &absoluteY_RLA, &absoluteX_NOP, &absoluteX_AND, &absoluteX_ROL, &absoluteX_RLA, 
+    &implied_RTI, &indirectX_EOR, NULL, &indirectX_SRE, &zeropage_NOP, &zeropage_EOR, &zeropage_LSR, &zeropage_SRE, &implied_PHA, &immediate_EOR, &accumulator_LSR, NULL, &absolute_JMP, &absolute_EOR, &absolute_LSR, &absolute_SRE, 
+    &relative_BVC, &indirectY_EOR, NULL, &indirectY_SRE, &zeropageX_NOP, &zeropageX_EOR, &zeropageX_LSR, &zeropageX_SRE, &implied_CLI, &absoluteY_EOR, &implied_NOP, &absoluteY_SRE, &absoluteX_NOP, &absoluteX_EOR, &absoluteX_LSR, &absoluteX_SRE, 
+    &implied_RTS, &indirectX_ADC, NULL, &indirectX_RRA, &zeropage_NOP, &zeropage_ADC, &zeropage_ROR, &zeropage_RRA, &implied_PLA, &immediate_ADC, &accumulator_ROR, NULL, &indirect_JMP, &absolute_ADC, &absolute_ROR, &absolute_RRA, 
+    &relative_BVS, &indirectY_ADC, NULL, &indirectY_RRA, &zeropageX_NOP, &zeropageX_ADC, &zeropageX_ROR, &zeropageX_RRA, &implied_SEI, &absoluteY_ADC, &implied_NOP, &absoluteY_RRA, &absoluteX_NOP, &absoluteX_ADC, &absoluteX_ROR, &absoluteX_RRA, 
+    &immediate_NOP, &indirectX_STA, &immediate_NOP, &indirectX_SAX, &zeropage_STY, &zeropage_STA, &zeropage_STX, &zeropage_SAX, &implied_DEY, &immediate_NOP, &implied_TXA, NULL, &absolute_STY, &absolute_STA, &absolute_STX, &absolute_SAX, 
+    &relative_BCC, &indirectY_STA, NULL, NULL, &zeropageX_STY, &zeropageX_STA, &zeropageY_STX, &zeropageY_SAX, &implied_TYA, &absoluteY_STA, &implied_TXS, NULL, NULL, &absoluteX_STA, NULL, NULL, 
+    &immediate_LDY, &indirectX_LDA, &immediate_LDX, &indirectX_LAX, &zeropage_LDY, &zeropage_LDA, &zeropage_LDX, &zeropage_LAX, &implied_TAY, &immediate_LDA, &implied_TAX, NULL, &absolute_LDY, &absolute_LDA, &absolute_LDX, &absolute_LAX, 
+    &relative_BCS, &indirectY_LDA, NULL, &indirectY_LAX, &zeropageX_LDY, &zeropageX_LDA, &zeropageY_LDX, &zeropageY_LAX, &implied_CLV, &absoluteY_LDA, &implied_TSX, NULL, &absoluteX_LDY, &absoluteX_LDA, &absoluteY_LDX, &absoluteY_LAX, 
+    &immediate_CPY, &indirectX_CMP, &immediate_NOP, &indirectX_DCP, &zeropage_CPY, &zeropage_CMP, &zeropage_DEC, &zeropage_DCP, &implied_INY, &immediate_CMP, &implied_DEX, NULL, &absolute_CPY, &absolute_CMP, &absolute_DEC, &absolute_DCP, 
+    &relative_BNE, &indirectY_CMP, NULL, &indirectY_DCP, &zeropageX_NOP, &zeropageX_CMP, &zeropageX_DEC, &zeropageX_DCP, &implied_CLD, &absoluteY_CMP, &implied_NOP, &absoluteY_DCP, &absoluteX_NOP, &absoluteX_CMP, &absoluteX_DEC, &absoluteX_DCP, 
+    &immediate_CPX, &indirectX_SBC, &immediate_NOP, &indirectX_ISB, &zeropage_CPX, &zeropage_SBC, &zeropage_INC, &zeropage_ISB, &implied_INX, &immediate_SBC, &implied_NOP, &immediate_SBC, &absolute_CPX, &absolute_SBC, &absolute_INC, &absolute_ISB, 
+    &relative_BEQ, &indirectY_SBC, NULL, &indirectY_ISB, &zeropageX_NOP, &zeropageX_SBC, &zeropageX_INC, &zeropageX_ISB, &implied_SED, &absoluteY_SBC, &implied_NOP, &absoluteY_ISB, &absoluteX_NOP, &absoluteX_SBC, &absoluteX_INC, &absoluteX_ISB, 
 };
 
 //*****************************************************************************
@@ -192,11 +194,11 @@ static void print_accumulator_debug_info(cpu_registers* registers, uint8_t opcod
 }
 
 static void print_immediate_debug_info(cpu_registers* registers, uint8_t opcode) {
-    uint8_t data_read = debug_read_RAM(registers->PC);
-    fprintf(cpu_logfile, " %02X", data_read);
+    uint8_t data = debug_read_RAM(registers->PC);
+    fprintf(cpu_logfile, " %02X", data);
     fprintf(cpu_logfile, "%5s", " ");
     fprintf(cpu_logfile, "%3s ", instruction_text[opcode]);
-    fprintf(cpu_logfile, "#$%02X", data_read);
+    fprintf(cpu_logfile, "#$%02X", data);
     fprintf(cpu_logfile, "%24s", " ");
 }
 
@@ -382,7 +384,7 @@ static uint8_t execute_NMI(cpu_registers* registers) {
     // NMI clears bit 4 and sets bit 5 for flags push
     uint8_t NMI_flags = registers->flags | 0x20;
     NMI_flags &= ~0x10;
-    push_PC_onto_stack(registers, registers->PC);
+    push_PC_onto_stack(registers, registers->PC - 1); // Sub 1 to get correct PC since it was incremented
     push_stack(registers, NMI_flags);
     registers->PC = (read_RAM(0xFFFB) << 8) | read_RAM(0xFFFA);
     set_cpu_flag(registers, INTERRUPT_FLAG);
@@ -424,8 +426,8 @@ void cold_boot_init(cpu_registers* registers) {
     const uint8_t initial_flags = 0x24;
 
     //To run NESTEST
-    uint16_t initial_PC = 0xC000;
-    //uint16_t initial_PC = fetch_reset_vector();
+    //uint16_t initial_PC = 0xC000;
+    uint16_t initial_PC = fetch_reset_vector();
     init_cpu_registers(registers, initial_A, initial_X, initial_Y, initial_PC,
                        initial_S, initial_flags);
 }
@@ -447,9 +449,9 @@ uint8_t execute_interpreter_cycle(cpu_registers* registers, bool nmi_flag) {
             #endif
             extra_cycles = execute_instruction(registers, opcode);
             cpu_cycles_executed = instruction_cycle_length[opcode] + extra_cycles;
+            // Do not increment PC if we jump because it will skip the first instruction at least
+            if(!is_JSR_or_JMP(opcode) && !is_RTI(opcode)) increment_PC_instruction_length(registers, opcode);
         }
-        // Do not increment PC if we jump because it will skip the first instruction at least
-        if(!is_JSR_or_JMP(opcode) && !is_RTI(opcode)) increment_PC_instruction_length(registers, opcode);
     }
 
     previous_nmi_flag = nmi_flag;
