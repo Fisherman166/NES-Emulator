@@ -381,6 +381,7 @@ static void print_debug_info(cpu_registers* registers, uint8_t opcode) {
 }
 
 static uint8_t execute_NMI(cpu_registers* registers) {
+    clear_nmi_flag();
     // NMI clears bit 4 and sets bit 5 for flags push
     uint8_t NMI_flags = registers->flags | 0x20;
     NMI_flags &= ~0x10;

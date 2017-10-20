@@ -218,10 +218,10 @@ static bool eight_to_one_mux(uint8_t fineX_scroll, uint16_t background_tile) {
 }
 
 static FILE* ppu_logfile = NULL;
-static void print_debug(bool vblank) {
-    fprintf(ppu_logfile, "scanline: %u, dot: %u, PPUA: %04X, PPUTA: %04X, fineX: %02X, WToggle: %x, vblank: %x, NMI: %x, oddFrame: %X\n",
+static void print_debug() {
+    fprintf(ppu_logfile, "scanline: %u, dot: %u, PPUA: %04X, PPUTA: %04X, fineX: %02X, WToggle: %x, NMI: %x, oddFrame: %X\n",
             scanline, dot, get_VRAM_address(), get_temp_VRAM_address(), get_fineX_scroll(),
-            get_write_toggle(), vblank, NMI_flag, odd_frame);
+            get_write_toggle(), NMI_flag, odd_frame);
 }
 
 //*****************************************************************************
@@ -326,44 +326,41 @@ static bool check_VBlank(ppu_regs regs, uint16_t scanline, uint16_t dot, bool* N
     if( (scanline == vblank_enter_scanline) && (dot == vblank_enter_dot) ) {
         set_vblank_bit();
         vblank = true;
+        if(NMI_set_in_RAM()) *NMI_flag = 1;
     }
     else if( (scanline == vblank_exit_scanline) && (dot == vblank_exit_dot) ) {
         clear_vblank_bit();
         vblank = false;
     }
-
-    if(NMI_and_vblank_set()) *NMI_flag = 1;
-    else *NMI_flag = 0;
     return vblank;
 }
 
 //*****************************************************************************
 // Public functions
 //*****************************************************************************
-uint32_t* get_pixel_data_ptr() {
-    return pixel_data[0][0];
-}
-
-bool get_NMI_flag() {
-    return NMI_flag;
-}
-
 bool run_PPU_cycle() {
     line_status status = get_ppu_line_status(scanline, dot);
     ppu_regs ppu_regs = get_ppu_registers();
 
     if( is_rendering_enabled(ppu_regs) ) execute_ppu(&ppu_regs, &status, scanline, dot);
     tick(ppu_regs, status, &scanline, &dot);
-
+    
     bool vblank = check_VBlank(ppu_regs, scanline, dot, &NMI_flag);
     #ifdef DEBUG
-        print_debug(vblank);
+        print_debug();
     #endif
     return vblank;
 }
 
+uint32_t* get_pixel_data_ptr() {
+    return &pixel_data[0][0];
+}
+
 uint16_t get_scanline() { return scanline; }
 uint16_t get_dot() { return dot; }
+
+bool get_NMI_flag() { return NMI_flag; }
+void clear_nmi_flag() { NMI_flag = 0; }
 
 void open_ppu_debug_logfile() {
     const char* logfile_name = "ppu_output.log";

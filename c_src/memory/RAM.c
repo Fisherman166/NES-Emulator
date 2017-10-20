@@ -106,8 +106,8 @@ void clear_vblank_bit() {
     RAM[PPUSTATUS_ADDRESS] &= ~VBLANK_BIT;
 }
 
-bool NMI_and_vblank_set() {
-    return( (RAM[PPUCTRL_ADDRESS] & NMI_BIT) && (RAM[PPUSTATUS_ADDRESS] & VBLANK_BIT) );
+bool NMI_set_in_RAM() {
+    return (RAM[PPUCTRL_ADDRESS] & NMI_BIT); 
 }
 
 void write_zeropage(cpu_registers* registers, uint8_t data) {
