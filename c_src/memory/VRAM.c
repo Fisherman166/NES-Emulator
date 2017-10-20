@@ -106,7 +106,7 @@ void increment_ppu_address(uint8_t PPUCTRL_value) {
         VRAM_state.VRAM_address = (VRAM_state.VRAM_address + 1) & VRAM_WRAP_MASK;
 }
 
-void PPUSTATUS_update_temp_VRAM_address(uint8_t value) {
+void PPUCTRL_update_temp_VRAM_address(uint8_t value) {
     const uint8_t nametable_select_input_mask = 0x03;
     const uint16_t nametable_select_clear_mask = ~0x0C00;
     VRAM_state.temp_VRAM_address &= nametable_select_clear_mask;
@@ -197,7 +197,15 @@ uint8_t get_fineX_scroll() {
     return VRAM_state.fineX_scroll;
 }
 
-uint8_t get_VRAM_address() {
+uint16_t get_VRAM_address() {
     return VRAM_state.VRAM_address;
+}
+
+uint16_t get_temp_VRAM_address() {
+    return VRAM_state.temp_VRAM_address;
+}
+
+bool get_write_toggle() {
+    return write_toggle;
 }
 

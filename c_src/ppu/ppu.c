@@ -203,7 +203,7 @@ static void four_to_one_mux(BG_shift_registers* BG_regs, uint8_t attribute_byte,
     else BG_regs->low_attribute_shift = 0;
 }
 
-bool eight_to_one_mux(uint8_t fineX_scroll, uint16_t background_tile) {
+static bool eight_to_one_mux(uint8_t fineX_scroll, uint16_t background_tile) {
     bool retval;
 
     if(fineX_scroll == 0) retval = background_tile & 0x8000;
@@ -217,11 +217,17 @@ bool eight_to_one_mux(uint8_t fineX_scroll, uint16_t background_tile) {
     return retval;
 }
 
+static FILE* ppu_logfile = NULL;
+static void print_debug(bool vblank) {
+    fprintf(ppu_logfile, "scanline: %u, dot: %u, PPUA: %04X, PPUTA: %04X, fineX: %02X, WToggle: %x, vblank: %x, NMI: %x, oddFrame: %X\n",
+            scanline, dot, get_VRAM_address(), get_temp_VRAM_address(), get_fineX_scroll(),
+            get_write_toggle(), vblank, NMI_flag, odd_frame);
+}
+
 //*****************************************************************************
 // Heavy lifters
 //*****************************************************************************
-void render_pixel(uint32_t pixel_data[SCREEN_WIDTH][SCREEN_HEIGHT], BG_shift_registers* BG_regs,
-                  uint16_t scanline, uint16_t dot) {
+void render_pixel(BG_shift_registers* BG_regs, uint16_t scanline, uint16_t dot) {
     const uint16_t pallete_base_address = 0x3F00;
     uint8_t fineX_scroll= get_fineX_scroll();
 
@@ -267,14 +273,14 @@ static void shift_registers(BG_shift_registers* BG_regs) {
     BG_regs->high_attribute_shift <<= 1;
 }
 
-static void execute_ppu(uint32_t pixel_data[SCREEN_WIDTH][SCREEN_HEIGHT], ppu_regs* ppu_regs, line_status* status,
+static void execute_ppu(ppu_regs* ppu_regs, line_status* status,
                         uint16_t scanline, uint16_t dot) {
     static BG_shift_registers background_regs = {0, 0, 0, 0};
     static fetched_BG_bytes fetched_bytes = {0, 0, 0, 0};
     bool renderline = status->visable_line || status->prerender_line;
     uint16_t VRAM_address = get_VRAM_address();
 
-    if(status->visable_line && status->visable_dot) render_pixel(pixel_data, &background_regs, scanline, dot);
+    if(status->visable_line && status->visable_dot) render_pixel(&background_regs, scanline, dot);
     if(renderline && status->shift_reload_dot_range && status->shift_reload_dot) reload_shift_registers(&background_regs, &fetched_bytes, VRAM_address);
     if(renderline && status->visable_dot) fetch_shift_register_byte(&fetched_bytes, ppu_regs, VRAM_address, dot);
     if(should_shift_shift_registers(dot)) shift_registers(&background_regs);
@@ -334,8 +340,8 @@ static bool check_VBlank(ppu_regs regs, uint16_t scanline, uint16_t dot, bool* N
 //*****************************************************************************
 // Public functions
 //*****************************************************************************
-uint32_t (*get_pixel_data_ptr())[SCREEN_HEIGHT] {
-    return pixel_data;
+uint32_t* get_pixel_data_ptr() {
+    return pixel_data[0][0];
 }
 
 bool get_NMI_flag() {
@@ -346,11 +352,28 @@ bool run_PPU_cycle() {
     line_status status = get_ppu_line_status(scanline, dot);
     ppu_regs ppu_regs = get_ppu_registers();
 
-    if( is_rendering_enabled(ppu_regs) ) execute_ppu(pixel_data, &ppu_regs, &status, scanline, dot);
+    if( is_rendering_enabled(ppu_regs) ) execute_ppu(&ppu_regs, &status, scanline, dot);
     tick(ppu_regs, status, &scanline, &dot);
-    return check_VBlank(ppu_regs, scanline, dot, &NMI_flag);
+
+    bool vblank = check_VBlank(ppu_regs, scanline, dot, &NMI_flag);
+    #ifdef DEBUG
+        print_debug(vblank);
+    #endif
+    return vblank;
 }
 
 uint16_t get_scanline() { return scanline; }
 uint16_t get_dot() { return dot; }
+
+void open_ppu_debug_logfile() {
+    const char* logfile_name = "ppu_output.log";
+    ppu_logfile = fopen(logfile_name, "w");
+    if(ppu_logfile == NULL) {
+        printf("ERROR: Failed to open %s.\n", logfile_name);
+    }
+}
+
+void close_ppu_debug_logfile() {
+    fclose(ppu_logfile);
+}
 

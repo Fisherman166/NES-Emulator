@@ -43,6 +43,7 @@ static void parse_cmdline(int argc, char **argv) {
 static void init_system(cpu_registers* registers) {
     #ifdef DEBUG
         open_cpu_debug_logfile();
+        open_ppu_debug_logfile();
     #endif
 
     if( init_SDL() ) {
@@ -81,6 +82,7 @@ static void cleanup() {
 
     #ifdef DEBUG
         close_cpu_debug_logfile();
+        close_ppu_debug_logfile();
     #endif
 }
 

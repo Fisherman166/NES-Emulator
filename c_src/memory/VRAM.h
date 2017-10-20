@@ -13,7 +13,7 @@ void write_VRAM(uint16_t, uint8_t);
 void clear_write_toggle();
 uint8_t PPUDATA_VRAM_read();
 void increment_ppu_address(uint8_t);
-void PPUSTATUS_update_temp_VRAM_address(uint8_t);
+void PPUCTRL_update_temp_VRAM_address(uint8_t);
 void PPUSCROLL_update_temp_VRAM_address(uint8_t);
 void PPUADDR_update_temp_VRAM_address(uint8_t);
 void PPUDATA_update_temp_VRAM_address(uint8_t, uint8_t);
@@ -24,7 +24,9 @@ void incrementX();
 void copyX();
 void copyY();
 uint8_t get_fineX_scroll();
-uint8_t get_VRAM_address();
+uint16_t get_VRAM_address();
+uint16_t get_temp_VRAM_address();
+bool get_write_toggle();
 
 #endif
 

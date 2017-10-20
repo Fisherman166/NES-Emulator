@@ -82,7 +82,7 @@ void write_RAM(uint16_t address, uint8_t value) {
     address = sanitize_RAM_address(address);
     RAM[address] = value;
 
-    if(address == PPUSTATUS_ADDRESS) PPUSTATUS_update_temp_VRAM_address(value);
+    if(address == PPUCTRL_ADDRESS) PPUCTRL_update_temp_VRAM_address(value);
     else if(address == OAMDATA_ADDRESS) RAM[OAMADDR_ADDRESS] += 1;
     else if(address == PPUSCROLL_ADDRESS) PPUSCROLL_update_temp_VRAM_address(value);
     else if(address == PPUADDR_ADDRESS) PPUADDR_update_temp_VRAM_address(value);
