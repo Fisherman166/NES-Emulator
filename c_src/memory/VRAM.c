@@ -1,5 +1,6 @@
 #include "VRAM.h"
 #include "ppu.h"
+#include "stdlib.h"
 
 #define VRAM_SIZE 0x4000
 #define VRAM_WRAP_MASK 0x3FFF
@@ -77,7 +78,6 @@ uint8_t read_VRAM(uint16_t address) {
 void write_VRAM(uint16_t address, uint8_t data) {
     VRAM[sanitize_VRAM_address(address)] = data;
 }
-
 
 // Functions called from the RAM
 void clear_write_toggle() {

@@ -106,7 +106,7 @@ void clear_vblank_bit() {
     RAM[PPUSTATUS_ADDRESS] &= ~VBLANK_BIT;
 }
 
-bool NMI_set_in_RAM() {
+bool is_NMI_set_in_RAM() {
     return (RAM[PPUCTRL_ADDRESS] & NMI_BIT); 
 }
 

@@ -47,7 +47,7 @@ static const uint32_t RGB_colors[] = {
 static uint16_t scanline = 241;
 static uint16_t dot = 0;
 static bool     odd_frame = false;
-static uint32_t pixel_data[SCREEN_WIDTH][SCREEN_HEIGHT];
+static uint32_t pixel_data[SCREEN_HEIGHT][SCREEN_WIDTH];
 static bool     NMI_flag = false;
 
 
@@ -134,10 +134,9 @@ static line_status get_ppu_line_status(uint16_t scanline, uint16_t dot) {
 }
 
 static ppu_regs get_ppu_registers() {
-    // FIXME: MAy need to change if reading from 2000 or 2001 like the CPU would causes problems
     ppu_regs regs;
-    regs.r2000 = read_RAM(PPUCTRL_ADDRESS);
-    regs.r2001 = read_RAM(PPUMASK_ADDRESS);
+    regs.r2000 = debug_read_RAM(PPUCTRL_ADDRESS);
+    regs.r2001 = debug_read_RAM(PPUMASK_ADDRESS);
     return regs;
 }
 
@@ -230,6 +229,7 @@ static void print_debug() {
 void render_pixel(BG_shift_registers* BG_regs, uint16_t scanline, uint16_t dot) {
     const uint16_t pallete_base_address = 0x3F00;
     uint8_t fineX_scroll= get_fineX_scroll();
+    dot--; // Cycle 0 is idle so subtract one to get the correct rendering dot
 
     //Assumes only background can be enabled right now
     uint16_t pallete_address = pallete_base_address |
@@ -238,6 +238,10 @@ void render_pixel(BG_shift_registers* BG_regs, uint16_t scanline, uint16_t dot) 
                                (eight_to_one_mux( fineX_scroll, BG_regs->low_attribute_shift) << 2) |
                                (eight_to_one_mux( fineX_scroll, BG_regs->high_attribute_shift) << 3);
     uint16_t pallete_data = read_VRAM(pallete_address);
+    if( (scanline >= SCREEN_HEIGHT) || (dot >= SCREEN_WIDTH) ) {
+        printf("ERROR: pixel is out of bounds. Scanline = %u, Dot = %u\n", scanline, dot);
+        exit(0);
+    }
     pixel_data[scanline][dot] = RGB_colors[pallete_data];
 }
 
@@ -288,7 +292,7 @@ static void execute_ppu(ppu_regs* ppu_regs, line_status* status,
         if(dot == 256) incrementY();
         if( (status->visable_dot || status->next_screen_dot) && ((dot % 8) == 0) ) incrementX();
         if(dot == 257) copyX();
-        if( status->prerender_line && (dot >= 280) && (dot >= 304) ) copyY();
+        if( status->prerender_line && (dot >= 280) && (dot <= 304) ) copyY();
     }
 }
 
@@ -326,7 +330,7 @@ static bool check_VBlank(ppu_regs regs, uint16_t scanline, uint16_t dot, bool* N
     if( (scanline == vblank_enter_scanline) && (dot == vblank_enter_dot) ) {
         set_vblank_bit();
         vblank = true;
-        if(NMI_set_in_RAM()) *NMI_flag = 1;
+        if(is_NMI_set_in_RAM()) *NMI_flag = 1;
     }
     else if( (scanline == vblank_exit_scanline) && (dot == vblank_exit_dot) ) {
         clear_vblank_bit();

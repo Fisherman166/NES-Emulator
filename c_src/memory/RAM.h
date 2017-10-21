@@ -32,7 +32,7 @@ void write_RAM(uint16_t, uint8_t);
 
 void clear_vblank_bit();
 void set_vblank_bit();
-bool NMI_set_in_RAM();
+bool is_NMI_set_in_RAM();
 
 void write_zeropage(cpu_registers*, uint8_t);
 void write_zeropageX(cpu_registers*, uint8_t);
