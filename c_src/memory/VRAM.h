@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+void init_VRAM();
 void set_horizontal_mirroring();
 void set_vertical_mirroring();
 
@@ -27,6 +28,7 @@ uint8_t get_fineX_scroll();
 uint16_t get_VRAM_address();
 uint16_t get_temp_VRAM_address();
 bool get_write_toggle();
+void debug_dump_VRAM();
 
 #endif
 

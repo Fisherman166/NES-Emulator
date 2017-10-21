@@ -14,13 +14,15 @@
 
 #define NROM 0
 
+static long game_size = 0;
+
 static uint8_t* read_rom(FILE* game_filehandle) {
     if(fseek(game_filehandle, 0, SEEK_END) != 0) {
         printf("ERROR: Failed to move to END of file\n");
         return NULL;
     }
 
-    long game_size = ftell(game_filehandle);
+    game_size = ftell(game_filehandle);
     if(fseek(game_filehandle, 0, SEEK_SET) != 0) {
         printf("ERROR: Failed to move to START of file\n");
         return NULL;
@@ -85,7 +87,7 @@ bool load_game(char* game_file) {
     }
 
     uint8_t mapper = extract_mapper_from_header(game_data);
-    if(mapper == NROM) load_NROM(game_data);
+    if(mapper == NROM) load_NROM(game_data, game_size);
     else {
         printf("ERROR: Mapper %u does not match any supported mappers\n", mapper);
         fclose(game_filehandle);

@@ -37,6 +37,13 @@ static bool is_pallete_mirror(uint16_t address) {
     return( (address >= PALLATE_TABLE_MIRROR_BASE_ADDR) && (address < VRAM_SIZE) );
 }
 
+// These addrsses are speficially mirrored down 0x10 for some reason.
+// See PPU palletes page on NESDEV wiki for more information.
+static bool is_special_pallete_mirror(uint16_t address) {
+    return( (address == 0x3F10) || (address == 0x3F14) ||
+            (address == 0x3F18) || (address == 0x3F1C) );
+}
+
 static bool is_horizontal_mirror(uint16_t address) {
     bool nametable1_mirror = (address >= NAMETABLE2_BASE_ADDR) &&
                              (address < NAMETABLE3_BASE_ADDR);
@@ -55,6 +62,7 @@ static uint16_t sanitize_VRAM_address(uint16_t address) {
     address &= VRAM_WRAP_MASK;
     if(is_nametable_mirror(address)) address -= 0x1000;
     if(is_pallete_mirror(address)) address = PALLATE_TABLE_BASE_ADDR | (address & 0x1F);
+    if(is_special_pallete_mirror(address)) address = PALLATE_TABLE_BASE_ADDR | (address & 0xF);
     if(is_horizontal_mirror(address)) address -= 0x400;
     if(is_vertical_mirror(address)) address -= 0x800;
     return address;
@@ -63,6 +71,17 @@ static uint16_t sanitize_VRAM_address(uint16_t address) {
 //*****************************************************************************
 // Public Functions
 //*****************************************************************************
+void init_VRAM() {
+    // Set nametable
+    for(uint16_t address = NAMETABLE1_BASE_ADDR; address < NAMETABLE_MIRROR_BASE_ADDR; address++) {
+        write_VRAM(address, 0xFF);
+    }
+    // set pallete
+    for(uint16_t address = PALLATE_TABLE_BASE_ADDR; address < PALLATE_TABLE_MIRROR_BASE_ADDR; address++) {
+        write_VRAM(address, 0x3F);
+    }
+}
+
 void set_horizontal_mirroring() {
     horizontal_mirroring = true;
 }
@@ -207,5 +226,21 @@ uint16_t get_temp_VRAM_address() {
 
 bool get_write_toggle() {
     return write_toggle;
+}
+
+void debug_dump_VRAM() {
+    FILE* VRAM_dump = fopen("VRAM_dump.bin", "w");
+    if(VRAM_dump == NULL) {
+        printf("ERROR: Could not open VRAM_dump.bin\n");
+        exit(0);
+    }
+    for(uint32_t addr = 0; addr < VRAM_SIZE; addr += 0x10) {
+        fprintf(VRAM_dump, "%04x: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
+                addr, read_VRAM(addr), read_VRAM(addr + 0x1), read_VRAM(addr + 0x2), read_VRAM(addr + 0x3), read_VRAM(addr + 0x4),
+                read_VRAM(addr + 0x5), read_VRAM(addr + 0x6), read_VRAM(addr + 0x7), read_VRAM(addr + 0x8), read_VRAM(addr + 0x9),
+                read_VRAM(addr + 0xA), read_VRAM(addr + 0xB), read_VRAM(addr + 0xC), read_VRAM(addr + 0xD), read_VRAM(addr + 0xE),
+                read_VRAM(addr + 0xF));
+    }
+    fclose(VRAM_dump);
 }
 

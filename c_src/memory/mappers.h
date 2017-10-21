@@ -11,7 +11,7 @@
 
 #include "common.h"
 
-void load_NROM(uint8_t*);
+void load_NROM(uint8_t*, long);
 
 #endif
 

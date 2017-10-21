@@ -13,6 +13,7 @@
 #include "ppu.h"
 #include "game_loader.h"
 #include "RAM.h"
+#include "VRAM.h"
 
 static void parse_cmdline(int, char **);
 static void init_system(cpu_registers*);
@@ -63,6 +64,7 @@ static void run_system(cpu_registers* registers) {
     bool old_vblank = false;
     uint32_t* pixel_data = get_pixel_data_ptr();
     init_RAM();
+    init_VRAM();
 
     printf("Entering main loop\n");
     for(;;) {

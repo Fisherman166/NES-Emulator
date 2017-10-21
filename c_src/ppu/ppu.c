@@ -238,10 +238,6 @@ void render_pixel(BG_shift_registers* BG_regs, uint16_t scanline, uint16_t dot) 
                                (eight_to_one_mux( fineX_scroll, BG_regs->low_attribute_shift) << 2) |
                                (eight_to_one_mux( fineX_scroll, BG_regs->high_attribute_shift) << 3);
     uint16_t pallete_data = read_VRAM(pallete_address);
-    if( (scanline >= SCREEN_HEIGHT) || (dot >= SCREEN_WIDTH) ) {
-        printf("ERROR: pixel is out of bounds. Scanline = %u, Dot = %u\n", scanline, dot);
-        exit(0);
-    }
     pixel_data[scanline][dot] = RGB_colors[pallete_data];
 }
 
