@@ -16,8 +16,8 @@ typedef struct {
 typedef struct {
     uint16_t    high_background_shift;
     uint16_t    low_background_shift;
-    uint8_t     high_attribute_shift;
-    uint8_t     low_attribute_shift;
+    uint16_t    high_attribute_shift;
+    uint16_t    low_attribute_shift;
 } BG_shift_registers;
 
 typedef struct {
@@ -195,11 +195,11 @@ static void four_to_one_mux(BG_shift_registers* BG_regs, uint8_t attribute_byte,
     bool att_bit1 = attribute_byte & 0x1;
     bool att_bit2 = attribute_byte & 0x2;
 
-    if(att_bit1) BG_regs->high_attribute_shift |= 0xFF;
-    else BG_regs->high_attribute_shift = 0;
+    if(att_bit1) BG_regs->low_attribute_shift |= 0xFF;
+    else BG_regs->low_attribute_shift &= 0xFF;
 
-    if(att_bit2) BG_regs->low_attribute_shift |= 0xFF;
-    else BG_regs->low_attribute_shift = 0;
+    if(att_bit2) BG_regs->high_attribute_shift |= 0xFF;
+    else BG_regs->high_attribute_shift &= ~0xFF;
 }
 
 static bool eight_to_one_mux(uint8_t fineX_scroll, uint16_t background_tile) {
