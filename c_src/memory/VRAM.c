@@ -160,7 +160,7 @@ void incrementY() {
 
         if(coarseY == 29) {
             coarseY = 0;
-            VRAM_state.VRAM_address ^= 0x8000;    //Switch vertical nametable
+            VRAM_state.VRAM_address ^= 0x0800;    //Switch vertical nametable
         }
         else if(coarseY == 31) {
             coarseY = 0;
