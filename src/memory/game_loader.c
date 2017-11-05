@@ -47,6 +47,7 @@ static uint8_t extract_mapper_from_header(uint8_t* memory_block) {
     return (memory_block[7] & 0xF0) | (memory_block[6] & 0x0F);
 }
 
+#ifdef DEBUG
 static void print_rom_data() {
     const uint16_t rom_start = 0x8000;
     FILE* rom_data = fopen("rom_data.log", "w");
@@ -65,6 +66,7 @@ static void print_rom_data() {
                 debug_read_RAM(address + 15));
     fclose(rom_data);
 }
+#endif //DEBUG
 
 static FILE* open_game_file(char* game_file) {
     FILE* game_filehandle = NULL;
