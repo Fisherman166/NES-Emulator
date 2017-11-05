@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 project(NES_EMU)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -std=c99 -Wall")
-add_definitions(-DDEBUG)
+#add_definitions(-DDEBUG)
 
 include_directories("./" "cpu/" "memory/" "ppu/")
 add_subdirectory(memory)

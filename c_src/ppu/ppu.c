@@ -3,6 +3,8 @@
 #include "RAM.h"
 #include "VRAM.h"
 
+static uint16_t VRAM_A_AT_ATT_FETCH = 0;
+
 typedef struct {
     bool visable_line;
     bool postrender_line;
@@ -18,6 +20,8 @@ typedef struct {
     uint16_t    low_background_shift;
     uint16_t    high_attribute_shift;
     uint16_t    low_attribute_shift;
+    bool        low_attribute_latch;
+    bool        high_attribute_latch;
 } BG_shift_registers;
 
 typedef struct {
@@ -157,6 +161,7 @@ static uint8_t fetch_attribute_byte(uint16_t VRAM_address) {
     uint16_t attribute_address = base_attribute_address | (VRAM_address & nametable_select_bitmask) |
                                  ((VRAM_address >> 4) & attribute_select_bitmask) |
                                  ((VRAM_address >> 2) & X_Y_select_bitmask);
+    VRAM_A_AT_ATT_FETCH = VRAM_address;
     return read_VRAM(attribute_address);
 }
 
@@ -226,17 +231,39 @@ static void print_debug() {
 //*****************************************************************************
 // Heavy lifters
 //*****************************************************************************
+static uint8_t get_attribute_bits(BG_shift_registers* BG_regs) {
+    uint16_t VRAM_address = get_VRAM_address();
+    uint8_t vert = (VRAM_address >> 4) & 0x4;
+    uint8_t hor = VRAM_address & 0x2;
+    uint8_t shift = hor | vert;
+    uint8_t retval = 0;
+    retval = (BG_regs->low_attribute_shift >> shift) & 0x3;
+    //if( ((scanline > 30) && (scanline < 60)) && ((dot > 50) && (dot < 100)) ) {
+    //    printf("scanline = %u, dot = %u, VRAM = %04X, shift = %04X, ret = %02X\n", scanline, dot, VRAM_address, BG_regs->low_attribute_shift, retval);
+    //}
+    return retval;
+}
+
+#define NTH_BIT(x, n) (((x) >> (n)) & 1)
 void render_pixel(BG_shift_registers* BG_regs, uint16_t scanline, uint16_t dot) {
     const uint16_t pallete_base_address = 0x3F00;
     uint8_t fineX_scroll= get_fineX_scroll();
     dot--; // Cycle 0 is idle so subtract one to get the correct rendering dot
 
     //Assumes only background can be enabled right now
+    //uint16_t pallete_address = pallete_base_address |
+    //                           (eight_to_one_mux( fineX_scroll, BG_regs->low_background_shift)) |
+    //                           (eight_to_one_mux( fineX_scroll, BG_regs->high_background_shift) << 1) | 
+    //                           (get_attribute_bits(BG_regs) << 2);
+
     uint16_t pallete_address = pallete_base_address |
-                               (eight_to_one_mux( fineX_scroll, BG_regs->low_background_shift)) |
-                               (eight_to_one_mux( fineX_scroll, BG_regs->high_background_shift) << 1) | 
-                               (eight_to_one_mux( fineX_scroll, BG_regs->low_attribute_shift) << 2) |
-                               (eight_to_one_mux( fineX_scroll, BG_regs->high_attribute_shift) << 3);
+                               NTH_BIT(BG_regs->low_background_shift, 15 - fineX_scroll) |
+                               (NTH_BIT(BG_regs->high_background_shift, 15 - fineX_scroll)) << 1 |
+                               (NTH_BIT(BG_regs->low_attribute_shift, 7 - fineX_scroll) << 2) |
+                               (NTH_BIT(BG_regs->high_attribute_shift, 7 - fineX_scroll) << 3);
+    //if( ((scanline > 30) && (scanline < 60)) && ((dot > 50) && (dot < 100)) ) {
+    //    printf("Scanline: %u, dot: %u, att: %02X, low BG: %04X, high BG: %04X, pallete: %02X\n", scanline, dot, BG_regs->low_attribute_shift, BG_regs->low_background_shift, BG_regs->high_background_shift, pallete_address & 0xFF);
+    //}
     uint16_t pallete_data = read_VRAM(pallete_address);
     pixel_data[scanline][dot] = RGB_colors[pallete_data];
 }
@@ -245,7 +272,11 @@ static void reload_shift_registers(BG_shift_registers* BG_regs, fetched_BG_bytes
                                    uint16_t VRAM_address) {
     BG_regs->low_background_shift |= fetched_bytes->low_background_byte;
     BG_regs->high_background_shift |= fetched_bytes->high_background_byte;
-    four_to_one_mux(BG_regs, fetched_bytes->attribute_byte, VRAM_address);
+
+    //uint8_t at_bits = get_attribute_bits(BG_regs);
+    uint8_t at_bits = fetched_bytes->attribute_byte >> (((VRAM_address >> 4) & 4) | ((VRAM_address - 1) & 2));
+    BG_regs->low_attribute_latch = at_bits & 0x1;
+    BG_regs->high_attribute_latch = at_bits & 0x2;
 }
 
 static void fetch_shift_register_byte(fetched_BG_bytes* fetched_bytes, ppu_regs* ppu_regs,
@@ -269,8 +300,8 @@ static void fetch_shift_register_byte(fetched_BG_bytes* fetched_bytes, ppu_regs*
 static void shift_registers(BG_shift_registers* BG_regs) {
     BG_regs->low_background_shift <<= 1;
     BG_regs->high_background_shift <<= 1;
-    BG_regs->low_attribute_shift <<= 1;
-    BG_regs->high_attribute_shift <<= 1;
+    BG_regs->low_attribute_shift = (BG_regs->low_attribute_shift << 1) | BG_regs->low_attribute_latch;
+    BG_regs->high_attribute_shift = (BG_regs->high_attribute_shift << 1) | BG_regs->high_attribute_latch;
 }
 
 static void execute_ppu(ppu_regs* ppu_regs, line_status* status,
