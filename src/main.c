@@ -42,11 +42,6 @@ static void parse_cmdline(int argc, char **argv) {
 } 
 
 static void init_system(cpu_registers* registers) {
-    #ifdef DEBUG
-        open_cpu_debug_logfile();
-        open_ppu_debug_logfile();
-    #endif
-
     if( init_SDL() ) {
         printf("ERROR: Failed to init SDL");
         exit(1);

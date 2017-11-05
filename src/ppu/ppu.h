@@ -10,8 +10,5 @@ uint16_t get_dot();
 bool get_NMI_flag();
 void clear_nmi_flag();
 
-void open_ppu_debug_logfile();
-void close_ppu_debug_logfile();
-
 #endif
 
