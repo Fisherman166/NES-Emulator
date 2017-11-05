@@ -27,7 +27,7 @@
 #define VBLANK_BIT 0x80
 #define NMI_BIT 0x80
 
-uint8_t RAM[RAM_locations];
+static uint8_t RAM[RAM_locations];
 
 //*****************************************************************************
 // Private Functions 

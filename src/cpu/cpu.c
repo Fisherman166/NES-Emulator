@@ -73,6 +73,7 @@ static const uint8_t instruction_cycle_length[] = {
     2,5,1,8,4,4,6,6,2,4,2,7,4,4,7,7,// F
 };
 
+#ifdef DEBUG
 static const char* instruction_text[] = {
     "BRK", "ORA", "ERR", "*SLO", "*NOP", "ORA", "ASL", "*SLO", "PHP", "ORA", "ASL", "ERR", "*NOP", "ORA", "ASL", "*SLO", 
     "BPL", "ORA", "ERR", "*SLO", "*NOP", "ORA", "ASL", "*SLO", "CLC", "ORA", "*NOP", "*SLO", "*NOP", "ORA", "ASL", "*SLO", 
@@ -91,6 +92,7 @@ static const char* instruction_text[] = {
     "CPX", "SBC", "*NOP", "*ISB", "CPX", "SBC", "INC", "*ISB", "INX", "SBC", "NOP", "*SBC", "CPX", "SBC", "INC", "*ISB", 
     "BEQ", "SBC", "ERR", "*ISB", "*NOP", "SBC", "INC", "*ISB", "SED", "SBC", "*NOP", "*ISB", "*NOP", "SBC", "INC", "*ISB", 
 };
+#endif //DEBUG
 
 static const uint8_t instruction_addressing_mode[] = {
     IMP, INX, ERR, INX, ZRP, ZRP, ZRP, ZRP, IMP, IMM, ACC, ERR, ABS, ABS, ABS, ABS, 
@@ -185,6 +187,8 @@ static uint8_t execute_instruction(cpu_registers* registers, uint8_t opcode) {
 //*****************************************************************************
 // Debug file functions
 //*****************************************************************************
+
+#ifdef DEBUG
 static FILE* cpu_logfile = NULL;
 
 static void print_accumulator_debug_info(cpu_registers* registers, uint8_t opcode) {
@@ -379,6 +383,7 @@ static void print_debug_info(cpu_registers* registers, uint8_t opcode) {
 
     print_common_debug_info(registers);
 }
+#endif // DEBUG
 
 static uint8_t execute_NMI(cpu_registers* registers) {
     clear_nmi_flag();
@@ -407,6 +412,7 @@ static uint8_t execute_DMA() {
 //*****************************************************************************
 // Public functions
 //*****************************************************************************
+#ifdef DEBUG
 void open_cpu_debug_logfile() {
     const char* logfile_name = "cpu_instrunctions.log";
     cpu_logfile = fopen(logfile_name, "w");
@@ -418,6 +424,7 @@ void open_cpu_debug_logfile() {
 void close_cpu_debug_logfile() {
     fclose(cpu_logfile);
 }
+#endif //DEBUG
 
 void cold_boot_init(cpu_registers* registers) {
     const uint8_t initial_A = 0;
