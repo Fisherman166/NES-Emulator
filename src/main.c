@@ -51,6 +51,9 @@ static void init_system(cpu_registers* registers) {
         exit(1);
     }
     cold_boot_init(registers);
+#ifdef DEBUG
+    open_cpu_debug_logfile();
+#endif
 }
 
 static void run_system(cpu_registers* registers) {
@@ -79,7 +82,6 @@ static void cleanup() {
 
     #ifdef DEBUG
         close_cpu_debug_logfile();
-        close_ppu_debug_logfile();
     #endif
 }
 

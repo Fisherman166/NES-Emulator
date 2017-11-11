@@ -14,6 +14,7 @@
 #include "cpu_decode_logic.h"
 #include "RAM.h"
 #include "ppu.h"
+#include "sprites.h"
 
 #define IMM 1
 #define ZRP 2
@@ -32,6 +33,7 @@
 
 static bool odd_cpu_cycle = false;
 static uint16_t DMA_cycle_count = 0;
+static uint16_t DMA_RAM_address = 0;
 
 static const uint8_t instruction_byte_length[] = { //Opcode included
   //0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F
@@ -402,9 +404,24 @@ static bool DMA_is_executing() {
     else return false;
 }
 
-// FIXME - Just a stub for now that does no real work
 static uint8_t execute_DMA() {
+    static uint8_t temp_data_buffer;
+
     DMA_cycle_count -= 1;
+    // First 1 or 2 cycles are idle
+    if(DMA_cycle_count > 512) return 1;
+
+    if(DMA_cycle_count & 1) {
+        write_primary_OAM(temp_data_buffer);
+    }
+    else {
+        temp_data_buffer = read_RAM(DMA_RAM_address);
+        DMA_RAM_address++;
+    }
+#ifdef DEBUG
+    if(DMA_cycle_count == 0)
+        print_primary_OAM();
+#endif
     return 1;
 }
 
@@ -469,7 +486,6 @@ uint8_t execute_interpreter_cycle(cpu_registers* registers, bool nmi_flag) {
 }
 
 void start_DMA(uint8_t DMA_address) {
-    // uint16_t full_start_address = 0 | (DMA_address << 8);
-    if(odd_cpu_cycle) DMA_cycle_count = 515;
-    else DMA_cycle_count = 514;
+    DMA_RAM_address = 0x0100 * DMA_address;
+    DMA_cycle_count = odd_cpu_cycle ? 515 : 514;
 }

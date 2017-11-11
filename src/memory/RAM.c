@@ -12,6 +12,7 @@
 #include "sdl_interface.h"
 #include "VRAM.h"
 #include "cpu.h"
+#include "sprites.h"
 
 #define RAM_locations 0x10000
 
@@ -69,6 +70,9 @@ uint8_t read_RAM(uint16_t address) {
         retval = PPUDATA_VRAM_read();
         increment_ppu_address(RAM[PPUCTRL_ADDRESS]);
     }
+    else if(address == OAMDATA_ADDRESS)
+        retval = get_OAM_address();
+
     return retval;
 }
 
@@ -82,12 +86,20 @@ void write_RAM(uint16_t address, uint8_t value) {
     address = sanitize_RAM_address(address);
     RAM[address] = value;
 
-    if(address == PPUCTRL_ADDRESS) PPUCTRL_update_temp_VRAM_address(value);
-    else if(address == OAMDATA_ADDRESS) RAM[OAMADDR_ADDRESS] += 1;
-    else if(address == PPUSCROLL_ADDRESS) PPUSCROLL_update_temp_VRAM_address(value);
-    else if(address == PPUADDR_ADDRESS) PPUADDR_update_temp_VRAM_address(value);
-    else if(address == PPUDATA_ADDRESS) PPUDATA_update_temp_VRAM_address(value, RAM[PPUCTRL_ADDRESS]);
-    else if(address == DMA_REG_ADDR) start_DMA(value);
+    if(address == PPUCTRL_ADDRESS)
+        PPUCTRL_update_temp_VRAM_address(value);
+    else if(address == OAMADDR_ADDRESS)
+        set_OAM_address(value);
+    else if(address == OAMDATA_ADDRESS)
+        write_primary_OAM(value);
+    else if(address == PPUSCROLL_ADDRESS)
+        PPUSCROLL_update_temp_VRAM_address(value);
+    else if(address == PPUADDR_ADDRESS)
+        PPUADDR_update_temp_VRAM_address(value);
+    else if(address == PPUDATA_ADDRESS)
+        PPUDATA_update_temp_VRAM_address(value, RAM[PPUCTRL_ADDRESS]);
+    else if(address == DMA_REG_ADDR)
+        start_DMA(value);
     else if(address == JOYPAD1_ADDRESS) {
         if(value & 1) enable_controller_strobe(JOYPAD1);
         else disable_controller_strobe(JOYPAD1);
