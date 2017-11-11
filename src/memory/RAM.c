@@ -71,7 +71,7 @@ uint8_t read_RAM(uint16_t address) {
         increment_ppu_address(RAM[PPUCTRL_ADDRESS]);
     }
     else if(address == OAMDATA_ADDRESS)
-        retval = get_OAM_address();
+        retval = get_OAM_data();
 
     return retval;
 }

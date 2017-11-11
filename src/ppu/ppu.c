@@ -117,6 +117,16 @@ static bool is_secondary_OAM_clear_dot() {
     return (dot >= 1) && (dot <= 64);
 }
 
+static bool is_sprite_evuluation_dot() {
+    return (dot >= 65) && (dot <= 256);
+}
+
+static uint8_t get_sprite_size(ppu_regs* ppu_regs) {
+    const uint8_t sprite_size_mask = 0x20;
+    uint8_t sprite_size = (ppu_regs->r2000 & sprite_size_mask) ? 16 : 8;
+    return sprite_size;
+}
+
 static line_status get_ppu_line_status(uint16_t scanline, uint16_t dot) {
     line_status status;
     status.visable_line = is_visable_line(scanline);
@@ -298,12 +308,18 @@ static void execute_ppu(
         shift_registers(&background_regs);
 
     if(status->render_line) {
-        if( is_secondary_OAM_clear_dot() ) secondary_OAM_clear(dot);
-        if(dot == 256) incrementY();
+        if( is_secondary_OAM_clear_dot() )
+            secondary_OAM_clear(dot);
+        if( is_sprite_evuluation_dot() )
+            sprite_evaluation(scanline, dot, get_sprite_size(ppu_regs));
+        if(dot == 256)
+            incrementY();
         if( (status->visable_dot || status->next_screen_dot) && ((dot % 8) == 0) )
             incrementX();
-        if(dot == 257) copyX();
-        if( status->prerender_line && (dot >= 280) && (dot <= 304) ) copyY();
+        if(dot == 257)
+            copyX();
+        if( status->prerender_line && (dot >= 280) && (dot <= 304) )
+            copyY();
     }
 }
 
