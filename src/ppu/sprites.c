@@ -1,10 +1,13 @@
 #include "sprites.h"
 
 #define PRIMARY_OAM_SIZE 256
+#define SECONDARY_OAM_SIZE 32
 
 static uint8_t primary_OAM[PRIMARY_OAM_SIZE];
 static uint8_t primary_OAM_addr;
 
+static uint8_t secondary_OAM[SECONDARY_OAM_SIZE];
+static uint8_t secondary_OAM_addr;
 
 void set_OAM_address(uint8_t address) {
     primary_OAM_addr = address;
@@ -18,6 +21,14 @@ uint8_t get_OAM_address() {
 
 void write_primary_OAM(uint8_t data) {
     primary_OAM[primary_OAM_addr++] = data;
+}
+
+void secondary_OAM_clear(uint16_t dot) {
+    const uint8_t OAM_value = 0xFF;
+    if(dot == 1)
+        secondary_OAM_addr = 0;
+    if(!(dot & 1))
+        secondary_OAM[secondary_OAM_addr++] = OAM_value;
 }
 
 #ifdef DEBUG

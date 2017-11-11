@@ -2,6 +2,7 @@
 #include "ppu.h"
 #include "RAM.h"
 #include "VRAM.h"
+#include "sprites.h"
 
 typedef struct {
     bool visable_line;
@@ -110,6 +111,10 @@ static bool is_rendering_enabled(ppu_regs regs) {
 
 static bool should_shift_shift_registers(uint16_t dot) {
     return (dot > 1 && dot < 258) || (dot > 321 && dot < 338);
+}
+
+static bool is_secondary_OAM_clear_dot() {
+    return (dot >= 1) && (dot <= 64);
 }
 
 static line_status get_ppu_line_status(uint16_t scanline, uint16_t dot) {
@@ -293,6 +298,7 @@ static void execute_ppu(
         shift_registers(&background_regs);
 
     if(status->render_line) {
+        if( is_secondary_OAM_clear_dot() ) secondary_OAM_clear(dot);
         if(dot == 256) incrementY();
         if( (status->visable_dot || status->next_screen_dot) && ((dot % 8) == 0) )
             incrementX();
