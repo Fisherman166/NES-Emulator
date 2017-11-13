@@ -121,10 +121,21 @@ static bool is_sprite_evuluation_dot() {
     return (dot >= 65) && (dot <= 256);
 }
 
+static bool is_sprite_load_dot() {
+    return (dot >= 257) && (dot <= 320);
+}
+
 static uint8_t get_sprite_size(ppu_regs* ppu_regs) {
     const uint8_t sprite_size_mask = 0x20;
     uint8_t sprite_size = (ppu_regs->r2000 & sprite_size_mask) ? 16 : 8;
     return sprite_size;
+}
+
+static uint8_t get_8x8_address(ppu_regs* ppu_regs) {
+    const uint8_t sprite_pattern_address_mask = 0x8;
+    bool high_addr = ppu_regs->r2000 & sprite_pattern_address_mask;
+    uint16_t address = high_addr ? 0x1000 : 0x0;
+    return address;
 }
 
 static line_status get_ppu_line_status(uint16_t scanline, uint16_t dot) {
@@ -312,6 +323,10 @@ static void execute_ppu(
             secondary_OAM_clear(dot);
         if( is_sprite_evuluation_dot() )
             sprite_evaluation(scanline, dot, get_sprite_size(ppu_regs));
+        if( is_sprite_load_dot() )
+            do_sprite_load(scanline, dot,
+                           get_sprite_size(ppu_regs),
+                           get_8x8_address(ppu_regs));
         if(dot == 256)
             incrementY();
         if( (status->visable_dot || status->next_screen_dot) && ((dot % 8) == 0) )
@@ -320,6 +335,8 @@ static void execute_ppu(
             copyX();
         if( status->prerender_line && (dot >= 280) && (dot <= 304) )
             copyY();
+        if( status->prerender_line && (dot == 66) )
+            clear_sprite0();
     }
 }
 
