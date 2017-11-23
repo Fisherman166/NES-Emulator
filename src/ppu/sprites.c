@@ -1,5 +1,5 @@
 #include "sprites.h"
-#include "RAM.h"
+#include "VRAM.h"
 
 #define PRIMARY_OAM_SIZE 256
 #define SECONDARY_OAM_SIZE 32
@@ -35,7 +35,7 @@ static void set_secondary_OAM_address(uint8_t address) {
 }
 
 static void increment_secondary_OAM_address() {
-    secondary_OAM_addr = (secondary_OAM_addr + 1) & SECONDARY_OAM_SIZE;
+    secondary_OAM_addr = (secondary_OAM_addr + 1) & 0x1F;
 }
 
 static uint8_t read_secondary_OAM(uint8_t address) {
@@ -170,18 +170,20 @@ static uint16_t calc_8x8_low_sprite_tile_address(
     uint16_t base_sprite_address,
     uint8_t sprite_y,
     uint8_t index,
-    uint8_t attribute
+    uint8_t attribute,
+    bool* in_range
 ) {
     bool y_is_flipped = attribute & 0x80;
-    uint8_t y_diff = scanline - sprite_y;
-    uint8_t flipped_y_diff = ~y_diff;
-    uint16_t address = base_sprite_address | (index << 5);
+    uint16_t y_diff = scanline - sprite_y;
+    uint16_t flipped_y_diff = ~y_diff;
+    uint16_t address = base_sprite_address | (index << 4);
     if(y_is_flipped) {
         address |= flipped_y_diff & 0x7;
     }
     else {
         address |= y_diff & 0x7;
     }
+    *in_range = y_diff < 8;
     return address;
 }
 
@@ -196,7 +198,7 @@ static uint16_t calc_8x16_low_sprite_tile_address(
     uint8_t flipped_y_diff = ~y_diff;
 
     uint16_t address = 0x1000 * (index & 1);
-    address |= (index & 0xFE) << 5;
+    address |= (index & 0xFE) << 4;
     if(y_is_flipped) {
         address |= (flipped_y_diff & 0x8) << 1;
         address |= flipped_y_diff & 0x7;
@@ -242,11 +244,12 @@ void do_sprite_load(
     uint8_t sprite_size
 ) {
     static uint8_t cycle_count = 0;
-    uint8_t const sprite_number = (dot - 257) / 8;
+    uint16_t const sprite_number = (dot - 257) / 8;
     static uint8_t sprite_y;
     static uint8_t sprite_index;
     static uint16_t low_sprite_address;
     static uint16_t high_sprite_address;
+    static bool in_range;
 
     if(dot == 257)
         set_secondary_OAM_address(0);
@@ -277,7 +280,8 @@ void do_sprite_load(
                     base_sprite_address,
                     sprite_y,
                     sprite_index,
-                    sprite_attributes[sprite_number]
+                    sprite_attributes[sprite_number],
+                    &in_range
                 );
             }
             else {
@@ -290,19 +294,17 @@ void do_sprite_load(
             }
             break;
         case 5:
+            sprite_low_pattern[sprite_number] = in_range ? read_VRAM(low_sprite_address) : 0x00;
             if(should_flip_sprite_horizontal(sprite_attributes[sprite_number]))
-                sprite_low_pattern[sprite_number] = rev_byte(read_RAM(low_sprite_address));
-            else
-                sprite_low_pattern[sprite_number] = read_RAM(low_sprite_address);
+                sprite_low_pattern[sprite_number] = rev_byte(sprite_low_pattern[sprite_number]);
             break;
         case 6:
             high_sprite_address = calc_high_sprite_tile_address(low_sprite_address);
             break;
         case 7:
+            sprite_high_pattern[sprite_number] = in_range ? read_VRAM(high_sprite_address) : 0x00;
             if(should_flip_sprite_horizontal(sprite_attributes[sprite_number]))
-                sprite_high_pattern[sprite_number] = rev_byte(read_RAM(high_sprite_address));
-            else
-                sprite_high_pattern[sprite_number] = read_RAM(high_sprite_address);
+                sprite_high_pattern[sprite_number] = rev_byte(sprite_high_pattern[sprite_number]);
             break;
     }
 

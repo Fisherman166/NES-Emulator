@@ -336,18 +336,16 @@ static void execute_ppu(
         shift_registers(&background_regs);
 
     if(status->render_line) {
-        if(status->visable_line) {
-            if( is_secondary_OAM_clear_dot() )
-                secondary_OAM_clear(dot);
-            if( is_sprite_evuluation_dot() )
-                sprite_evaluation(scanline, dot, get_sprite_size(ppu_regs));
-            if( is_sprite_load_dot() )
-                do_sprite_load(scanline, dot,
-                               get_sprite_size(ppu_regs),
-                               get_8x8_address(ppu_regs));
-            if( (dot >= 257) && (dot >= 320) )
-                set_OAM_address(0);
-        }
+        if( is_secondary_OAM_clear_dot() )
+            secondary_OAM_clear(dot);
+        if( is_sprite_evuluation_dot() && status->visable_line)
+            sprite_evaluation(scanline, dot, get_sprite_size(ppu_regs));
+        if( (dot >= 257) && (dot >= 320) )
+            set_OAM_address(0);
+        if( is_sprite_load_dot() )
+            do_sprite_load(scanline, dot,
+                           get_8x8_address(ppu_regs),
+                           get_sprite_size(ppu_regs));
 
         if(dot == 256)
             incrementY();
