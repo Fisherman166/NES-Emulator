@@ -1,6 +1,8 @@
 #ifndef PPU_H
 #define PPU_H
 
+void init_ppu();
+
 bool run_PPU_cycle();
 uint32_t* get_pixel_data_ptr();
 

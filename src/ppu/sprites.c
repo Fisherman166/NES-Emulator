@@ -18,29 +18,13 @@ static bool overflow_detection = 0;
 static bool primary_overflow = 0;
 static bool secondary_overflow = 0;
 static bool sprite_overflow = 0;
+static bool sprite_zero_hit = 0;
 
 #define NUM_SPRITES 8
 static uint8_t sprite_attributes[NUM_SPRITES];
 static uint8_t sprite_x[NUM_SPRITES];
 static uint8_t sprite_low_pattern[NUM_SPRITES];
 static uint8_t sprite_high_pattern[NUM_SPRITES];
-
-// This can be removed after it is working
-static void print_secondary_OAM() {
-    for(uint16_t addr = 0; addr < SECONDARY_OAM_SIZE; addr += 0x10) {
-        printf("%02X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X \n",
-            addr, secondary_OAM[addr], secondary_OAM[addr + 1], secondary_OAM[addr + 2],
-            secondary_OAM[addr + 3], secondary_OAM[addr + 4], secondary_OAM[addr + 5],
-            secondary_OAM[addr + 6], secondary_OAM[addr + 7], secondary_OAM[addr + 8],
-            secondary_OAM[addr + 9], secondary_OAM[addr + 10], secondary_OAM[addr + 11],
-            secondary_OAM[addr + 12], secondary_OAM[addr + 13], secondary_OAM[addr + 14],
-            secondary_OAM[addr + 15]);
-    }
-    printf("\n");
-}
-
-
-
 
 static bool is_odd_cycle(uint16_t dot) {
     return dot & 1;
@@ -58,6 +42,11 @@ static uint8_t read_secondary_OAM(uint8_t address) {
     return secondary_OAM[address];
 }
 
+void init_primary_OAM() {
+    for(uint16_t addr = 0; addr < PRIMARY_OAM_SIZE + 1; addr++)
+        primary_OAM[addr] = 0xFF;
+}
+
 void set_OAM_address(uint8_t address) {
     primary_OAM_addr = address;
 }
@@ -68,6 +57,23 @@ uint8_t get_OAM_data() {
 
 void clear_sprite0() {
     sprite0_on_next_scanline = false;
+}
+
+bool get_sprite_overflow() {
+    sprite_overflow = false;
+    return sprite_overflow;
+}
+
+void clear_sprite_overflow() {
+    sprite_overflow = false;
+}
+
+void set_sprite_zero_hit() {
+    sprite_zero_hit = true;
+}
+
+void clear_sprite_zero_hit() {
+    sprite_zero_hit = false;
 }
 
 void write_primary_OAM(uint8_t data) {
@@ -100,7 +106,8 @@ static bool sprite_in_range(
     uint8_t y_cord,
     uint8_t sprite_size
 ) {
-    return (scanline - y_cord) < sprite_size;
+    uint16_t delta = scanline - y_cord;
+    return delta < sprite_size;
 }
 
 // REFACTOR AFTER IT IS WORKING
@@ -116,23 +123,27 @@ void sprite_evaluation(uint16_t scanline, uint16_t dot, uint8_t sprite_size) {
         return;
     }
 
+    uint8_t const orig_oam_data = oam_data;
+
     if(!is_OAM_overflow())
         secondary_OAM[secondary_OAM_addr] = oam_data;
-    else 
+    else
         oam_data = secondary_OAM[secondary_OAM_addr];
 
-    if(bytes_left_to_copy > 0)
+    if(bytes_left_to_copy > 0) {
         bytes_left_to_copy--;
         increment_OAM_addresses();
         return;
+    }
 
-    bool const in_range = sprite_in_range(scanline, oam_data, sprite_size);
+    bool const in_range = sprite_in_range(scanline, orig_oam_data, sprite_size);
 
     if(dot == 66)
         sprite0_on_next_scanline = in_range;
 
     if(in_range && !is_OAM_overflow()) {
         bytes_left_to_copy = 3;
+        increment_OAM_addresses();
         return;
     }
 
@@ -298,10 +309,31 @@ void do_sprite_load(
     cycle_count = (cycle_count + 1) & 0x7;
 }
 
-#ifdef DEBUG
-void print_primary_OAM() {
+// REFACTOR THIS WHEN WORKING
+#define NTH_BIT(x, n) (((x) >> (n)) & 1)
+uint8_t get_sprite_pixel(uint8_t* spr_pal, bool* spr_behind_bg, bool* spr_is_s0, uint16_t dot) {
+    uint16_t const pixel = dot - 1;
+
+    for (uint8_t i = 0; i < 8; ++i) {
+        uint16_t const offset = pixel - sprite_x[i];
+        if (offset < 8) {
+            uint8_t pat_res = (NTH_BIT(sprite_high_pattern[i], 7 - offset) << 1) |
+                               NTH_BIT(sprite_low_pattern[i], 7 - offset);
+            if (pat_res) {
+                spr_pal       = sprite_attributes[i] & 3;
+                spr_behind_bg = sprite_attributes[i] & 0x20;
+                spr_is_s0     = sprite0_on_current_scanline && (i == 0);
+                return pat_res;
+            }
+        }
+    }
+    return 0;
+}
+
+void print_primary_OAM(uint16_t scanline) {
+    printf("Prim OAM, S = %u\n", scanline);
     for(uint16_t addr = 0; addr < 256; addr += 0x10) {
-        printf("%02X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X \n",
+        printf("%02X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n",
             addr, primary_OAM[addr], primary_OAM[addr + 1], primary_OAM[addr + 2],
             primary_OAM[addr + 3], primary_OAM[addr + 4], primary_OAM[addr + 5],
             primary_OAM[addr + 6], primary_OAM[addr + 7], primary_OAM[addr + 8],
@@ -309,7 +341,18 @@ void print_primary_OAM() {
             primary_OAM[addr + 12], primary_OAM[addr + 13], primary_OAM[addr + 14],
             primary_OAM[addr + 15]);
     }
-    printf("\n");
 }
-#endif
+
+void print_secondary_OAM(uint16_t scanline) {
+    printf("Sec OAM, S = %u\n", scanline);
+    for(uint16_t addr = 0; addr < 32; addr += 0x10) {
+        printf("%02X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n",
+            addr, secondary_OAM[addr], secondary_OAM[addr + 1], secondary_OAM[addr + 2],
+            secondary_OAM[addr + 3], secondary_OAM[addr + 4], secondary_OAM[addr + 5],
+            secondary_OAM[addr + 6], secondary_OAM[addr + 7], secondary_OAM[addr + 8],
+            secondary_OAM[addr + 9], secondary_OAM[addr + 10], secondary_OAM[addr + 11],
+            secondary_OAM[addr + 12], secondary_OAM[addr + 13], secondary_OAM[addr + 14],
+            secondary_OAM[addr + 15]);
+    }
+}
 

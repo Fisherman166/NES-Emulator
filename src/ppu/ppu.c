@@ -237,10 +237,27 @@ static uint16_t get_pallete_address(BG_shift_registers* BG_regs) {
 }
 
 void render_pixel(BG_shift_registers* BG_regs, uint16_t scanline, uint16_t dot) {
-    uint16_t pallete_address = get_pallete_address(BG_regs);
+    // PPU is behind 2 pixels
+    uint16_t pixel = dot - 1;
+    uint8_t sprite_pallete;
+    bool sprite_behind_bg;
+    bool sprite_is_sprite0;
+    uint8_t sprite_pattern = get_sprite_pixel(
+        &sprite_pallete,
+        &sprite_behind_bg,
+        &sprite_is_sprite0,
+        dot
+    );
+
+    uint16_t pallete_address;
+    if(sprite_pattern && !sprite_behind_bg)
+        pallete_address = 0x3F10 | (sprite_pallete << 2) | sprite_pattern;
+    else
+        pallete_address = get_pallete_address(BG_regs);
+
     uint16_t pallete_data = read_VRAM(pallete_address);
     // Cycle 0 is idle so we have to subtract 1 to get right dot
-    pixel_data[scanline][--dot] = RGB_colors[pallete_data];
+    pixel_data[scanline][pixel] = RGB_colors[pallete_data];
 }
 
 static uint8_t get_attribute_bits_for_tile(
@@ -319,14 +336,19 @@ static void execute_ppu(
         shift_registers(&background_regs);
 
     if(status->render_line) {
-        if( is_secondary_OAM_clear_dot() )
-            secondary_OAM_clear(dot);
-        if( is_sprite_evuluation_dot() )
-            sprite_evaluation(scanline, dot, get_sprite_size(ppu_regs));
-        if( is_sprite_load_dot() )
-            do_sprite_load(scanline, dot,
-                           get_sprite_size(ppu_regs),
-                           get_8x8_address(ppu_regs));
+        if(status->visable_line) {
+            if( is_secondary_OAM_clear_dot() )
+                secondary_OAM_clear(dot);
+            if( is_sprite_evuluation_dot() )
+                sprite_evaluation(scanline, dot, get_sprite_size(ppu_regs));
+            if( is_sprite_load_dot() )
+                do_sprite_load(scanline, dot,
+                               get_sprite_size(ppu_regs),
+                               get_8x8_address(ppu_regs));
+            if( (dot >= 257) && (dot >= 320) )
+                set_OAM_address(0);
+        }
+
         if(dot == 256)
             incrementY();
         if( (status->visable_dot || status->next_screen_dot) && ((dot % 8) == 0) )
@@ -337,6 +359,10 @@ static void execute_ppu(
             copyY();
         if( status->prerender_line && (dot == 66) )
             clear_sprite0();
+        if( status->prerender_line && (dot == 1) ) {
+            clear_sprite_zero_hit();
+            clear_sprite_overflow();
+        }
     }
 }
 
@@ -367,6 +393,8 @@ static void tick(
         }
         else *scanline += 1;
     }
+    //if(*dot == 1)
+        //print_primary_OAM(*scanline);
 }
 
 static bool is_entering_vblank(uint16_t scanline, uint16_t dot) {
@@ -400,6 +428,10 @@ static bool check_VBlank(
 //*****************************************************************************
 // Public functions
 //*****************************************************************************
+void init_ppu() {
+    init_primary_OAM();
+}
+
 bool run_PPU_cycle() {
     line_status status = get_ppu_line_status(scanline, dot);
     ppu_regs ppu_regs = get_ppu_registers();
