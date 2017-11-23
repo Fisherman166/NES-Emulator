@@ -322,9 +322,9 @@ uint8_t get_sprite_pixel(uint8_t* spr_pal, bool* spr_behind_bg, bool* spr_is_s0,
             uint8_t pat_res = (NTH_BIT(sprite_high_pattern[i], 7 - offset) << 1) |
                                NTH_BIT(sprite_low_pattern[i], 7 - offset);
             if (pat_res) {
-                spr_pal       = sprite_attributes[i] & 3;
-                spr_behind_bg = sprite_attributes[i] & 0x20;
-                spr_is_s0     = sprite0_on_current_scanline && (i == 0);
+                *spr_pal       = sprite_attributes[i] & 3;
+                *spr_behind_bg = sprite_attributes[i] & 0x20;
+                *spr_is_s0     = sprite0_on_current_scanline && (i == 0);
                 return pat_res;
             }
         }
