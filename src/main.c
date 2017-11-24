@@ -58,6 +58,7 @@ static void init_system(cpu_registers* registers) {
 }
 
 static void run_system(cpu_registers* registers) {
+    bool exit = false;
     uint8_t cycles_executed;
     bool vblank;
     bool old_vblank = false;
@@ -70,10 +71,13 @@ static void run_system(cpu_registers* registers) {
         cycles_executed = execute_interpreter_cycle(registers, get_NMI_flag());
         for(uint8_t ppu_cycles = cycles_executed * 3; ppu_cycles > 0; ppu_cycles--) {
             vblank = run_PPU_cycle();
-            if( vblank & !old_vblank ) render_frame(pixel_data);
+            if( vblank & !old_vblank ) {
+                render_frame(pixel_data);
+                exit = check_input(JOYPAD1);
+            }
             old_vblank = vblank;
         }
-        if( check_input(JOYPAD1) ) break;
+        if(exit) break;
     }
 }
 

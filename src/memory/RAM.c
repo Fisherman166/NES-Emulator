@@ -72,6 +72,8 @@ uint8_t read_RAM(uint16_t address) {
     }
     else if(address == OAMDATA_ADDRESS)
         retval = get_OAM_data();
+    else if(address == JOYPAD1_ADDRESS)
+        retval = read_controller();
 
     return retval;
 }
@@ -100,14 +102,8 @@ void write_RAM(uint16_t address, uint8_t value) {
         PPUDATA_update_temp_VRAM_address(value, RAM[PPUCTRL_ADDRESS]);
     else if(address == DMA_REG_ADDR)
         start_DMA(value);
-    else if(address == JOYPAD1_ADDRESS) {
-        if(value & 1) enable_controller_strobe(JOYPAD1);
-        else disable_controller_strobe(JOYPAD1);
-    }
-    else if(address == JOYPAD2_ADDRESS) {
-        if(value & 1) enable_controller_strobe(JOYPAD2);
-        else disable_controller_strobe(JOYPAD2);
-    }
+    else if(address == JOYPAD1_ADDRESS)
+        write_controller_strobe(value & 1);
 }
 
 void set_vblank_bit() {

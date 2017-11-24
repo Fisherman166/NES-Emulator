@@ -18,8 +18,8 @@ void exit_SDL();
 
 // Input functions
 bool check_input(uint8_t);
-void enable_controller_strobe(uint8_t);
-void disable_controller_strobe(uint8_t);
+void write_controller_strobe(bool);
+uint8_t read_controller();
 
 #endif // SDL_INTERFACE_H
 

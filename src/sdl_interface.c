@@ -20,23 +20,17 @@ typedef struct {
     bool select_pressed;
 } controller_buttons;
 
+Uint8 const *keys;
 static controller_buttons controller1_state = {0, 0, 0, 0, 0, 0, 0, 0};
-static bool controller_strobe[2] = {0, 0};
 
 // Window stuff
 static SDL_Window *screen = NULL;
 static SDL_Renderer *renderer = NULL;
 static SDL_Texture *texture = NULL;
 
-static SDL_Event keyboard_event;
-
 //*****************************************************************************
 // Private functions
 //*****************************************************************************
-static bool get_controller_strobe_state(uint8_t controller) {
-    return controller_strobe[controller];
-}
-
 static uint8_t pack_button_state(controller_buttons* buttons) {
     const uint8_t A_shift = 0;
     const uint8_t B_shift = 1;
@@ -121,6 +115,7 @@ bool init_SDL() {
         printf("ERROR: Texture creation: %s\n", SDL_GetError());
         return true;
     }
+
     return false;
 }
 
@@ -139,64 +134,41 @@ void exit_SDL() {
 }
 
 bool check_input(uint8_t controller) {
-    if( (controller < 0) || (controller > NUM_OF_JOYPADS) ) printf("ERROR: bad controller number in check_input: %u\n", controller);
     bool quit = false;
 
-    while(SDL_PollEvent(&keyboard_event)) {
-        if(keyboard_event.key.repeat != 0) continue;
+    SDL_PumpEvents();
+    const Uint8 *keys = SDL_GetKeyboardState(NULL);
 
-        bool key_pressed = 0;
-        if(keyboard_event.type == SDL_KEYDOWN) key_pressed = 1;
-
-        switch(keyboard_event.key.keysym.sym) {
-            case SDLK_ESCAPE:
-                if(key_pressed) quit = true;
-                break;
-            case SDLK_w:
-                controller1_state.up_pressed = key_pressed;
-                break;
-            case SDLK_s:
-                controller1_state.down_pressed = key_pressed;
-                break;
-            case SDLK_a:
-                controller1_state.left_pressed = key_pressed;
-                break;
-            case SDLK_d:
-                controller1_state.right_pressed = key_pressed;
-                break;
-            case SDLK_UP:
-                controller1_state.A_pressed = key_pressed;
-                break;
-            case SDLK_LEFT:
-                controller1_state.B_pressed = key_pressed;
-                break;
-            case SDLK_RETURN:
-                controller1_state.start_pressed = key_pressed;
-                break;
-            case SDLK_l:
-                controller1_state.select_pressed = key_pressed;
-                break;
-        }
-    }
-
-    // FIXME - Revist when PPU is working
-    /*static bool last_stobe = false;
-    bool strobe = get_controller_strobe_state(controller);
-    if( (last_stobe == true) && (strobe == false) ) {
-        uint8_t packed_buttons = pack_button_state(&controller1_state);
-        write_RAM(JOYPAD1_ADDRESS, packed_buttons);
-    }*/
+    controller1_state.up_pressed = keys[SDL_SCANCODE_W];
+    controller1_state.down_pressed = keys[SDL_SCANCODE_S];
+    controller1_state.left_pressed = keys[SDL_SCANCODE_A];
+    controller1_state.right_pressed = keys[SDL_SCANCODE_D];
+    controller1_state.A_pressed = keys[SDL_SCANCODE_UP];
+    controller1_state.B_pressed = keys[SDL_SCANCODE_LEFT];
+    controller1_state.start_pressed = keys[SDL_SCANCODE_RETURN];
+    controller1_state.select_pressed = keys[SDL_SCANCODE_L];
+    quit = keys[SDL_SCANCODE_ESCAPE];
 
     return quit;
 }
 
-void enable_controller_strobe(uint8_t controller) {
-    if( (controller < 0) || (controller > NUM_OF_JOYPADS) ) return;
-    controller_strobe[controller] = true;
+static bool strobe_latch = false;
+static uint8_t controller_bits;
+void write_controller_strobe(bool strobe) {
+    // Update continously while strobe is high. Or just cheat it when
+    // strobe goes low
+    if(strobe_latch && !strobe)
+        controller_bits = pack_button_state(&controller1_state);
+    strobe_latch = strobe;
 }
 
-void disable_controller_strobe(uint8_t controller) {
-    if( (controller < 0) || (controller > NUM_OF_JOYPADS) ) return;
-    controller_strobe[controller] = false;
-}
+uint8_t read_controller() {
+    // If read while strobe high then return A
+    if(strobe_latch)
+        return controller1_state.A_pressed;
 
+    uint8_t result = controller_bits & 1;
+    // 1s are shifted into the MSB
+    controller_bits = 0x80 | (controller_bits >> 1);
+    return result;
+}
