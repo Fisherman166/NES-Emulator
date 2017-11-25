@@ -1,26 +1,16 @@
-cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
-
-project(NES_EMU)
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -std=c99 -Wall")
-#add_definitions(-DDEBUG)
-
-include_directories("./" "cpu/" "memory/" "ppu/")
-add_subdirectory(memory)
-add_subdirectory(cpu)
-add_subdirectory(ppu)
-
 set(src_files
-    common.h
+    cpu_basic_operations.c
+    cpu.c
+    cpu_decode_logic.c
+    cpu_instructions.c
+    game_loader.c
+    illegal_opcodes.c
     main.c
-    sdl_interface.h
+    mappers.c
+    ppu.c
+    RAM.c
     sdl_interface.c
+    sprites.c
+    VRAM.c
 )
-add_executable(NES_EMU ${src_files})
-
-# Find SDL
-INCLUDE(FindPkgConfig)
-PKG_SEARCH_MODULE(SDL2 REQUIRED sdl2)
-
-INCLUDE_DIRECTORIES(${SDL2_INCLUDE_DIRS})
-TARGET_LINK_LIBRARIES(NES_EMU memory cpu ppu ${SDL2_LIBRARIES})
+add_library(src ${src_files})
