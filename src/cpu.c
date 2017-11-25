@@ -7,6 +7,7 @@
 //****************************************************************************
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "cpu.h"
 #include "cpu_instructions.h"
 #include "cpu_basic_operations.h"

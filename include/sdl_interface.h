@@ -16,11 +16,4 @@ bool init_SDL();
 void render_frame(uint32_t*);
 void exit_SDL();
 
-// Input functions
-void update_controller_states();
-bool should_quit();
-void write_controller_strobe(bool);
-uint8_t read_controller();
-
 #endif // SDL_INTERFACE_H
-

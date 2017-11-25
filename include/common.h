@@ -14,11 +14,6 @@
 #include <stdio.h>
 
 #define BYTE_MASK 0xFF
-
-#define NUM_OF_JOYPADS 2
-#define JOYPAD1 0
-#define JOYPAD2 1
-
 #define SCREEN_WIDTH 256
 #define SCREEN_HEIGHT 240
 

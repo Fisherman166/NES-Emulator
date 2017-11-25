@@ -14,6 +14,7 @@
 #include "game_loader.h"
 #include "RAM.h"
 #include "VRAM.h"
+#include "controller.h"
 
 static void parse_cmdline(int, char **);
 static void init_system(cpu_registers*);

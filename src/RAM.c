@@ -9,10 +9,10 @@
 #include <stdlib.h>
 #include "RAM.h"
 #include "cpu_decode_logic.h"
-#include "sdl_interface.h"
 #include "VRAM.h"
 #include "cpu.h"
 #include "sprites.h"
+#include "controller.h"
 
 #define RAM_locations 0x10000
 
