@@ -46,8 +46,8 @@ static void increment_secondary_OAM_address() {
     secondary_OAM_addr = (secondary_OAM_addr + 1) & 0x1F;
 }
 
-static uint8_t read_secondary_OAM(uint8_t address) {
-    return secondary_OAM[address];
+static uint8_t read_secondary_OAM() {
+    return secondary_OAM[secondary_OAM_addr];
 }
 
 void init_primary_OAM() {
@@ -265,20 +265,19 @@ void do_sprite_load(
     sprite0_on_current_scanline = sprite0_on_next_scanline;
     switch(cycle_count) {
         case 0:
-            sprite_y = read_secondary_OAM(secondary_OAM_addr);
+            sprite_y = read_secondary_OAM();
             increment_secondary_OAM_address();
             break;
         case 1:
-            sprite_index = read_secondary_OAM(secondary_OAM_addr);
+            sprite_index = read_secondary_OAM();
             increment_secondary_OAM_address();
             break;
         case 2:
-            sprite_attributes[sprite_number] = 
-                read_secondary_OAM(secondary_OAM_addr);
+            sprite_attributes[sprite_number] = read_secondary_OAM();
             increment_secondary_OAM_address();
             break;
         case 3:
-            sprite_x[sprite_number] = read_secondary_OAM(secondary_OAM_addr);
+            sprite_x[sprite_number] = read_secondary_OAM();
             increment_secondary_OAM_address();
             break;
         case 4:
