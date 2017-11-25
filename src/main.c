@@ -58,7 +58,6 @@ static void init_system(cpu_registers* registers) {
 }
 
 static void run_system(cpu_registers* registers) {
-    bool exit = false;
     uint8_t cycles_executed;
     bool vblank;
     bool old_vblank = false;
@@ -66,18 +65,17 @@ static void run_system(cpu_registers* registers) {
     init_RAM();
     init_VRAM();
 
-    printf("Entering main loop\n");
     for(;;) {
         cycles_executed = execute_interpreter_cycle(registers, get_NMI_flag());
         for(uint8_t ppu_cycles = cycles_executed * 3; ppu_cycles > 0; ppu_cycles--) {
             vblank = run_PPU_cycle();
             if( vblank & !old_vblank ) {
                 render_frame(pixel_data);
-                exit = check_input(JOYPAD1);
+                update_controller_states();
             }
             old_vblank = vblank;
         }
-        if(exit) break;
+        if(should_quit()) break;
     }
 }
 

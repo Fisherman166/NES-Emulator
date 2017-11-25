@@ -19,6 +19,7 @@ typedef struct {
     bool select_pressed;
 } controller_buttons;
 
+static bool quit = false;
 static controller_buttons controller1_state = {0, 0, 0, 0, 0, 0, 0, 0};
 static bool strobe_latch = false;
 static uint8_t controller_bits;
@@ -133,11 +134,9 @@ void exit_SDL() {
     SDL_Quit();
 }
 
-bool check_input(uint8_t controller) {
-    bool quit = false;
-
-    SDL_PumpEvents();
+void update_controller_states() {
     const Uint8 *keys = SDL_GetKeyboardState(NULL);
+    SDL_PumpEvents();
 
     controller1_state.up_pressed = keys[SDL_SCANCODE_W];
     controller1_state.down_pressed = keys[SDL_SCANCODE_S];
@@ -148,7 +147,9 @@ bool check_input(uint8_t controller) {
     controller1_state.start_pressed = keys[SDL_SCANCODE_RETURN];
     controller1_state.select_pressed = keys[SDL_SCANCODE_L];
     quit = keys[SDL_SCANCODE_ESCAPE];
+}
 
+bool should_quit() {
     return quit;
 }
 

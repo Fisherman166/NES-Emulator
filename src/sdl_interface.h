@@ -17,7 +17,8 @@ void render_frame(uint32_t*);
 void exit_SDL();
 
 // Input functions
-bool check_input(uint8_t);
+void update_controller_states();
+bool should_quit();
 void write_controller_strobe(bool);
 uint8_t read_controller();
 
