@@ -7,7 +7,6 @@
 // ****************************************************************************
 
 #include "sdl_interface.h"
-#include "RAM.h"
 
 typedef struct {
     bool up_pressed;
@@ -20,8 +19,9 @@ typedef struct {
     bool select_pressed;
 } controller_buttons;
 
-Uint8 const *keys;
 static controller_buttons controller1_state = {0, 0, 0, 0, 0, 0, 0, 0};
+static bool strobe_latch = false;
+static uint8_t controller_bits;
 
 // Window stuff
 static SDL_Window *screen = NULL;
@@ -152,8 +152,6 @@ bool check_input(uint8_t controller) {
     return quit;
 }
 
-static bool strobe_latch = false;
-static uint8_t controller_bits;
 void write_controller_strobe(bool strobe) {
     // Update continously while strobe is high. Or just cheat it when
     // strobe goes low
@@ -163,12 +161,13 @@ void write_controller_strobe(bool strobe) {
 }
 
 uint8_t read_controller() {
-    // If read while strobe high then return A
+    uint8_t result;
     if(strobe_latch)
-        return controller1_state.A_pressed;
-
-    uint8_t result = controller_bits & 1;
-    // 1s are shifted into the MSB
-    controller_bits = 0x80 | (controller_bits >> 1);
+        result = controller1_state.A_pressed;
+    else {
+        result = controller_bits & 1;
+        // The NES shifts 1s into the MSB
+        controller_bits = 0x80 | (controller_bits >> 1);
+    }
     return result;
 }
