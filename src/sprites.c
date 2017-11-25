@@ -1,12 +1,20 @@
+//*****************************************************************************
+// Filename: sprites.c
+// Author: Fisherman166
+//
+// Functions that deal with sprites
+//
+// ****************************************************************************
+
 #include "sprites.h"
 #include "VRAM.h"
 
 #define PRIMARY_OAM_SIZE 256
-#define SECONDARY_OAM_SIZE 32
 
 static uint8_t primary_OAM[PRIMARY_OAM_SIZE];
 static uint8_t primary_OAM_addr;
 
+#define SECONDARY_OAM_SIZE 32
 static uint8_t secondary_OAM[SECONDARY_OAM_SIZE];
 static uint8_t secondary_OAM_addr;
 
