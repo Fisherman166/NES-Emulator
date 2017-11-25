@@ -12,5 +12,6 @@ set(src_files
     sdl_interface.c
     sprites.c
     VRAM.c
+    controller.c
 )
 add_library(src ${src_files})
