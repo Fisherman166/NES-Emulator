@@ -391,8 +391,6 @@ static void tick(
         }
         else *scanline += 1;
     }
-    //if(*dot == 1)
-        //print_primary_OAM(*scanline);
 }
 
 static bool is_entering_vblank(uint16_t scanline, uint16_t dot) {

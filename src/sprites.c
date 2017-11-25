@@ -331,30 +331,3 @@ uint8_t get_sprite_pixel(uint8_t* spr_pal, bool* spr_behind_bg, bool* spr_is_s0,
     }
     return 0;
 }
-
-void print_primary_OAM(uint16_t scanline) {
-    printf("Prim OAM, S = %u\n", scanline);
-    for(uint16_t addr = 0; addr < 256; addr += 0x10) {
-        printf("%02X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n",
-            addr, primary_OAM[addr], primary_OAM[addr + 1], primary_OAM[addr + 2],
-            primary_OAM[addr + 3], primary_OAM[addr + 4], primary_OAM[addr + 5],
-            primary_OAM[addr + 6], primary_OAM[addr + 7], primary_OAM[addr + 8],
-            primary_OAM[addr + 9], primary_OAM[addr + 10], primary_OAM[addr + 11],
-            primary_OAM[addr + 12], primary_OAM[addr + 13], primary_OAM[addr + 14],
-            primary_OAM[addr + 15]);
-    }
-}
-
-void print_secondary_OAM(uint16_t scanline) {
-    printf("Sec OAM, S = %u\n", scanline);
-    for(uint16_t addr = 0; addr < 32; addr += 0x10) {
-        printf("%02X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n",
-            addr, secondary_OAM[addr], secondary_OAM[addr + 1], secondary_OAM[addr + 2],
-            secondary_OAM[addr + 3], secondary_OAM[addr + 4], secondary_OAM[addr + 5],
-            secondary_OAM[addr + 6], secondary_OAM[addr + 7], secondary_OAM[addr + 8],
-            secondary_OAM[addr + 9], secondary_OAM[addr + 10], secondary_OAM[addr + 11],
-            secondary_OAM[addr + 12], secondary_OAM[addr + 13], secondary_OAM[addr + 14],
-            secondary_OAM[addr + 15]);
-    }
-}
-

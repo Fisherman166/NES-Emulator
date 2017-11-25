@@ -419,10 +419,6 @@ static uint8_t execute_DMA() {
         temp_data_buffer = read_RAM(DMA_RAM_address);
         DMA_RAM_address++;
     }
-#ifdef DEBUG
-    if(DMA_cycle_count == 0)
-        print_primary_OAM();
-#endif
     return 1;
 }
 

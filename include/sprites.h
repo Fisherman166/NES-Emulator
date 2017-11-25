@@ -1,3 +1,11 @@
+//*****************************************************************************
+// Filename: sprites.h
+// Author: Fisherman166
+//
+// Functions that deal with sprites
+//
+// ****************************************************************************
+
 #ifndef SPRITES_H
 #define SPRITES_H
 
@@ -20,8 +28,4 @@ void sprite_evaluation(uint16_t, uint16_t, uint8_t);
 void do_sprite_load(uint16_t, uint16_t, uint16_t, uint8_t);
 uint8_t get_sprite_pixel(uint8_t*, bool*, bool*, uint16_t);
 
-void print_primary_OAM(uint16_t);
-void print_secondary_OAM(uint16_t);
-
-#endif
-
+#endif //SPRITES_H
