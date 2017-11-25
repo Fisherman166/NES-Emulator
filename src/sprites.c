@@ -68,7 +68,6 @@ void clear_sprite0() {
 }
 
 bool get_sprite_overflow() {
-    sprite_overflow = false;
     return sprite_overflow;
 }
 
