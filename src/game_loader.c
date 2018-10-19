@@ -11,6 +11,7 @@
 #include "game_loader.h"
 #include "RAM.h"
 #include "mappers.h"
+#include "rom_header_parser.h"
 
 #define NROM 0
 
@@ -60,10 +61,6 @@ static uint8_t* read_rom(const char* game_filename) {
     return memory_block;
 }
 
-static uint8_t extract_mapper_from_header(uint8_t* memory_block) {
-    return (memory_block[7] & 0xF0) | ((memory_block[6] & 0xF0) >> 4);
-}
-
 #ifdef DEBUG
 static void print_rom_data() {
     const uint16_t rom_start = 0x8000;
@@ -92,7 +89,11 @@ bool load_game(const char* game_filename) {
         return true;
     }
 
-    uint8_t mapper = extract_mapper_from_header(game_data);
+    iNES_1_0_header parsed_header = parse_iNes_1_0_header(game_data);
+    print_iNes_1_0_header(parsed_header);
+
+    uint8_t mapper = (parsed_header.flags7.fields.high_mapper_nibble << 4) |
+                     parsed_header.flags6.fields.low_mapper_nibble;
     printf("Game is using mapper %u\n", mapper);
 
     if(mapper == NROM) load_NROM(game_data, game_size);
