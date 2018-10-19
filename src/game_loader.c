@@ -16,7 +16,22 @@
 
 static long game_size = 0;
 
-static uint8_t* read_rom(FILE* game_filehandle) {
+static FILE* open_game_file(const char* game_file) {
+    FILE* game_filehandle = NULL;
+    game_filehandle = fopen(game_file, "rb");
+    printf("Opening game %s for execution\n", game_file);
+    if(game_file == NULL) {
+        printf("ERROR: Failed to open game file %s\n", game_file);
+    }
+    return game_filehandle;
+}
+
+static uint8_t* read_rom(const char* game_filename) {
+    FILE* game_filehandle = open_game_file(game_filename);
+    if(game_filehandle == NULL) {
+        return NULL;
+    }
+
     if(fseek(game_filehandle, 0, SEEK_END) != 0) {
         printf("ERROR: Failed to move to END of file\n");
         return NULL;
@@ -30,7 +45,7 @@ static uint8_t* read_rom(FILE* game_filehandle) {
 
     uint8_t* memory_block = malloc(game_size * sizeof(uint8_t));
     if(memory_block == NULL) {
-        printf("ERROR: Failed to malloc memory block\n");
+        printf("ERROR: Failed to malloc memory block for rom data\n");
         return NULL;
     }
     size_t bytes_read = fread(memory_block, sizeof(uint8_t), game_size, game_filehandle);
@@ -40,6 +55,8 @@ static uint8_t* read_rom(FILE* game_filehandle) {
                (uint32_t)bytes_read, (uint32_t)game_size);
         return NULL;
     }
+
+    fclose(game_filehandle);
     return memory_block;
 }
 
@@ -68,31 +85,19 @@ static void print_rom_data() {
 }
 #endif //DEBUG
 
-static FILE* open_game_file(char* game_file) {
-    FILE* game_filehandle = NULL;
-    game_filehandle = fopen(game_file, "rb");
-    printf("Opening game %s for execution\n", game_file);
-    if(game_file == NULL) {
-        printf("ERROR: Failed to open game file %s\n", game_file);
-    }
-    return game_filehandle;
-}
-
-bool load_game(char* game_file) {
-    FILE* game_filehandle = open_game_file(game_file);
-    if(game_filehandle == NULL) return true;
-
-    uint8_t* game_data = read_rom(game_filehandle);
+// Returns true on loading errors, false for no loading error
+bool load_game(const char* game_filename) {
+    uint8_t* game_data = read_rom(game_filename);
     if(game_data == NULL) {
-        fclose(game_filehandle);
         return true;
     }
 
     uint8_t mapper = extract_mapper_from_header(game_data);
+    printf("Game is using mapper %u\n", mapper);
+
     if(mapper == NROM) load_NROM(game_data, game_size);
     else {
         printf("ERROR: Mapper %u does not match any supported mappers\n", mapper);
-        fclose(game_filehandle);
         free(game_data);
         return true;
     }
@@ -101,7 +106,6 @@ bool load_game(char* game_file) {
         print_rom_data();
     #endif
     free(game_data);
-    fclose(game_filehandle);
     return false;
 }
 

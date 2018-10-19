@@ -9,7 +9,7 @@
 #ifndef GAME_LOADER_H
 #define GAME_LOADER_H
 
-bool load_game(char*);
+bool load_game(const char*);
 
 #endif
 
