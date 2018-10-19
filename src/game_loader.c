@@ -61,7 +61,7 @@ static uint8_t* read_rom(const char* game_filename) {
 }
 
 static uint8_t extract_mapper_from_header(uint8_t* memory_block) {
-    return (memory_block[7] & 0xF0) | (memory_block[6] & 0x0F);
+    return (memory_block[7] & 0xF0) | ((memory_block[6] & 0xF0) >> 4);
 }
 
 #ifdef DEBUG
