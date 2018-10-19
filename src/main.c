@@ -53,6 +53,8 @@ static void init_system(cpu_registers* registers) {
     }
     cold_boot_init(registers);
     init_ppu();
+    init_RAM();
+    init_VRAM();
 #ifdef DEBUG
     open_cpu_debug_logfile();
 #endif
@@ -63,8 +65,6 @@ static void run_system(cpu_registers* registers) {
     bool vblank;
     bool old_vblank = false;
     uint32_t* pixel_data = get_pixel_data_ptr();
-    init_RAM();
-    init_VRAM();
 
     for(;;) {
         cycles_executed = execute_interpreter_cycle(registers, get_NMI_flag());
