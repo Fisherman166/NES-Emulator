@@ -11,7 +11,7 @@
 #include "cpu.h"
 #include "sdl_interface.h"
 #include "ppu.h"
-#include "game_loader.h"
+#include "rom_loader.h"
 #include "RAM.h"
 #include "VRAM.h"
 #include "controller.h"
@@ -47,7 +47,7 @@ static void init_system(cpu_registers* registers) {
         printf("ERROR: Failed to init SDL");
         exit(1);
     }
-    if( load_game(game_file) ) {
+    if( load_rom(game_file) ) {
         printf("FATAL ERROR occurred while attempting to load game.\n");
         exit(1);
     }

@@ -55,7 +55,7 @@ static uint16_t sanitize_RAM_address(uint16_t address) {
 // Public Functions 
 //*****************************************************************************
 void init_RAM() {
-    for(int i = 0; i < 0x8000; i++) RAM[i] = 0x00;
+    for(int i = 0; i < PRG_ROM_BANK1_ADDRESS; i++) RAM[i] = 0x00;
 }
     
 uint8_t read_RAM(uint16_t address) {

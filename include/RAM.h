@@ -24,6 +24,9 @@
 #define PPUADDR_ADDRESS     0x2006
 #define PPUDATA_ADDRESS     0x2007
 
+#define PRG_ROM_BANK1_ADDRESS 0x8000
+#define PRG_ROM_BANK2_ADDRESS 0xC000
+
 void init_RAM();
 
 uint8_t read_RAM(uint16_t);

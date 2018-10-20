@@ -3,7 +3,7 @@ set(src_files
     cpu.c
     cpu_decode_logic.c
     cpu_instructions.c
-    game_loader.c
+    rom_loader.c
     illegal_opcodes.c
     main.c
     mappers.c

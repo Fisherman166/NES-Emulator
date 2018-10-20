@@ -10,8 +10,9 @@
 #define MAPPERS_H
 
 #include "common.h"
+#include "rom_header_parser.h"
 
-void load_NROM(uint8_t*, long);
+void load_NROM(uint8_t*, iNES_1_0_header);
 
 #endif
 
