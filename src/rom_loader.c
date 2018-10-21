@@ -9,59 +9,64 @@
 #include <stdlib.h>
 #include "common.h"
 #include "rom_loader.h"
-#include "RAM.h"
 #include "mappers.h"
 #include "rom_parser.h"
+#include "RAM.h"
 
 #define NROM 0
 
 static FILE* open_rom_file(const char* rom_file) {
     FILE* rom_filehandle = NULL;
     rom_filehandle = fopen(rom_file, "rb");
-    printf("Opening rom %s for execution\n", rom_file);
+    printf("Opening rom %s for loading\n", rom_file);
     if(rom_file == NULL) {
         printf("ERROR: Failed to open rom file %s\n", rom_file);
     }
     return rom_filehandle;
 }
 
-static uint8_t* read_rom(const char* rom_filename) {
+static bool read_rom(const char* rom_filename) {
     FILE* rom_filehandle = open_rom_file(rom_filename);
     if(rom_filehandle == NULL) {
-        return NULL;
+        return true;
     }
 
     if(fseek(rom_filehandle, 0, SEEK_END) != 0) {
         printf("ERROR: Failed to move to END of file\n");
-        return NULL;
+        return true;
     }
 
     long rom_size_in_bytes = ftell(rom_filehandle);
     if(rom_size_in_bytes == -1L) {
         printf("ERROR: ftell failed to get the size of the rom image\n");
-        return NULL;
+        return true;
     }
 
     if(fseek(rom_filehandle, 0, SEEK_SET) != 0) {
         printf("ERROR: Failed to move to START of file\n");
-        return NULL;
+        return true;
     }
 
     uint8_t* rom_data = malloc(rom_size_in_bytes * sizeof(uint8_t));
     if(rom_data == NULL) {
         printf("ERROR: Failed to malloc memory block for rom data\n");
-        return NULL;
+        return true;
     }
     size_t bytes_read = fread(rom_data, sizeof(uint8_t), rom_size_in_bytes, rom_filehandle);
+    fclose(rom_filehandle);
 
     if(bytes_read != rom_size_in_bytes) {
         printf("ERROR: Only read %u bytes when expecting %u bytes.\n",
                (uint32_t)bytes_read, (uint32_t)rom_size_in_bytes);
-        return NULL;
+        return true;
     }
 
-    fclose(rom_filehandle);
-    return rom_data;
+    parse_iNes_1_0_header(rom_data);
+    parse_PRG_rom(rom_data);
+    parse_CHR_rom(rom_data);
+    free(rom_data);
+
+    return false;
 }
 
 #ifdef DEBUG
@@ -87,15 +92,9 @@ static void print_rom_data() {
 
 // Returns true on loading errors, false for no loading error
 bool load_rom(const char* rom_filename) {
-    uint8_t* rom_data = read_rom(rom_filename);
-    if(rom_data == NULL) {
+    if(read_rom(rom_filename)) {
         return true;
     }
-
-    parse_iNes_1_0_header(rom_data);
-    parse_PRG_rom(rom_data);
-    parse_CHR_rom(rom_data);
-    free(rom_data);
 
     iNES_1_0_header parsed_header = get_iNes_1_0_header();
     print_iNes_1_0_header(parsed_header);
