@@ -1,13 +1,13 @@
 //*****************************************************************************
-// Filename: rom_header_parser.h
+// Filename: rom_parser.h
 // Author: Fisherman166
 //
-// Parses the various iNes header formats
+// Parses the rom file
 //
 //*****************************************************************************
 
-#ifndef ROM_HEADER_PARSER_H
-#define ROM_HEADER_PARSER_H
+#ifndef ROM_PARSER_H
+#define ROM_PARSER_H
 
 #include "common.h"
 
@@ -36,9 +36,19 @@ typedef struct {
     } flags7;
     uint8_t CHR_RAM_chunks; // 8KBs per chunk
     bool is_PAL;
+    uint8_t mapper;
 } iNES_1_0_header;
 
-iNES_1_0_header parse_iNes_1_0_header(uint8_t*);
+void parse_iNes_1_0_header(uint8_t*);
 void print_iNes_1_0_header(iNES_1_0_header);
+iNES_1_0_header get_iNes_1_0_header();
 
-#endif // ROM_HEADER_PARSER_H
+bool parse_PRG_rom(uint8_t*);
+bool parse_CHR_rom(uint8_t*);
+
+uint8_t* get_PRG_bank(uint8_t);
+uint8_t* get_CHR_bank(uint8_t);
+
+void cleanup_PRG_and_CHR_banks();
+
+#endif // ROM_PARSER_H

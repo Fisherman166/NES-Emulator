@@ -15,6 +15,7 @@
 #include "RAM.h"
 #include "VRAM.h"
 #include "controller.h"
+#include "rom_parser.h"
 
 static void parse_cmdline(int, char **);
 static void init_system(cpu_registers*);
@@ -81,6 +82,7 @@ static void run_system(cpu_registers* registers) {
 }
 
 static void cleanup() {
+    cleanup_PRG_and_CHR_banks();
     printf("Ending Emulation!\n");
     exit_SDL();
 

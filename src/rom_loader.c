@@ -11,7 +11,7 @@
 #include "rom_loader.h"
 #include "RAM.h"
 #include "mappers.h"
-#include "rom_header_parser.h"
+#include "rom_parser.h"
 
 #define NROM 0
 
@@ -92,24 +92,24 @@ bool load_rom(const char* rom_filename) {
         return true;
     }
 
-    iNES_1_0_header parsed_header = parse_iNes_1_0_header(rom_data);
+    parse_iNes_1_0_header(rom_data);
+    parse_PRG_rom(rom_data);
+    parse_CHR_rom(rom_data);
+    free(rom_data);
+
+    iNES_1_0_header parsed_header = get_iNes_1_0_header();
     print_iNes_1_0_header(parsed_header);
-
-    uint8_t mapper = (parsed_header.flags7.fields.high_mapper_nibble << 4) |
-                     parsed_header.flags6.fields.low_mapper_nibble;
-    printf("rom is using mapper %u\n", mapper);
-
-    if(mapper == NROM) load_NROM(rom_data, parsed_header);
-    else {
-        printf("ERROR: Mapper %u does not match any supported mappers\n", mapper);
-        free(rom_data);
-        return true;
+    switch(parsed_header.mapper) {
+        case NROM:
+            load_NROM();
+            break;
+        default:
+            printf("ERROR: Mapper %u does not match any supported mappers\n", parsed_header.mapper);
+            return true;
     }
 
     #ifdef DEBUG
         print_rom_data();
     #endif
-    free(rom_data);
     return false;
 }
-

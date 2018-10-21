@@ -13,6 +13,7 @@ set(src_files
     sprites.c
     VRAM.c
     controller.c
-    rom_header_parser.c
+    rom_parser.c
+    bank_switcher.c
 )
 add_library(src ${src_files})

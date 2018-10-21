@@ -26,6 +26,10 @@
 
 #define PRG_ROM_BANK1_ADDRESS 0x8000
 #define PRG_ROM_BANK2_ADDRESS 0xC000
+#define CHR_ROM_BANK1_ADDRESS 0x0
+#define CHR_ROM_BANK2_ADDRESS 0x1000
+#define PRG_BANK_SIZE         0x4000
+#define CHR_BANK_SIZE         0x2000
 
 void init_RAM();
 
