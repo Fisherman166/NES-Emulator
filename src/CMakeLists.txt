@@ -6,7 +6,6 @@ set(src_files
     rom_loader.c
     illegal_opcodes.c
     main.c
-    mappers.c
     ppu.c
     RAM.c
     sdl_interface.c
@@ -15,5 +14,6 @@ set(src_files
     controller.c
     rom_parser.c
     bank_switcher.c
+    mapper_0.c
 )
 add_library(src ${src_files})

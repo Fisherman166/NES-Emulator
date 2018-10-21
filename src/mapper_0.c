@@ -1,17 +1,17 @@
 //*****************************************************************************
-// Filename: mappers.c
+// Filename: mapper_0.c
 // Author: Fisherman166
 //
-// Implements the different mappers used in the NES
+// Implements NROM mapper
 //
 //*****************************************************************************
 
-#include "mappers.h"
+#include "mapper_0.h"
 #include "bank_switcher.h"
 #include "rom_parser.h"
 #include "VRAM.h"
 
-void load_NROM() {
+void init_NROM() {
     iNES_1_0_header parsed_header = get_iNes_1_0_header();
 
     if(parsed_header.flags6.fields.mirroring) set_vertical_mirroring();

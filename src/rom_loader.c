@@ -9,11 +9,10 @@
 #include <stdlib.h>
 #include "common.h"
 #include "rom_loader.h"
-#include "mappers.h"
 #include "rom_parser.h"
 #include "RAM.h"
 
-#define NROM 0
+#include "mapper_0.h"
 
 static FILE* open_rom_file(const char* rom_file) {
     FILE* rom_filehandle = NULL;
@@ -99,8 +98,8 @@ bool load_rom(const char* rom_filename) {
     iNES_1_0_header parsed_header = get_iNes_1_0_header();
     print_iNes_1_0_header(parsed_header);
     switch(parsed_header.mapper) {
-        case NROM:
-            load_NROM();
+        case 0:
+            init_NROM();
             break;
         default:
             printf("ERROR: Mapper %u does not match any supported mappers\n", parsed_header.mapper);

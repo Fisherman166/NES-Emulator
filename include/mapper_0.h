@@ -1,17 +1,17 @@
 //*****************************************************************************
-// Filename: mappers.h
+// Filename: mapper_0.h
 // Author: Fisherman166
 //
-// Implements the different mappers used in the NES
+// Implements NROM mapper
 //
 //*****************************************************************************
 
-#ifndef MAPPERS_H
-#define MAPPERS_H
+#ifndef MAPPER_0_H
+#define MAPPER_0_H
 
 #include "common.h"
 
-void load_NROM();
+void init_NROM();
 
 #endif
 
