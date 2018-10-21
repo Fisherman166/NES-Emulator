@@ -4,8 +4,12 @@
 #include "common.h"
 
 void init_VRAM();
+
 void set_horizontal_mirroring();
 void set_vertical_mirroring();
+void set_single_screen_low_mirroring();
+void set_single_screen_high_mirroring();
+void set_four_screen_mirroring();
 
 uint8_t read_VRAM(uint16_t);
 void write_VRAM(uint16_t, uint8_t);

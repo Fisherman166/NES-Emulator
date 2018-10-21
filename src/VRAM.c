@@ -16,9 +16,8 @@
 #define PALLATE_TABLE_MIRROR_BASE_ADDR 0x3F20
 
 static uint8_t VRAM[VRAM_SIZE];
-static bool horizontal_mirroring = false;
-static bool vertical_mirroring = false;
 static bool write_toggle;
+static enum mirror_modes {horizontal, vertical, single_screen_low, single_screen_high, four_sceen} mirroring;
 
 static struct VRAM_state_s {
     uint16_t VRAM_address;
@@ -49,13 +48,13 @@ static bool is_horizontal_mirror(uint16_t address) {
                              (address < NAMETABLE3_BASE_ADDR);
     bool nametable2_mirror = (address >= NAMETABLE4_BASE_ADDR) &&
                              (address < NAMETABLE_MIRROR_BASE_ADDR);
-    return( horizontal_mirroring & (nametable1_mirror | nametable2_mirror) );
+    return (mirroring == horizontal) && (nametable1_mirror | nametable2_mirror);
 }
 
 static bool is_vertical_mirror(uint16_t address) {
     bool is_mirror = (address >= NAMETABLE3_BASE_ADDR) &&
                      (address < NAMETABLE_MIRROR_BASE_ADDR);
-    return( vertical_mirroring & is_mirror );
+    return (mirroring == vertical) && is_mirror;
 }
 
 static uint16_t sanitize_VRAM_address(uint16_t address) {
@@ -63,8 +62,12 @@ static uint16_t sanitize_VRAM_address(uint16_t address) {
     if(is_nametable_mirror(address)) address -= 0x1000;
     if(is_pallete_mirror(address)) address = PALLATE_TABLE_BASE_ADDR | (address & 0x1F);
     if(is_special_pallete_mirror(address)) address = PALLATE_TABLE_BASE_ADDR | (address & 0xF);
-    if(is_horizontal_mirror(address)) address -= 0x400;
-    if(is_vertical_mirror(address)) address -= 0x800;
+
+    // Four screen does not mirror
+    if(is_horizontal_mirror(address)) address &= ~0x0400;
+    else if(is_vertical_mirror(address)) address &= ~0x0800;
+    else if(mirroring == single_screen_low) address = NAMETABLE1_BASE_ADDR | (address & 0x03FF);
+    else if(mirroring == single_screen_high) address = NAMETABLE2_BASE_ADDR | (address & 0x03FF);
     return address;
 }
 
@@ -83,11 +86,23 @@ void init_VRAM() {
 }
 
 void set_horizontal_mirroring() {
-    horizontal_mirroring = true;
+    mirroring = horizontal;
 }
 
 void set_vertical_mirroring() {
-    vertical_mirroring = true;
+    mirroring = vertical;
+}
+
+void set_single_screen_low_mirroring() {
+    mirroring = single_screen_low;
+}
+
+void set_single_screen_high_mirroring() {
+    mirroring = single_screen_high;
+}
+
+void set_four_screen_mirroring() {
+    mirroring = four_sceen;
 }
 
 uint8_t read_VRAM(uint16_t address) {
