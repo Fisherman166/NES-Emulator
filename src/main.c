@@ -44,11 +44,12 @@ static void parse_cmdline(int argc, char **argv) {
 } 
 
 static void init_system(cpu_registers* registers) {
+    bool debug_enabled = getenv("DEBUG") == NULL ? false : true;
     if( init_SDL() ) {
         printf("ERROR: Failed to init SDL");
         exit(1);
     }
-    if( load_rom(game_file) ) {
+    if( load_rom(game_file, debug_enabled) ) {
         printf("FATAL ERROR occurred while attempting to load game.\n");
         exit(1);
     }
@@ -56,9 +57,9 @@ static void init_system(cpu_registers* registers) {
     init_ppu();
     init_RAM();
     init_VRAM();
-#ifdef DEBUG
-    open_cpu_debug_logfile();
-#endif
+    if(debug_enabled) {
+        open_cpu_debug_logfile();
+    }
 }
 
 static void run_system(cpu_registers* registers) {
@@ -85,9 +86,6 @@ static void cleanup() {
     cleanup_PRG_and_CHR_banks();
     printf("Ending Emulation!\n");
     exit_SDL();
-
-    #ifdef DEBUG
-        close_cpu_debug_logfile();
-    #endif
+    close_cpu_debug_logfile();
 }
 

@@ -68,7 +68,6 @@ static bool read_rom(const char* rom_filename) {
     return false;
 }
 
-#ifdef DEBUG
 static void print_rom_data() {
     const uint16_t rom_start = 0x8000;
     FILE* rom_data = fopen("rom_data.log", "w");
@@ -87,10 +86,9 @@ static void print_rom_data() {
                 debug_read_RAM(address + 15));
     fclose(rom_data);
 }
-#endif //DEBUG
 
 // Returns true on loading errors, false for no loading error
-bool load_rom(const char* rom_filename) {
+bool load_rom(const char* rom_filename, bool debug_enabled) {
     if(read_rom(rom_filename)) {
         return true;
     }
@@ -106,8 +104,8 @@ bool load_rom(const char* rom_filename) {
             return true;
     }
 
-    #ifdef DEBUG
+    if(debug_enabled) {
         print_rom_data();
-    #endif
+    }
     return false;
 }
